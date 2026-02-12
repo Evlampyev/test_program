@@ -1,0 +1,370 @@
+<!-- templates/testing/error.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ошибка тестирования</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #212529;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .error-header {
+            background: #dc3545;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .error-header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .error-content {
+            padding: 40px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #dc3545;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .error-details {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .error-details h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-stack {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .suggestions {
+            background: #e7f3ff;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #17a2b8;
+            margin-bottom: 30px;
+        }
+
+        .suggestions h3 {
+            color: #0c5460;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .suggestions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .suggestions li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .suggestions li:before {
+            content: "•";
+            color: #17a2b8;
+            font-weight: bold;
+            font-size: 1.2em;
+            position: absolute;
+            left: 10px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .error-footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+
+        .support-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .support-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .error-content {
+                padding: 25px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <!-- Заголовок ошибки -->
+        <div class="error-header">
+            <div class="error-icon">⚠️</div>
+            <h1>Ошибка тестирования</h1>
+            <p>При выполнении тестов произошла ошибка</p>
+        </div>
+
+        <!-- Содержимое ошибки -->
+        <div class="error-content">
+            <!-- Сообщение об ошибке -->
+            <div class="error-message">
+                <strong>🚫 {{ error|default:"Неизвестная ошибка" }}</strong>
+            </div>
+
+            <!-- Детали ошибки -->
+            <div class="error-details">
+                <h3>
+                    <span>🔍 Детали ошибки</span>
+                </h3>
+
+                {% if error_details %}
+                    <div class="error-stack">{{ error_details }}</div>
+                {% elif traceback %}
+                    <div class="error-stack">{{ traceback }}</div>
+                {% else %}
+                    <div class="error-stack">
+                        Время: {% now "d.m.Y H:i:s" %}<br>
+                        Тип ошибки: {{ error_type|default:"Не указан" }}<br>
+                        {% if program_id %}ID программы: {{ program_id }}<br>{% endif %}
+                        {% if task_id %}ID задачи: {{ task_id }}<br>{% endif %}
+                        Путь: {{ request.path }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Рекомендации по исправлению -->
+            <div class="suggestions">
+                <h3>
+                    <span>💡 Возможные причины:</span>
+                </h3>
+                <ul>
+                    <li>Файл с программой не найден на сервере</li>
+                    <li>Файл с тестами поврежден или отсутствует</li>
+                    <li>Программа содержит синтаксические ошибки</li>
+                    <li>Недостаточно прав для выполнения файла</li>
+                    <li>Программа превысила время выполнения</li>
+                    <li>Используются запрещенные модули или функции</li>
+                </ul>
+
+                <h3 style="margin-top: 25px;">
+                    <span>✅ Рекомендации:</span>
+                </h3>
+                <ul>
+                    <li>Проверьте, что файл успешно загрузился</li>
+                    <li>Убедитесь, что программа запускается локально</li>
+                    <li>Проверьте синтаксис Python</li>
+                    <li>Убедитесь, что нет бесконечных циклов</li>
+                    <li>Попробуйте загрузить файл заново</li>
+                </ul>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="actions">
+                <a href="javascript:history.back()" class="btn btn-primary">
+                    ← Вернуться назад
+                </a>
+
+                {% if program_id %}
+                <button onclick="retryTest({{ program_id }})" class="btn btn-outline">
+                    🔄 Повторить попытку
+                </button>
+                {% endif %}
+
+                <a href="{% url 'tasks:task_list' %}" class="btn btn-secondary">
+                    📋 К списку задач
+                </a>
+            </div>
+
+            <!-- Дополнительная информация -->
+            {% if support_email %}
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                <p style="color: #6c757d;">
+                    Если ошибка повторяется, обратитесь в поддержку:
+                    <a href="mailto:{{ support_email }}" class="support-link">{{ support_email }}</a>
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Футер -->
+        <div class="error-footer">
+            <p>Система автоматического тестирования | {% now "Y" %}</p>
+            <p style="font-size: 0.9em; margin-top: 5px;">Версия 1.0</p>
+        </div>
+    </div>
+
+    <script>
+        // Функция для повторного запуска тестов
+        async function retryTest(programId) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Запуск...';
+
+            try {
+                const response = await fetch(`/tester/run-tests/${programId}/`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (response.ok) {
+                    window.location.href = `/tester/run-tests/${programId}/`;
+                } else {
+                    alert('Ошибка при запуске тестов');
+                    btn.disabled = false;
+                    btn.innerHTML = '🔄 Повторить попытку';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ошибка при запуске тестов');
+                btn.disabled = false;
+                btn.innerHTML = '🔄 Повторить попытку';
+            }
+        }
+
+        // Автоматическое копирование ошибки в буфер обмена (опционально)
+        function copyErrorToClipboard() {
+            const errorText = document.querySelector('.error-stack')?.innerText;
+            if (errorText) {
+                navigator.clipboard.writeText(errorText).then(() => {
+                    alert('Текст ошибки скопирован в буфер обмена');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
