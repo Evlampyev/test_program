@@ -1,5 +1,6 @@
 # testing_app/views.py
 import os
+import logging
 
 from django.shortcuts import render, get_object_or_404
 from temp_tests.models import UploadedProgram
@@ -8,11 +9,13 @@ import subprocess
 from testing_app.tester_project.tester import PythonCodeTester
 from manage import logger
 
+logger = logging.getLogger(__name__)
+
 
 def run_tests(request, program_id):
     """Запуск тестов для загруженной программы"""
     program = get_object_or_404(UploadedProgram, id=program_id)
-    logger.info(f"{program_id = }")
+    logger.info(f"Выбрана задача №{program_id = }")
 
     # Обновляем статус
     program.status = 'testing'
@@ -24,7 +27,7 @@ def run_tests(request, program_id):
     tests_path = task.test_path + '/' + str(task_id) + '/'
     student_code_path = program.program_file.path
 
-    logger.info(f"Задача №{task_id}, папка с тестами: {tests_path}; {student_code_path=}")
+    logger.info(f"Задача №{task_id}; папка с тестами: {tests_path}; путь к коду ученика: {student_code_path}")
 
     if not os.path.exists(tests_path):
         return render(request, 'testing_app/error.html', {
@@ -37,7 +40,6 @@ def run_tests(request, program_id):
         results = tester.run_all_tests()
 
         logger.info(f"Результаты тестов: {results}")
-
         # Сохраняем результаты
         program.test_results = results
         program.status = 'passed' if results.returncode == 0 else 'failed'

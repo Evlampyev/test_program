@@ -6,14 +6,14 @@ import sys
 import logging
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", filename="py_log.log",
-                    filemode="w")
+
 
 
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TempTestsProgram.settings')
     try:
+        logger.info("Запуск сервера Django")
         from django.core.management import execute_from_command_line
     except ImportError as exc:
         raise ImportError(
