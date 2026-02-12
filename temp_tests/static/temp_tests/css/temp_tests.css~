@@ -1,0 +1,39 @@
+/* Для файла task_list.html */
+.task-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.task-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    background: linear-gradient(455deg, #dadff3 0%, #a4d7de 100%);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-card h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.task-id {
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* конец */
+
+/*  Для файла task_detail.html */
+
+
+
+/* конец */

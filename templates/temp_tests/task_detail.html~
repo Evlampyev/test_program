@@ -1,61 +1,12 @@
-<!-- templates/tasks/task_detail.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ task.title }}</title>
-    <style>
-        .result-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 20px;
-        }
-        .task-description {
-            border-right: 1px solid #ccc;
-            padding-right: 20px;
-        }
-        .upload-section {
-            padding-left: 20px;
-        }
-        .markdown-content {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-        }
-        .markdown-content pre {
-            background: #f4f4f4;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-        .markdown-content code {
-            background: #f4f4f4;
-            padding: 2px 5px;
-            border-radius: 3px;
-        }
-        .button {
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px 0;
-        }
-        .button:hover {
-            background: #0056b3;
-        }
-        .status {
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .status.uploaded { background: #e7f3ff; }
-        .status.passed { background: #d4edda; color: #155724; }
-        .status.failed { background: #f8d7da; color: #721c24; }
-    </style>
-</head>
-<body>
-    <div class="container">
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'temp_tests/css/temp_tests.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="task-container">
         <!-- Левая часть - описание задачи из Markdown -->
         <div class="task-description">
             <h1>{{ task.title }}</h1>
@@ -72,21 +23,21 @@
             <div id="taskInfo">
                 <p><strong>ID задачи:</strong> <span id="taskId">{{ task.id }}</span></p>
                 <p><strong>Название:</strong> <span id="taskTitle">{{ task.title }}</span></p>
-                <p><strong>Тесты:</strong> <span id="testPath">{{ task.test_path }}</span></p>
+                {#                <p><strong>Тесты:</strong> <span id="testPath">{{ task.test_path }}</span></p>#}
             </div>
 
             <!-- Статус предыдущей загрузки -->
             {% if uploaded_program %}
-            <div class="status {{ uploaded_program.status }}">
-                <h3>Последняя попытка:</h3>
-                <p>Загружено: {{ uploaded_program.upload_time }}</p>
-                <p>Статус: {{ uploaded_program.get_status_display }}</p>
-                {% if uploaded_program.test_results %}
-                <button onclick="showResults({{ uploaded_program.id }})">
-                    Показать результаты
-                </button>
-                {% endif %}
-            </div>
+                <div class="status {{ uploaded_program.status }}">
+                    <h3>Последняя попытка:</h3>
+                    <p>Загружено: {{ uploaded_program.upload_time }}</p>
+                    <p>Статус: {{ uploaded_program.get_status_display }}</p>
+                    {% if uploaded_program.test_results %}
+                        <button onclick="showResults({{ uploaded_program.id }})">
+                            Показать результаты
+                        </button>
+                    {% endif %}
+                </div>
             {% endif %}
 
             <!-- Форма загрузки программы -->
@@ -107,77 +58,8 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
-    <script>
-        // Обработка загрузки файла
-        document.getElementById('programUploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-            try {
-                const response = await fetch('/upload/', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': csrftoken,
-                    }
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert('Файл успешно загружен!');
-                    // Передаем program_id в окно тестирования
-                    if (data.program_id) {
-                        runTests(data.program_id);
-                    }
-                } else {
-                    alert('Ошибка: ' + data.message);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Ошибка при загрузке файла');
-            }
-        });
-
-        // Запуск тестов
-        async function runTests(programId) {
-            document.getElementById('testResults').style.display = 'block';
-            document.getElementById('testResultsContent').innerHTML = '<p>Запуск тестов...</p>';
-
-            try {
-                const response = await fetch(`/tester/run-tests/${programId}/`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-
-                const html = await response.text();
-                document.getElementById('testResultsContent').innerHTML = html;
-
-                // Обновляем статус
-                updateTaskStatus(programId);
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('testResultsContent').innerHTML =
-                    '<p class="error">Ошибка при запуске тестов</p>';
-            }
-        }
-
-        // Показать результаты предыдущей попытки
-        async function showResults(programId) {
-            document.getElementById('testResults').style.display = 'block';
-            await runTests(programId);
-        }
-
-        // Обновить статус задачи на странице
-        async function updateTaskStatus(programId) {
-            // Здесь можно добавить AJAX запрос для обновления статуса
-            // Или просто перезагрузить страницу
-            // location.reload();
-        }
-    </script>
-</body>
-</html>
+{% block extra_js %}
+    <script src="{% static 'temp_tests/js/task_detail.js' %}"></script>
+{% endblock %}
