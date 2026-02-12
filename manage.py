@@ -6,7 +6,9 @@ import sys
 import logging
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", filename="py_log.log",
+                    filemode="w")
+
 
 def main():
     """Run administrative tasks."""
@@ -23,5 +25,4 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()
