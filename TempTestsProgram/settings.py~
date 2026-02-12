@@ -127,7 +127,6 @@ LOGGING = {
             "level": "INFO",
             "class": "logging.FileHandler",
             "filename": "debug.log",
-            "formatter": "verbose",
             "encoding": "utf-8",
         },
     },

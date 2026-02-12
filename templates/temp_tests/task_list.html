@@ -1,49 +1,24 @@
-<!-- templates/tasks/task_list.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ title }}</title>
-    <style>
-        .task-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .task-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .task-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .task-card h3 {
-            margin-top: 0;
-            color: #333;
-        }
-        .task-id {
-            color: #666;
-            font-size: 0.9em;
-        }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'temp_tests/css/temp_tests.css' %}">
+{% endblock %}
+
+{% block content %}
+
     <h1>Доступные задачи</h1>
-    
+
     <div class="task-grid">
         {% for task in tasks %}
-        <div class="task-card" onclick="location.href='{% url 'tasks:task_detail' task.id %}'">
-            <h3>{{ task.title }}</h3>
-            <p class="task-id">ID: {{ task.id }}</p>
-            <p>{{ task.description|truncatewords:20 }}</p>
-        </div>
+            <div class="task-card" onclick="location.href='{% url 'tasks:task_detail' task.id %}'">
+                <h3>{{ task.title }}</h3>
+                <p class="task-id">ID: {{ task.id }}</p>
+                <p>{{ task.description|truncatewords:20 }}</p>
+            </div>
         {% empty %}
-        <p>Нет доступных задач</p>
+            <p>Нет доступных задач</p>
         {% endfor %}
     </div>
-</body>
-</html>
+
+{% endblock %}
