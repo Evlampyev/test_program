@@ -31,7 +31,8 @@ def run_tests(request, program_id):
 
     if not os.path.exists(tests_path):
         return render(request, 'testing_app/error.html', {
-            'error': 'Файл с тестами не найден'
+            'error': 'Файл с тестами не найден',
+            'title': "Ошибка тестирования"
         })
 
     try:
