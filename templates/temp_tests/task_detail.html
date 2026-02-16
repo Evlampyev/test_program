@@ -46,7 +46,7 @@
                     {% csrf_token %}
                     <input type="file" name="file" accept=".py" id="programFile" required>
                     <input type="hidden" name="task_id" value="{{ task.id }}" id="taskIdInput">
-                    <button type="submit" class="button">Загрузить программу</button>
+                    <button type="submit" class="btn btn-primary">Загрузить программу</button>
                 </form>
             </div>
 

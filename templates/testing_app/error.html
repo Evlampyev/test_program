@@ -7,94 +7,12 @@
 
 {% block content %}
     <style>
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 5px solid #dc3545;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5a67d8;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        .btn-outline:hover {
-            background: #667eea;
-            color: white;
-        }
-
         .error-footer {
             background: #f8f9fa;
             padding: 20px;
             text-align: center;
             border-top: 1px solid #dee2e6;
             color: #6c757d;
-        }
-
-        .support-link {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .support-link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-            .error-content {
-                padding: 25px;
-            }
-
-            .error-actions {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
         }
     </style>
 
@@ -194,8 +112,6 @@
             <p style="font-size: 0.9em; margin-top: 5px;">Версия 1.0</p>
         </div>
     </div>
-
-
 {% endblock %}
 
 {% block extra_js %}

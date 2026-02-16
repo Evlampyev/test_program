@@ -32,7 +32,8 @@ def run_tests(request, program_id):
     if not os.path.exists(tests_path):
         return render(request, 'testing_app/error.html', {
             'error': 'Файл с тестами не найден',
-            'title': "Ошибка тестирования"
+            'title': "Ошибка тестирования",
+            'support_email': 'AEvlampev@1pku.ru',
         })
 
     try:
@@ -77,4 +78,5 @@ def run_tests(request, program_id):
         'passed_count': passed_count,
         'failed_count': failed_count,
         'success_rate': success_rate,
+
     })

@@ -267,16 +267,17 @@
     margin-top: 10px;
 }
 
-.error-message {
-    background: #fff5f5;
-    color: #c53030;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #f56565;
-    margin-top: 10px;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 0.9em;
-}
+/*.error-message {*/
+/*    background: #fff5f5;*/
+/*    color: #c53030;*/
+/*    padding: 15px;*/
+/*    border-radius: 8px;*/
+/*    border-left: 4px solid #f56565;*/
+/*    margin-top: 10px;*/
+/*    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;*/
+/*    font-size: 0.9em;*/
+/*}*/
+
 
 .diff-view {
     display: grid;
@@ -368,6 +369,18 @@
 /* Конец для файла results.html */
 
 /* для файла error.html */
+
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 5px solid #dc3545;
+    margin-bottom: 30px;
+    font-size: 1.1em;
+}
+
+
 .error-container {
     max-width: 800px;
     width: 100%;
@@ -440,6 +453,7 @@
     overflow-y: auto;
 }
 
+
 .suggestions {
     background: #e7f3ff;
     padding: 25px;
@@ -483,5 +497,14 @@
     margin-top: 30px;
 }
 
+.support-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.support-link:hover {
+    text-decoration: underline;
+}
 
 /* конец для файла error.html */

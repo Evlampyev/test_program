@@ -1,23 +1,6 @@
-.button {
-    background: #007bff;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 10px 0;
-}
-
-.button:hover {
-    background: #0056b3;
-}
-
 .btn {
     width: 100%;
     justify-content: center;
-}
-
-.btn {
     padding: 12px 24px;
     border: none;
     border-radius: 50px;
@@ -42,14 +25,14 @@
 }
 
 .btn-secondary {
-    background: white;
-    color: #4a5568;
+    background: #6c757d;
+    color: whitesmoke;
     border: 1px solid #e2e8f0;
 }
 
 .btn-secondary:hover {
-    background: #f7fafc;
-    border-color: #cbd5e0;
+    background: #5a6268;
+    transform: translateY(-2px);
 }
 
 .btn-success {
@@ -61,4 +44,15 @@
     background: #38a169;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.btn-outline {
+    background: transparent;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn-outline:hover {
+    background: #667eea;
+    color: white;
 }
