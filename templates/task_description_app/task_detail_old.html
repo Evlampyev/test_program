@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'task_description_app/css/temp_tests.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="grid-split">
+        <!-- Левая часть - описание задачи из Markdown -->
+        <div class="task-description">
+            <h1>{{ task.title }}</h1>
+            <div class="markdown-content">
+                {{ md_html|safe }}
+            </div>
+        </div>
+        <
+
+        <!-- Правая часть - загрузка и тестирование -->
+        <div class="upload-section">
+            <h2>Решение задачи</h2>
+
+            <!-- Информация о задаче -->
+            <div id="taskInfo">
+                <p><strong>ID задачи:</strong> <span id="taskId">{{ task.id }}</span></p>
+                <p><strong>Название:</strong> <span id="taskTitle">{{ task.title }}</span></p>
+            </div>
+
+            <!-- Статус предыдущей загрузки -->
+            {% if uploaded_program %}
+                <div class="status {{ uploaded_program.status }}">
+                    <h3>Последняя попытка:</h3>
+                    <p>Загружено: {{ uploaded_program.upload_time }}</p>
+                    <p>Статус: {{ uploaded_program.get_status_display }}</p>
+                    {% if uploaded_program.test_results %}
+                        <button onclick="showResults({{ uploaded_program.id }})">
+                            Показать результаты
+                        </button>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Форма загрузки программы -->
+            <div class="upload-form">
+                <h3>Загрузите решение</h3>
+                <form id="programUploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="file" name="file" accept=".py" id="programFile" required>
+                    <input type="hidden" name="task_id" value="{{ task.id }}" id="taskIdInput">
+                    <button type="submit" class="btn btn-primary">Загрузить программу</button>
+                </form>
+            </div>
+
+            <!-- Результаты тестирования -->
+            <div id="testResults" style="display: none;">
+                <h3>Результаты тестирования</h3>
+                <div id="testResultsContent"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'task_description_app/js/task_detail.js' %}"></script>
+{% endblock %}

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'temp_tests/css/temp_tests.css' %}">
+    <link rel="stylesheet" href="{% static 'task_ description_app/css/temp_tests.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -61,5 +61,5 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'temp_tests/js/task_detail.js' %}"></script>
+    <script src="{% static 'task_ description_app/js/task_detail.js' %}"></script>
 {% endblock %}

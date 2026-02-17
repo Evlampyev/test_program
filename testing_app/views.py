@@ -3,7 +3,7 @@ import os
 import logging
 
 from django.shortcuts import render, get_object_or_404
-from temp_tests.models import UploadedProgram
+from task_description_app.models import UploadedProgram
 import subprocess
 
 from testing_app.tester_project.tester import PythonCodeTester

@@ -12,8 +12,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
-from temp_tests.models import UploadedProgram
-from temp_tests.models import Task
+from task_description_app.models import UploadedProgram
+from task_description_app.models import Task
 
 # Глобальный список для отслеживания временных файлов
 _temp_files = []

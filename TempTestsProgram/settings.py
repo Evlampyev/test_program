@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'temp_tests.apps.TempTestsConfig',
+    'task_description_app.apps.TempTestsConfig',
     'upload_app.apps.UploadAppConfig',
     'testing_app.apps.TestingAppConfig',
 ]
