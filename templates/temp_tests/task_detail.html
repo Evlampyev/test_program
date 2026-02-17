@@ -3,6 +3,10 @@
 {% load static %}
 
 {% block extra_css %}
+    {#    для красивого Python#}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    {#    Мой файл css #}
     <link rel="stylesheet" href="{% static 'temp_tests/css/temp_tests.css' %}">
 {% endblock %}
 
@@ -15,6 +19,11 @@
                 <h1>{{ task.title }}</h1>
                 <div class="markdown-content">
                     {{ md_html|safe }}
+                </div>
+                <div class="results-actions">
+                    <a href="{% url 'tasks:task_list' %}" class="btn btn-success">
+                        📋 Сменить задачу
+                    </a>
                 </div>
             </div>
             <hr>
@@ -60,6 +69,7 @@
                         <span id="programFileName" style="color: #9cdcfe;">Файл не выбран</span>
                     </div>
                     <pre id="programContent" style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">// Программа будет отображена после загрузки</pre>
+
                 </div>
             </div>
         </div>
@@ -85,21 +95,9 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'temp_tests/js/task_detail.js' %}"></script>
-    <script>
-        // Дополнительный JS для отображения содержимого файла
-        document.getElementById('programFile').addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                document.getElementById('programFileName').textContent = file.name;
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 
-                // Читаем содержимое файла для предпросмотра
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    document.getElementById('programContent').textContent = e.target.result;
-                };
-                reader.readAsText(file);
-            }
-        });
-    </script>
+    <script src="{% static 'temp_tests/js/task_detail.js' %}"></script>
+
 {% endblock %}
