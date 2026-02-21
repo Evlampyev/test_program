@@ -1,24 +1,910 @@
+<!-- Структура страницы с задачами -->
+
+<!-- templates/temp_tests/task_detail.html -->
 {% extends 'base.html' %}
 {% load static %}
 
 {% block extra_css %}
+    {#    для красивого Python#}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    {#    Мой файл css #}
     <link rel="stylesheet" href="{% static 'task_description_app/css/temp_tests.css' %}">
 {% endblock %}
 
 {% block content %}
 
-    <h1>Доступные задачи</h1>
+    <title>Навигатор задач по урокам</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <div class="task-grid">
-        {% for task in tasks %}
-            <div class="task-card" onclick="location.href='{% url 'tasks:task_detail' task.id %}'">
-                <h3>{{ task.title }}</h3>
-                <p class="task-id">ID: {{ task.id }}</p>
-                <p>{{ task.description|truncatewords:20 }}</p>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.5;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .header h1 span {
+            background: #e2e8f0;
+            font-size: 0.9rem;
+            font-weight: 400;
+            padding: 4px 12px;
+            border-radius: 40px;
+            color: #475569;
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        /* Основная сетка */
+        .content-grid {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        /* Левая колонка - дерево классов */
+        .classes-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e9eef3;
+            overflow: hidden;
+            position: sticky;
+            top: 24px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: #f9fcff;
+            border-bottom: 1px solid #e9eef3;
+            font-weight: 600;
+            color: #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header .badge {
+            background: #dbeafe;
+            color: #1e4a8b;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Дерево классов */
+        .classes-tree {
+            padding: 16px;
+        }
+
+        .class-item {
+            margin-bottom: 8px;
+        }
+
+        .class-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+
+        .class-header:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .class-header .arrow {
+            font-size: 0.7rem;
+            color: #64748b;
+            width: 20px;
+            transition: transform 0.2s;
+        }
+
+        .class-header .class-icon {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        .class-header .class-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .class-header .lesson-count {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+
+        .class-lessons {
+            margin-left: 30px;
+            margin-top: 6px;
+            margin-bottom: 6px;
+            display: none;
+        }
+
+        .class-lessons.expanded {
+            display: block;
+        }
+
+        /* Уроки внутри класса */
+        .lesson-item {
+            margin-bottom: 4px;
+        }
+
+        .lesson-header {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.9rem;
+            background: white;
+            border: 1px solid transparent;
+        }
+
+        .lesson-header:hover {
+            background: #f1f5f9;
+            border-color: #d1d9e6;
+        }
+
+        .lesson-header .arrow {
+            font-size: 0.7rem;
+            color: #64748b;
+            width: 20px;
+            margin-left: -8px;
+        }
+
+        .lesson-header .lesson-icon {
+            margin-right: 10px;
+            font-size: 1rem;
+        }
+
+        .lesson-header .lesson-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .lesson-header .task-count {
+            background: #dbeafe;
+            color: #1e4a8b;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .lesson-tasks {
+            margin-left: 32px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            display: none;
+        }
+
+        .lesson-tasks.expanded {
+            display: block;
+        }
+
+        /* Задачи (уровни) */
+        .task-level {
+            margin-bottom: 2px;
+        }
+
+        .level-header {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px 6px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.1s;
+            font-size: 0.85rem;
+            background: white;
+        }
+
+        .level-header:hover {
+            background: #f1f5f9;
+        }
+
+        .level-header .arrow {
+            font-size: 0.65rem;
+            color: #64748b;
+            width: 18px;
+        }
+
+        .level-header .level-icon {
+            margin-right: 8px;
+            font-size: 0.9rem;
+        }
+
+        .level-header .level-name {
+            flex: 1;
+            font-weight: 500;
+            color: #334155;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.3px;
+        }
+
+        .level-header .task-badge {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            color: #475569;
+        }
+
+        .level-tasks {
+            margin-left: 38px;
+            display: none;
+        }
+
+        .level-tasks.expanded {
+            display: block;
+        }
+
+        /* Конкретные задачи */
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px 8px 16px;
+            margin: 2px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.85rem;
+            background: #ffffff;
+            border: 1px solid transparent;
+        }
+
+        .task-item:hover {
+            background: #eef2ff;
+            border-color: #b9c7da;
+            transform: translateX(2px);
+        }
+
+        .task-item .task-icon {
+            margin-right: 10px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .task-item .task-name {
+            flex: 1;
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .task-item .task-id {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.7rem;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        /* Правая колонка - содержимое */
+        .content-main {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e9eef3;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        .content-header {
+            padding: 24px;
+            border-bottom: 1px solid #eef2f6;
+            background: #f9fcff;
+        }
+
+        .path-nav {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .path-item {
+            color: #4b6a8b;
+            background: #e9f0f8;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+        }
+
+        .path-separator {
+            color: #94a3b8;
+            font-size: 0.7rem;
+        }
+
+        .content-header h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-top: 4px;
+        }
+
+        .task-viewer {
+            padding: 32px;
+            overflow-y: auto;
+            max-height: calc(100vh - 250px);
+        }
+
+        /* Превью задачи (компактное) */
+        .task-preview {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .task-preview-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed #cbd5e1;
+            flex-wrap: wrap;
+        }
+
+        .task-preview-files {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .file-tag {
+            background: #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            color: #334155;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .file-tag.test {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .task-preview-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #1e293b;
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .task-preview-content h1 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+
+        .task-preview-content h2 {
+            font-size: 1.1rem;
+            margin: 16px 0 8px;
+        }
+
+        .task-preview-content p {
+            margin: 8px 0;
+        }
+
+        .task-preview-content code {
+            background: #f1f5f9;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .empty-state .big-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Компактный режим для задач */
+        .compact-mode .task-preview-content {
+            max-height: 200px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                📚 Задачи по уровням
+                <span>task.md в каждой задаче</span>
+            </h1>
+            <div class="stats">
+                <span>📊 Всего классов: <strong id="totalClasses">0</strong></span>
+                <span>📖 Уроков с задачами: <strong id="totalLessons">0</strong></span>
+                <span>🎯 Всего задач: <strong id="totalTasks">0</strong></span>
             </div>
-        {% empty %}
-            <p>Нет доступных задач</p>
-        {% endfor %}
+        </div>
+
+        <div class="content-grid">
+            <!-- Левая панель с деревом -->
+            <div class="classes-sidebar">
+                <div class="sidebar-header">
+                    <span>🗂️ Структура задач</span>
+                    <span class="badge" id="taskCounter">0 задач</span>
+                </div>
+                <div class="classes-tree" id="treeContainer">
+                    <!-- Дерево будет построено динамически -->
+                </div>
+            </div>
+
+            <!-- Правая панель с содержимым -->
+            <div class="content-main" id="contentMain">
+                <div class="content-header">
+                    <div class="path-nav" id="currentPath"></div>
+                    <h2 id="currentTitle">Выберите задачу</h2>
+                </div>
+                <div class="task-viewer" id="taskViewer">
+                    <div class="empty-state">
+                        <div class="big-icon">📋</div>
+                        <h3>Здесь появится содержимое задачи</h3>
+                        <p>Выберите задачу в дереве слева, чтобы увидеть её описание</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        (function() {
+            // Модель данных, соответствующая структуре из примера
+            const structure = [
+                {
+                    name: "9 класс",
+                    type: "class",
+                    children: [
+                        {
+                            name: "Тема №1",
+                            type: "topic",
+                            children: [
+                                {
+                                    name: "Урок_72",
+                                    type: "lesson",
+                                    children: [
+                                        {
+                                            name: "level_A",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out", "test2.in", "test2.out"] },
+                                                { name: "task_002", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] },
+                                                { name: "task_003", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        },
+                                        {
+                                            name: "level_B",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        },
+                                        {
+                                            name: "level_C",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] },
+                                                { name: "task_002", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    name: "Урок_73",
+                                    type: "lesson",
+                                    children: [
+                                        {
+                                            name: "level_A",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    name: "10 класс",
+                    type: "class",
+                    children: [
+                        {
+                            name: "Тема №1",
+                            type: "topic",
+                            children: [
+                                {
+                                    name: "Урок_72",
+                                    type: "lesson",
+                                    children: [
+                                        {
+                                            name: "level_A",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] },
+                                                { name: "task_002", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] },
+                                                { name: "task_003", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        },
+                                        {
+                                            name: "level_B",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] },
+                                                { name: "task_002", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        },
+                                        {
+                                            name: "level_C",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        },
+                                        {
+                                            name: "level_D",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        },
+                                        {
+                                            name: "level_E",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    name: "Урок_73",
+                                    type: "lesson",
+                                    children: [
+                                        {
+                                            name: "level_A",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        },
+                                        {
+                                            name: "level_B",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            name: "Тема №2",
+                            type: "topic",
+                            children: [
+                                {
+                                    name: "Урок_74",
+                                    type: "lesson",
+                                    children: [
+                                        {
+                                            name: "level_A",
+                                            type: "level",
+                                            children: [
+                                                { name: "task_001", type: "task", hasMd: true, files: ["task.md", "task.py", "test1.in", "test1.out"] }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ];
+
+            // Состояние развернутых элементов
+            const expandedState = new Map(); // key -> boolean
+
+            // Подсчет статистики
+            function calculateStats() {
+                let classes = 0, lessons = 0, tasks = 0;
+
+                function traverse(items) {
+                    for (let item of items) {
+                        if (item.type === 'class') classes++;
+                        if (item.type === 'lesson') lessons++;
+                        if (item.type === 'task' && item.hasMd) tasks++;
+                        if (item.children) traverse(item.children);
+                    }
+                }
+
+                traverse(structure);
+                return { classes, lessons, tasks };
+            }
+
+            // Построение дерева
+            function renderTree() {
+                const container = document.getElementById('treeContainer');
+                container.innerHTML = '';
+
+                function renderItems(items, level = 0) {
+                    return items.map(item => {
+                        const itemId = generateId(item);
+                        const isExpanded = expandedState.get(itemId) || false;
+
+                        let html = '';
+
+                        switch(item.type) {
+                            case 'class':
+                                html = `
+                                    <div class="class-item" data-id="${itemId}">
+                                        <div class="class-header" onclick="toggleNode('${itemId}')">
+                                            <span class="arrow">${isExpanded ? '▼' : '▶'}</span>
+                                            <span class="class-icon">📚</span>
+                                            <span class="class-name">${item.name}</span>
+                                            <span class="lesson-count">${countLessons(item)}</span>
+                                        </div>
+                                        <div class="class-lessons ${isExpanded ? 'expanded' : ''}">
+                                            ${item.children ? renderItems(item.children, level + 1) : ''}
+                                        </div>
+                                    </div>
+                                `;
+                                break;
+
+                            case 'topic':
+                                html = `
+                                    <div class="lesson-item" data-id="${itemId}">
+                                        <div class="lesson-header" onclick="toggleNode('${itemId}')">
+                                            <span class="arrow">${isExpanded ? '▼' : '▶'}</span>
+                                            <span class="lesson-icon">📖</span>
+                                            <span class="lesson-name">${item.name}</span>
+                                            <span class="task-count">${countTasks(item)}</span>
+                                        </div>
+                                        <div class="lesson-tasks ${isExpanded ? 'expanded' : ''}">
+                                            ${item.children ? renderItems(item.children, level + 1) : ''}
+                                        </div>
+                                    </div>
+                                `;
+                                break;
+
+                            case 'lesson':
+                                html = `
+                                    <div class="lesson-item" data-id="${itemId}">
+                                        <div class="lesson-header" onclick="toggleNode('${itemId}')">
+                                            <span class="arrow">${isExpanded ? '▼' : '▶'}</span>
+                                            <span class="lesson-icon">📝</span>
+                                            <span class="lesson-name">${item.name}</span>
+                                            <span class="task-count">${countTasks(item)}</span>
+                                        </div>
+                                        <div class="lesson-tasks ${isExpanded ? 'expanded' : ''}">
+                                            ${item.children ? renderItems(item.children, level + 1) : ''}
+                                        </div>
+                                    </div>
+                                `;
+                                break;
+
+                            case 'level':
+                                html = `
+                                    <div class="task-level" data-id="${itemId}">
+                                        <div class="level-header" onclick="toggleNode('${itemId}')">
+                                            <span class="arrow">${isExpanded ? '▼' : '▶'}</span>
+                                            <span class="level-icon">📊</span>
+                                            <span class="level-name">${item.name}</span>
+                                            <span class="task-badge">${item.children?.length || 0}</span>
+                                        </div>
+                                        <div class="level-tasks ${isExpanded ? 'expanded' : ''}">
+                                            ${item.children ? renderItems(item.children, level + 1) : ''}
+                                        </div>
+                                    </div>
+                                `;
+                                break;
+
+                            case 'task':
+                                html = `
+                                    <div class="task-item" onclick="selectTask('${itemId}', '${item.name}')">
+                                        <span class="task-icon">📄</span>
+                                        <span class="task-name">${item.name}</span>
+                                        <span class="task-id">${item.files?.length || 0} файлов</span>
+                                    </div>
+                                `;
+                                break;
+                        }
+
+                        return html;
+                    }).join('');
+                }
+
+                container.innerHTML = renderItems(structure);
+
+                // Обновляем статистику
+                const stats = calculateStats();
+                document.getElementById('totalClasses').textContent = stats.classes;
+                document.getElementById('totalLessons').textContent = stats.lessons;
+                document.getElementById('totalTasks').textContent = stats.tasks;
+                document.getElementById('taskCounter').textContent = `${stats.tasks} задач`;
+            }
+
+            // Подсчет количества уроков в классе
+            function countLessons(classItem) {
+                let count = 0;
+                if (classItem.children) {
+                    for (let topic of classItem.children) {
+                        if (topic.children) {
+                            count += topic.children.filter(c => c.type === 'lesson').length;
+                        }
+                    }
+                }
+                return `${count} уроков`;
+            }
+
+            // Подсчет задач в элементе
+            function countTasks(item) {
+                let count = 0;
+                function traverse(node) {
+                    if (node.type === 'task' && node.hasMd) count++;
+                    if (node.children) node.children.forEach(traverse);
+                }
+                traverse(item);
+                return count;
+            }
+
+            // Генерация ID для элемента
+            function generateId(item, path = '') {
+                return path ? `${path}/${item.name}` : item.name;
+            }
+
+            // Функция для сворачивания/разворачивания
+            window.toggleNode = function(itemId) {
+                const current = expandedState.get(itemId) || false;
+                expandedState.set(itemId, !current);
+                renderTree();
+            };
+
+            // Выбор задачи
+            window.selectTask = function(itemId, taskName) {
+                // Здесь должен быть переход по проекту
+                // Например, window.location.href = `/tasks_for_tests/${itemId}`;
+
+                // Показываем превью задачи
+                const taskViewer = document.getElementById('taskViewer');
+                const currentPath = document.getElementById('currentPath');
+                const currentTitle = document.getElementById('currentTitle');
+
+                currentPath.innerHTML = itemId.split('/').map(p => `<span class="path-item">${p}</span>`).join('<span class="path-separator">›</span>');
+                currentTitle.textContent = `Задача: ${taskName}`;
+
+                // Генерируем компактное отображение задачи
+                taskViewer.innerHTML = `
+                    <div class="task-preview compact-mode">
+                        <div class="task-preview-header">
+                            <div class="task-preview-files">
+                                <span class="file-tag">📄 task.md</span>
+                                <span class="file-tag">🐍 task.py</span>
+                                <span class="file-tag test">🧪 test1.in</span>
+                                <span class="file-tag test">📊 test1.out</span>
+                                <span class="file-tag test">🧪 test2.in</span>
+                                <span class="file-tag test">📊 test2.out</span>
+                            </div>
+                        </div>
+                        <div class="task-preview-content">
+                            <h1># ${taskName}</h1>
+                            <p>Это компактное описание задачи. Здесь будет содержимое файла task.md.</p>
+                            <p>В реальном проекте сюда загрузится содержимое файла task.md из папки задачи.</p>
+                            <p><strong>Пример кода:</strong></p>
+                            <pre><code>def solve():
+    # Решение задачи
+    pass</code></pre>
+                        </div>
+                    </div>
+                `;
+
+                // Подсвечиваем выбранную задачу
+                document.querySelectorAll('.task-item').forEach(el => {
+                    el.style.background = '';
+                });
+                event.currentTarget.style.background = '#eef2ff';
+            };
+
+            // Инициализация
+            renderTree();
+
+            // Добавляем глобальные стили для подсветки
+            const style = document.createElement('style');
+            style.textContent = `
+                .task-item.selected {
+                    background: #eef2ff !important;
+                    border-color: #3b82f6 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        })();
+    </script>
+</body>
+</html>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+
+    <script src="{% static 'task_description_app/js/task_detail.js' %}"></script>
+    <script>
+    </script>
+
+
 
 {% endblock %}
