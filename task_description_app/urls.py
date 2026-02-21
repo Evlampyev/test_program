@@ -9,3 +9,4 @@ urlpatterns = [
     path('task/<int:task_id>/', views.task_detail, name='task_detail'),
     path('api/task/<int:task_id>/', views.get_task_info, name='task_info'),
 ]
+

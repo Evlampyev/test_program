@@ -10,21 +10,19 @@
 {% endblock %}
 
 {% block content %}
-     <style>
-        /* ... все те же стили ... */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-            padding: 20px;
-        }
-        .container {
+
+
+    <title>Задачи</title>
+    <style>
+
+        .list-container {
             display: flex;
             gap: 20px;
             max-width: 1400px;
             margin: 0 auto;
             height: calc(100vh - 40px);
         }
+
         .sidebar {
             width: 400px;
             background: white;
@@ -32,8 +30,9 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
+
         .sidebar-header {
             padding: 16px;
             background: #f8f9fa;
@@ -42,26 +41,30 @@
             display: flex;
             justify-content: space-between;
         }
+
         .tree-container {
             flex: 1;
             overflow-y: auto;
             padding: 12px;
         }
-        .content {
+
+        .list-content {
             flex: 1;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
-        .content-header {
+
+        .list-content-header {
             padding: 20px;
             background: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
         }
-        .content-body {
+
+        .list-content-body {
             flex: 1;
             overflow-y: auto;
             padding: 24px;
@@ -72,12 +75,15 @@
             list-style: none;
             padding-left: 20px;
         }
+
         .tree {
             padding-left: 0;
         }
+
         .tree li {
             margin: 2px 0;
         }
+
         .tree .node {
             display: flex;
             align-items: center;
@@ -87,14 +93,17 @@
             user-select: none;
             font-size: 14px;
         }
+
         .tree .node:hover {
             background: #e9ecef;
         }
+
         .tree .node.selected {
             background: #e3f2fd;
             color: #1976d2;
             font-weight: 500;
         }
+
         .arrow {
             display: inline-block;
             width: 20px;
@@ -102,17 +111,20 @@
             font-size: 12px;
             color: #6c757d;
         }
+
         .icon {
             margin-right: 8px;
             width: 20px;
             text-align: center;
         }
+
         .name {
             flex: 1;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
         .count {
             background: #e9ecef;
             padding: 2px 8px;
@@ -121,154 +133,25 @@
             margin-left: 8px;
         }
 
+        /* Важно: правильно скрываем дочерние элементы */
         .tree ul {
             display: none;
         }
+
         .tree li.expanded > ul {
             display: block;
         }
 
-        /* Стили для Markdown контента */
-        .markdown-content {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: #24292e;
+        /* Задача */
+        .task-content {
+            background: #f8f9fa;
             padding: 20px;
-            background: white;
             border-radius: 8px;
-            border: 1px solid #e1e4e8;
-        }
-
-        .markdown-content h1 {
-            font-size: 2em;
-            border-bottom: 1px solid #eaecef;
-            padding-bottom: 0.3em;
-            margin-top: 24px;
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
-        .markdown-content h2 {
-            font-size: 1.5em;
-            border-bottom: 1px solid #eaecef;
-            padding-bottom: 0.3em;
-            margin-top: 24px;
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
-        .markdown-content h3 {
-            font-size: 1.25em;
-            margin-top: 24px;
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
-        .markdown-content p {
-            margin-top: 0;
-            margin-bottom: 16px;
-        }
-
-        .markdown-content code {
-            padding: 0.2em 0.4em;
-            margin: 0;
-            font-size: 85%;
-            background-color: rgba(27,31,35,0.05);
-            border-radius: 3px;
-            font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', Courier, monospace;
-        }
-
-        .markdown-content pre {
-            padding: 16px;
-            overflow: auto;
-            font-size: 85%;
-            line-height: 1.45;
-            background-color: #f6f8fa;
-            border-radius: 3px;
-            margin-bottom: 16px;
-        }
-
-        .markdown-content pre code {
-            padding: 0;
-            margin: 0;
-            font-size: 100%;
-            word-break: normal;
-            white-space: pre;
-            background: transparent;
-            border: 0;
-        }
-
-        .markdown-content blockquote {
-            padding: 0 1em;
-            color: #6a737d;
-            border-left: 0.25em solid #dfe2e5;
-            margin: 0 0 16px 0;
-        }
-
-        .markdown-content ul, .markdown-content ol {
-            padding-left: 2em;
-            margin-bottom: 16px;
-        }
-
-        .markdown-content table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 16px;
-        }
-
-        .markdown-content table th,
-        .markdown-content table td {
-            padding: 6px 13px;
-            border: 1px solid #dfe2e5;
-        }
-
-        .markdown-content table tr {
-            background-color: #fff;
-            border-top: 1px solid #c6cbd1;
-        }
-
-        .markdown-content table tr:nth-child(2n) {
-            background-color: #f6f8fa;
-        }
-
-        /* Кнопка проверки */
-        .check-button {
-            display: inline-block;
-            background: #28a745;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            margin-top: 20px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.2s;
-        }
-
-        .check-button:hover {
-            background: #218838;
-        }
-
-        .task-id {
-            display: inline-block;
-            background: #e9ecef;
-            padding: 4px 12px;
-            border-radius: 20px;
+            border: 1px solid #dee2e6;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
             font-size: 14px;
-            color: #495057;
-            margin-bottom: 16px;
-            font-family: monospace;
-        }
-
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #e1e4e8;
+            line-height: 1.6;
         }
 
         .empty {
@@ -276,42 +159,15 @@
             text-align: center;
             padding: 60px 20px;
         }
+
         .path {
             color: #6c757d;
             font-size: 14px;
             margin-bottom: 8px;
         }
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .loader-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            color: #666;
-        }
-        .error-message {
-            background: #ffebee;
-            color: #c62828;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #ffcdd2;
-        }
     </style>
 
- <div class="container">
+    <div class="list-container">
         <!-- Левая панель -->
         <div class="sidebar">
             <div class="sidebar-header">
@@ -324,12 +180,12 @@
         </div>
 
         <!-- Правая панель -->
-        <div class="content">
-            <div class="content-header">
+        <div class="list-content">
+            <div class="list-content-header">
                 <div class="path" id="currentPath"></div>
                 <h2 id="currentTitle">Выберите задачу</h2>
             </div>
-            <div class="content-body" id="taskContent">
+            <div class="list-content-body" id="taskContent">
                 <div class="empty">
                     👈 Выберите задачу в дереве слева
                 </div>
@@ -337,93 +193,77 @@
         </div>
     </div>
 
+
+
 {% endblock %}
 
 {% block extra_js %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <script src="{% static 'task_description_app/js/task_detail.js' %}"></script>
+
     <script>
         // Данные из structure.json (скопируйте сюда ваш JSON)
         const tasks = {
-  "8 класс": {
-    "Тема_№1._Программирование": {
-      "Урок_27": {
-        "level_A": [
-          "task_001",
-          "task_002",
-          "task_003"
-        ],
-        "level_B": [
-          "task_001",
-          "task_002",
-          "task_003"
-        ],
-        "level_C": [
-          "task_001",
-          "task_002",
-          "task_003"
-        ]
-      },
-      "Урок_28": {
-        "level_A": [
-          "task_001",
-          "task_002",
-          "task_003"
-        ],
-        "level_B": [
-          "task_001",
-          "task_002",
-          "task_003"
-        ],
-        "level_C": [
-          "task_001",
-          "task_002",
-          "task_003"
-        ]
-      }
-    },
-    "Тема_№2._Сл.програм-ние": {
-      "Урок_31": {
-        "level_A": [
-          "task_001",
-          "task_002",
-          "task_003"
-        ],
-        "level_B": [
-          "task_001",
-          "task_002",
-          "task_003"
-        ],
-        "level_C": [
-          "task_001",
-          "task_002",
-          "task_003"
-        ]
-      }
-    }
-  }
-};
-
-        // Функция для загрузки содержимого task.md
-        async function loadTaskContent(taskPath) {
-            try {
-                // Формируем путь к файлу task.md
-                // Предполагается, что файлы лежат в папке tasks_for_tests
-                const mdPath = `/tasks_for_tests/${taskPath}/task.md`;
-
-                const response = await fetch(mdPath);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+            "8 класс": {
+                "Тема_№1._Программирование": {
+                    "Урок_27": {
+                        "level_A": [
+                            "task_001",
+                            "task_002",
+                            "task_003"
+                        ],
+                        "level_B": [
+                            "task_001",
+                            "task_002",
+                            "task_003"
+                        ],
+                        "level_C": [
+                            "task_001",
+                            "task_002",
+                            "task_003"
+                        ]
+                    },
+                    "Урок_28": {
+                        "level_A": [
+                            "task_001",
+                            "task_002",
+                            "task_003"
+                        ],
+                        "level_B": [
+                            "task_001",
+                            "task_002",
+                            "task_003"
+                        ],
+                        "level_C": [
+                            "task_001",
+                            "task_002",
+                            "task_003"
+                        ]
+                    }
+                },
+                "Тема_№2._Сл.програм-ние": {
+                    "Урок_31": {
+                        "level_A": [
+                            "task_001",
+                            "task_002",
+                            "task_003"
+                        ],
+                        "level_B": [
+                            "task_001",
+                            "task_002",
+                            "task_003"
+                        ],
+                        "level_C": [
+                            "task_001",
+                            "task_002",
+                            "task_003"
+                        ]
+                    }
                 }
-                const content = await response.text();
-                return content;
-            } catch (error) {
-                console.error('Error loading task.md:', error);
-                throw error;
             }
-        }
+        };
 
         // Функция для построения дерева
         function renderTree(container, data, parent = null) {
@@ -451,7 +291,7 @@
 
                 // Проверяем, есть ли дети
                 const hasChildren = Array.isArray(value) ? value.length > 0 :
-                                   (typeof value === 'object' && value !== null && Object.keys(value).length > 0);
+                    (typeof value === 'object' && value !== null && Object.keys(value).length > 0);
 
                 if (hasChildren) {
                     arrow.textContent = '▶';
@@ -481,7 +321,7 @@
                     div.appendChild(count);
                 }
 
-                div.onclick = function(e) {
+                div.onclick = function (e) {
                     e.stopPropagation();
                     handleNodeClick(this, key, value, currentPath);
                 };
@@ -506,7 +346,7 @@
                                 <span class="name">${task}</span>
                             `;
 
-                            taskDiv.onclick = function(e) {
+                            taskDiv.onclick = function (e) {
                                 e.stopPropagation();
                                 selectTask([...currentPath, task].join('/'), task);
                             };
@@ -572,7 +412,7 @@
         }
 
         // Выбор конкретной задачи
-        window.selectTask = async function(path, taskName) {
+        window.selectTask = function (path, taskName) {
             // Убираем выделение со всех
             document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
 
@@ -584,52 +424,32 @@
 
             // Показываем путь
             document.getElementById('currentPath').innerHTML = path.split('/').join(' → ');
-            document.getElementById('currentTitle').innerHTML = `Загрузка...`;
+            document.getElementById('currentTitle').innerHTML = `Задача: ${taskName}`;
 
-            // Показываем индикатор загрузки
+            // Здесь должен быть переход на страницу задачи
             document.getElementById('taskContent').innerHTML = `
-                <div class="loader-container">
-                    <span class="loading"></span> Загрузка задачи...
+                <div class="task-content">
+                    📄 Содержимое файла task.md для задачи ${taskName}
+
+                    Путь: /tasks_for_tests/${path}
+
+                    В реальном проекте здесь будет загружено содержимое task.md
+                    или произойдет переход на страницу задачи.
+
+                    ${'='.repeat(40)}
+
+                    # Задача ${taskName}
+
+                    ## Условие:
+                    Написать программу, которая...
+
+                    ## Пример ввода:
+                    5 3
+
+                    ## Пример вывода:
+                    8
                 </div>
             `;
-
-            try {
-                // Загружаем реальное содержимое task.md
-                const content = await loadTaskContent(path);
-
-                // Извлекаем ID задачи из первой строки
-                const firstLine = content.split('\n')[0];
-                const taskIdMatch = firstLine.match(/^#(\d+)/);
-                const taskId = taskIdMatch ? taskIdMatch[1] : 'unknown';
-
-                // Конвертируем Markdown в HTML
-                const htmlContent = marked.parse(content);
-
-                document.getElementById('currentTitle').innerHTML = `Задача: ${taskName}`;
-                document.getElementById('taskContent').innerHTML = `
-                    <div>
-                        <div class="task-header">
-                            <span class="task-id">ID: #${taskId}</span>
-                        </div>
-                        <div class="markdown-content">
-                            ${htmlContent}
-                        </div>
-                        <a href="/task/${taskId}/" class="check-button">
-                            ✅ Проверить решение этой задачи
-                        </a>
-                    </div>
-                `;
-            } catch (error) {
-                document.getElementById('currentTitle').innerHTML = `Ошибка`;
-                document.getElementById('taskContent').innerHTML = `
-                    <div class="error-message">
-                        <h3>❌ Ошибка загрузки задачи</h3>
-                        <p>Не удалось загрузить файл task.md по пути: ${path}</p>
-                        <p>Проверьте, что файл существует и доступен для чтения.</p>
-                        <p style="font-size: 12px; margin-top: 10px;">${error.message}</p>
-                    </div>
-                `;
-            }
 
             // Предотвращаем всплытие
             event?.stopPropagation();
