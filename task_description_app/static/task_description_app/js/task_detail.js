@@ -230,3 +230,12 @@ app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`Looking for tasks in: ${TASKS_ROOT}`);
 });
+
+
+// Для файла task_detail.html
+
+
+
+// Конец для файла task_detail.html
+
+

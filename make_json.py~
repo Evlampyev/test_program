@@ -2,7 +2,7 @@ import os
 import json
 
 
-def scan_tasks_simple(root_dir='tasks_for_tests'):
+def scan_tasks_simple(root_dir='.'):
     """Максимально простой скрипт для создания нужной структуры"""
     structure = {}
 
@@ -48,9 +48,3 @@ if __name__ == '__main__':
     with open('structure.json', 'w', encoding='utf-8') as f:
         json.dump(structure, f, ensure_ascii=False, indent=2)
 
-    print("✅ Готово!")
-    print("\nСтруктура теперь такая:")
-    print('"Урок_72": {')
-    print('    "level_A": ["task_001", "task_002", "task_003"],')
-    print('    "level_B": ["task_001", "task_002", "task_003"]')
-    print('}')
