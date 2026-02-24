@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-6=&)5c888+fn2v$&k0f334x_8g&k=wp(@!$vmq9hkyx$m)uct1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "192.168.3.12", "127.0.0.1"]
 
 # Application definition
 
@@ -109,7 +109,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 STATIC_URL = '/static/'
 
 # Общие статические файлы (для всего проекта)
@@ -124,7 +123,6 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -48,3 +48,5 @@ if __name__ == '__main__':
     with open('structure.json', 'w', encoding='utf-8') as f:
         json.dump(structure, f, ensure_ascii=False, indent=2)
 
+    print("структура создана")
+
