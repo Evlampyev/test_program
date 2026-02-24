@@ -120,32 +120,32 @@ def upload_python_file(request):
         if not uploaded_file.name.lower().endswith('.py'):
             return JsonResponse({'success': False, 'message': 'Только файлы .py разрешены'}, status=400)
 
-        # ВАРИАНТ А: Использование временной директории
-        # Создаем временную директорию
-        temp_dir = tempfile.mkdtemp(prefix=f'task_{task.id}_', dir=settings.MEDIA_ROOT)
-        _temp_dirs.append(temp_dir)
-
-        file_path = os.path.join(temp_dir, uploaded_file.name)
-
-        with open(file_path, 'wb+') as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
-
-        # Сохраняем путь для возможной очистки
-        _temp_files.append(file_path)
-
-        # ВАРИАНТ Б: Использование стандартной папки с пометкой на удаление
-        # folder_id = generate_random_id()
-        # upload_dir = os.path.join('student_programs', str(task.id), folder_id)
-        # file_path = os.path.join(settings.MEDIA_ROOT, upload_dir, uploaded_file.name)
-        # os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        # # ВАРИАНТ А: Использование временной директории
+        # # Создаем временную директорию
+        # temp_dir = tempfile.mkdtemp(prefix=f'task_{task.id}_', dir=settings.MEDIA_ROOT)
+        # _temp_dirs.append(temp_dir)
+        #
+        # file_path = os.path.join(temp_dir, uploaded_file.name)
         #
         # with open(file_path, 'wb+') as destination:
         #     for chunk in uploaded_file.chunks():
         #         destination.write(chunk)
         #
-        # # Добавляем файл в список для очистки
+        # # Сохраняем путь для возможной очистки
         # _temp_files.append(file_path)
+
+        # ВАРИАНТ Б: Использование стандартной папки с пометкой на удаление
+        folder_id = generate_random_id()
+        upload_dir = os.path.join('student_programs', str(task.id), folder_id)
+        file_path = os.path.join(settings.MEDIA_ROOT, upload_dir, uploaded_file.name)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        with open(file_path, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+
+        # Добавляем файл в список для очистки
+        _temp_files.append(file_path)
 
         # Создаем запись в БД
         program = UploadedProgram.objects.create(

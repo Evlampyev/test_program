@@ -1,17 +1,109 @@
 # models.py (или в соответствующем приложении)
 import os
 
+from django.utils import timezone
 from django.db import models
 from django.conf import settings
+import pytz
+
+
+class DifficultyLevel(models.Model):
+    """
+    Модель уровней сложности задач
+    """
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Легкий'),
+        ('medium', 'Средний'),
+        ('hard', 'Сложный'),
+        ('expert', 'Эксперт'),
+    ]
+
+    COLOR_CHOICES = [
+        ('success', 'Зеленый (Easy)'),
+        ('warning', 'Желтый (Medium)'),
+        ('danger', 'Красный (Hard)'),
+        ('dark', 'Черный (Expert)'),
+    ]
+
+    level_name = models.CharField(
+        max_length=20,
+        choices=DIFFICULTY_CHOICES,
+        default='easy',
+        unique=True,
+        verbose_name='Уровень сложности'
+    )
+    display_name = models.CharField(
+        max_length=50,
+        verbose_name='Отображаемое название'
+    )
+    level_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Порядок сортировки'
+    )
+    color_code = models.CharField(
+        max_length=20,
+        choices=COLOR_CHOICES,
+        default='secondary',
+        verbose_name='Цвет для отображения'
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name='Описание уровня'
+    )
+
+    class Meta:
+        verbose_name = 'Уровень сложности'
+        verbose_name_plural = 'Уровни сложности'
+        ordering = ['level_order', 'id']
+
+    def __str__(self):
+        return self.display_name or self.get_level_name_display()
+
+    @property
+    def task_count(self):
+        """Количество задач этого уровня"""
+        return self.tasks.count()
+
+    def save(self, *args, **kwargs):
+        if not self.display_name:
+            self.display_name = self.get_level_name_display()
+        super().save(*args, **kwargs)
 
 
 class Task(models.Model):
     """Модель задачи"""
-    title = models.CharField(max_length=200)
+    title = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name='Название задачи'
+    )
+    difficulty = models.ForeignKey(
+        DifficultyLevel,
+        on_delete=models.PROTECT,
+        related_name='tasks',
+        verbose_name='Уровень сложности'
+    )
     description = models.TextField(blank=True)
-    md_file = models.FileField(upload_to='tasks/md/', help_text='Markdown файл с описанием задачи')
-    test_file = models.FileField(upload_to='tasks/tests/', help_text='Python файл с тестами')
+    test_file = models.FileField(help_text='Путь до папки задачи')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Статистика выполнения
+    total_attempts = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Всего попыток'
+    )
+    perfect_solutions = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Успешных на 100% попыток'
+    )
+
+    # Временные метки
+    last_attempt_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        auto_now_add=True,
+        verbose_name='Последняя попытка'
+    )
 
     def __str__(self):
         return self.title
@@ -19,8 +111,11 @@ class Task(models.Model):
     @property
     def md_path(self):
         """Полный путь к MD файлу"""
-        if self.md_file:
-            return os.path.join(settings.MEDIA_ROOT, self.md_file.name)
+        # if self.md_file:
+        #     return os.path.join(settings.MEDIA_ROOT, self.md_file.name)
+        if self.test_file:
+            # print(f"new = {os.path.join(settings.MEDIA_ROOT, 'task.md')}")
+            return os.path.join(settings.MEDIA_ROOT, 'task.md')
         return None
 
     @property
@@ -29,6 +124,31 @@ class Task(models.Model):
         if self.test_file:
             return os.path.join(settings.MEDIA_ROOT, self.test_file.name)
         return None
+
+    @property
+    def perfect_rate(self):
+        """Процент 100% успешных решений"""
+        if self.total_attempts > 0:
+            return round((self.perfect_solutions / self.total_attempts) * 100, 1)
+        return 0.0
+
+    def update_statistics(self, task_result):
+        """
+        Обновление статистики после новой попытки
+        """
+        # Активируем нужный часовой пояс для текущего потока
+        timezone.activate(pytz.timezone(settings.TIME_ZONE))
+
+        # Обновляем счетчики
+        self.total_attempts += 1
+        self.last_attempt_at = timezone.now()
+        if task_result == 'passed':
+            self.perfect_solutions += 1
+
+        self.save()
+
+        # Деактивируем (опционально)
+        timezone.deactivate()
 
 
 class UploadedProgram(models.Model):

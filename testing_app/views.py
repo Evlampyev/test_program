@@ -74,6 +74,12 @@ def run_tests(request, program_id):
     passed_count = sum(1 for r in results if r.get('passed', False))
     failed_count = total_tests - passed_count
     success_rate = int((passed_count / total_tests * 100)) if total_tests > 0 else 0
+    task_data = get_object_or_404(Task, id=task_id)
+    if success_rate == 100:
+        task_data.update_statistics('passed')
+    else:
+        task_data.update_statistics('failed')
+
 
     return render(request, 'testing_app/results.html', {
         'program': program,

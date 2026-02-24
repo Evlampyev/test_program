@@ -27,10 +27,12 @@ def task_detail(request, task_id):
 
     # Читаем и конвертируем Markdown файл
     md_content = ""
-    if task.md_file and os.path.exists(task.md_path):
-        with open(task.md_path, 'r', encoding='utf-8') as f:
+    # if task.md_file and os.path.exists(task.md_path):
+    #     with open(task.md_path, 'r', encoding='utf-8') as f:
+    #         md_content = f.read()
+    if task.test_file and os.path.exists(task.test_path):
+        with open(task.test_path+'task.md', 'r', encoding='utf-8') as f:
             md_content = f.read()
-
     # Конвертируем Markdown в HTML
     html_content = markdown.markdown(md_content, extensions=['extra', 'codehilite'])
 
@@ -62,6 +64,6 @@ def get_task_info(request, task_id):
     return JsonResponse({
         'task_id': task.id,
         'task_title': task.title,
-        'md_path': task.md_path if task.md_file else None,
+        'md_path': task.test_path if task.test_file else None,
         'test_path': task.test_path if task.test_file else None,
     })
