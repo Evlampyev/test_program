@@ -6,13 +6,17 @@ from django.http import JsonResponse
 from .models import Task
 import markdown
 
+from make_json import scan_tasks_simple
+
 
 def task_list(request):
     """Страница со списком всех задач"""
     tasks = Task.objects.all()
+    json_structure = scan_tasks_simple('tasks_for_tests')
     context = {
         'tasks': tasks,
-        'title': 'Список задач'
+        'title': 'Список задач',
+        'json_structure': json_structure,
     }
     return render(request, 'task_description_app/task_list.html', context)
 
