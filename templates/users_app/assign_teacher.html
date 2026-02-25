@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Назначение учителя на группу</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .admin-navbar {
+            background: #343a40;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            border-bottom: none;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 24px;
+        }
+
+        .card-header p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-label i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 30px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            transform: none;
+        }
+
+        .current-assignments {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .current-assignments h5 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .assignment-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-left: 3px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .assignment-info {
+            flex: 1;
+        }
+
+        .assignment-class {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .assignment-teacher {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .btn-remove {
+            color: #dc3545;
+            background: none;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .btn-remove:hover {
+            background: #fee;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: #0d47a1;
+        }
+
+        .breadcrumb {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .stats-badge {
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #495057;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+        }
+
+        .search-box input {
+            padding-left: 40px;
+        }
+    </style>
+</head>
+<body>
+<!-- Навигация администратора -->
+<nav class="navbar navbar-expand-lg admin-navbar navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'admin:index' %}">
+            <i class="fas fa-crown me-2"></i>
+            Панель администратора
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'admin:index' %}">
+                        <i class="fas fa-home me-1"></i> Главная
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'assign_teacher' %}">
+                        <i class="fas fa-user-tie me-1"></i> Назначение учителей
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt me-1"></i> Выход
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'admin:index' %}" class="text-decoration-none">Админ-панель</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Назначение учителей на группы</li>
+        </ol>
+    </nav>
+
+    <!-- Основная карточка -->
+    <div class="admin-card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-user-tie me-2"></i>Назначение учителя на группу</h2>
+                    <p>Распределите учителей по классам и группам</p>
+                </div>
+                <span class="stats-badge">
+                        <i class="fas fa-users me-1"></i> Всего групп: {{ total_groups|default:"0" }}
+                    </span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Форма назначения -->
+            <form method="post" action="{% url 'assign_teacher' %}" id="assignForm">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Поиск учителя -->
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" id="teacherSearch" placeholder="Поиск учителя...">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-chalkboard-teacher"></i>Учитель
+                    </label>
+                    <select name="teacher" class="form-select" required>
+                        <option value="">-- Выберите учителя --</option>
+                        {% for teacher in teachers %}
+                            <option value="{{ teacher.id }}"
+                                    {% if form.teacher.value == teacher.id %}selected{% endif %}>
+                                {{ teacher.last_name }} {{ teacher.first_name }} {{ teacher.middle_name }}
+                                {% if teacher.teacher_profile.subjects %} ({{ teacher.teacher_profile.subjects }}
+                                    ){% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.teacher.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.teacher.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-school"></i>Класс
+                            </label>
+                            <select name="school_class" class="form-select" required>
+                                <option value="">-- Выберите класс --</option>
+                                {% for class in classes %}
+                                    <option value="{{ class.id }}"
+                                            {% if form.school_class.value == class.id %}selected{% endif %}>
+                                        {{ class.number }}{{ class.letter }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.school_class.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.school_class.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-layer-group"></i>Группа
+                            </label>
+                            <select name="group_number" class="form-select" required>
+                                <option value="">-- Выберите группу --</option>
+                                <option value="1" {% if form.group_number.value == "1" %}selected{% endif %}>Группа 1
+                                </option>
+                                <option value="2" {% if form.group_number.value == "2" %}selected{% endif %}>Группа 2
+                                </option>
+                            </select>
+                            {% if form.group_number.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.group_number.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Информация о текущем назначении -->
+                <div class="alert alert-info" id="currentAssignmentInfo" style="display: none;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span id="assignmentMessage"></span>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-save me-2"></i>Назначить учителя на группу
+                </button>
+            </form>
+
+            <!-- Текущие назначения -->
+            <div class="current-assignments">
+                <h5>
+                    <i class="fas fa-list me-2"></i>
+                    Текущие назначения
+                </h5>
+
+                {% if assignments %}
+                    {% for assignment in assignments %}
+                        <div class="assignment-item" id="assignment-{{ assignment.id }}">
+                            <div class="assignment-info">
+                                <div class="assignment-class">
+                                    {{ assignment.school_class.number }}{{ assignment.school_class.letter }} -
+                                    Группа {{ assignment.number }}
+                                </div>
+                                <div class="assignment-teacher">
+                                    <i class="fas fa-user-tie me-1"></i>
+                                    {{ assignment.teacher.last_name }} {{ assignment.teacher.first_name }}
+                                    {% if assignment.teacher.middle_name %}
+                                        {{ assignment.teacher.middle_name }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <button class="btn-remove" onclick="removeAssignment({{ assignment.id }})"
+                                    title="Удалить назначение">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-user-slash fa-3x mb-3"></i>
+                        <p>Пока нет назначений</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Учителей</h6>
+                    <h3>{{ teachers_count|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Классов</h6>
+                    <h3>{{ classes_count|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Назначений</h6>
+                    <h3>{{ assignments|length|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Поиск учителя в выпадающем списке
+    document.getElementById('teacherSearch').addEventListener('keyup', function () {
+        let searchText = this.value.toLowerCase();
+        let select = document.querySelector('select[name="teacher"]');
+        let options = select.options;
+
+        for (let i = 1; i < options.length; i++) {
+            let text = options[i].text.toLowerCase();
+            if (text.includes(searchText)) {
+                options[i].style.display = '';
+            } else {
+                options[i].style.display = 'none';
+            }
+        }
+    });
+
+    // Проверка существующего назначения
+    function checkExistingAssignment() {
+        let classId = document.querySelector('select[name="school_class"]').value;
+        let groupNumber = document.querySelector('select[name="group_number"]').value;
+        let teacherId = document.querySelector('select[name="teacher"]').value;
+
+        if (classId && groupNumber) {
+            fetch(`/api/check-assignment/?class=${classId}&group=${groupNumber}`)
+                .then(response => response.json())
+                .then(data => {
+                    let infoDiv = document.getElementById('currentAssignmentInfo');
+                    let messageSpan = document.getElementById('assignmentMessage');
+
+                    if (data.exists) {
+                        infoDiv.style.display = 'block';
+                        infoDiv.className = 'alert alert-warning';
+                        messageSpan.innerHTML = `<strong>Внимание!</strong> На эту группу уже назначен учитель ${data.teacher}. При сохранении назначение будет заменено.`;
+                    } else {
+                        infoDiv.style.display = 'none';
+                    }
+                });
+        }
+    }
+
+    // Слушатели изменения полей
+    document.querySelector('select[name="school_class"]').addEventListener('change', checkExistingAssignment);
+    document.querySelector('select[name="group_number"]').addEventListener('change', checkExistingAssignment);
+
+    // Удаление назначения
+    function removeAssignment(assignmentId) {
+        if (confirm('Вы уверены, что хотите удалить это назначение?')) {
+            fetch('/api/remove-assignment/' + assignmentId + '/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('assignment-' + assignmentId).remove();
+                        alert('Назначение успешно удалено');
+                    } else {
+                        alert('Ошибка при удалении');
+                    }
+                });
+        }
+    }
+
+    // Валидация формы перед отправкой
+    document.getElementById('assignForm').addEventListener('submit', function (e) {
+        let teacher = document.querySelector('select[name="teacher"]').value;
+        let schoolClass = document.querySelector('select[name="school_class"]').value;
+        let group = document.querySelector('select[name="group_number"]').value;
+
+        if (!teacher || !schoolClass || !group) {
+            e.preventDefault();
+            alert('Пожалуйста, заполните все поля');
+        }
+    });
+
+    // Подсветка выбранного учителя
+    document.querySelector('select[name="teacher"]').addEventListener('change', function () {
+        let selected = this.options[this.selectedIndex];
+        if (selected.value) {
+            // Можно добавить подсветку или дополнительную информацию
+        }
+    });
+
+    // Анимация кнопки при отправке
+    document.getElementById('assignForm').addEventListener('submit', function () {
+        let btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+        btn.disabled = true;
+    });
+</script>
+</body>
+</html>

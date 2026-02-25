@@ -7,8 +7,6 @@ from django.db import models
 from django.conf import settings
 import pytz
 
-from users_app.models import StudentProfile
-
 User = get_user_model()
 
 class DifficultyLevel(models.Model):

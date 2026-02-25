@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'task_description_app.apps.TempTestsConfig',
     'upload_app.apps.UploadAppConfig',
     'testing_app.apps.TestingAppConfig',
+    'users_app.apps.UsersAppConfig',
 ]
 
 MIDDLEWARE = [
@@ -132,6 +133,15 @@ STATICFILES_FINDERS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Кастомная модель пользователя
+AUTH_USER_MODEL = 'users_app.User'
+
+# Перенаправления после входа/выхода
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'student_dashboard'
+LOGOUT_REDIRECT_URL = 'login'
+
 
 LOGGING = {
     "version": 1,

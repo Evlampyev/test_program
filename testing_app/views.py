@@ -1,6 +1,5 @@
 # testing_app/views.py
 import os
-import logging
 
 from django.shortcuts import render, get_object_or_404
 from task_description_app.models import UploadedProgram, Task
@@ -9,7 +8,10 @@ import subprocess
 from testing_app.tester_project.tester import PythonCodeTester
 from manage import logger
 
-logger = logging.getLogger(__name__)
+
+# logger = logging.getLogger(__name__)
+
+
 
 
 def run_tests(request, program_id):
@@ -77,9 +79,9 @@ def run_tests(request, program_id):
     task_data = get_object_or_404(Task, id=task_id)
     if success_rate == 100:
         task_data.update_statistics('passed')
+        # user.salved_tasks += 1
     else:
         task_data.update_statistics('failed')
-
 
     return render(request, 'testing_app/results.html', {
         'program': program,

@@ -19,12 +19,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('task_description_app.urls')),  # Главная страница со списком задач
     path('upload/', include('upload_app.urls')),
     path('tester/', include('testing_app.urls')),
+    path('users/', include('users_app.urls')),
+
+
 ]
 
 if settings.DEBUG:
