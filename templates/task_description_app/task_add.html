@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавление новой задачи</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+
+        .page-header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .section-title i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .path-preview {
+            background: #f0f4fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .path-preview .path-label {
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .path-preview .path-value {
+            color: #333;
+            word-break: break-all;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .file-info ul {
+            margin: 10px 0 0;
+            padding-left: 20px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            transform: none;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-label i {
+            color: #667eea;
+            margin-right: 8px;
+        }
+
+        .alert-upload {
+            background: #e7f3ff;
+            border: 1px dashed #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .existing-tasks {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .task-badge {
+            display: inline-block;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 3px;
+            font-size: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Навигация -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'teacher_dashboard' %}">
+            <i class="fas fa-chalkboard-teacher me-2"></i>
+            Панель учителя
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'teacher_dashboard' %}">
+                        <i class="fas fa-home me-1"></i> Главная
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'task_list' %}">
+                        <i class="fas fa-tasks me-1"></i> Все задачи
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'task_add' %}">
+                        <i class="fas fa-plus-circle me-1"></i> Добавить задачу
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt me-1"></i> Выход
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <!-- Заголовок -->
+    <div class="page-header">
+        <h2 class="mb-2">
+            <i class="fas fa-plus-circle me-2" style="color: #667eea;"></i>
+            Добавление новой задачи
+        </h2>
+        <p class="text-muted mb-0">
+            Заполните форму для создания новой задачи. Все поля обязательны для заполнения.
+        </p>
+    </div>
+
+    <!-- Форма -->
+    <form id="taskAddForm" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="row">
+            <!-- Левая колонка - выбор пути -->
+            <div class="col-md-6">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fas fa-folder-tree"></i>
+                        Выбор расположения задачи
+                    </div>
+
+                    <!-- Класс -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-school"></i> Класс
+                        </label>
+                        <select name="class_level" id="classSelect" class="form-select" required>
+                            <option value="">-- Выберите класс --</option>
+                            {% for value, label in form.class_level.field.choices %}
+                                {% if value %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Тема -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-book"></i> Тема
+                        </label>
+                        <select name="topic" id="topicSelect" class="form-select" disabled required>
+                            <option value="">-- Сначала выберите класс --</option>
+                        </select>
+                        <div id="topicLoader" class="loader" style="display: none;"></div>
+                    </div>
+
+                    <!-- Урок -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Урок
+                        </label>
+                        <select name="lesson" id="lessonSelect" class="form-select" disabled required>
+                            <option value="">-- Сначала выберите тему --</option>
+                        </select>
+                    </div>
+
+                    <!-- Уровень -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-layer-group"></i> Уровень
+                        </label>
+                        <select name="level" id="levelSelect" class="form-select" disabled required>
+                            <option value="">-- Сначала выберите урок --</option>
+                        </select>
+                    </div>
+
+                    <!-- Папка задачи -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-folder"></i> Папка задачи
+                        </label>
+                        <div class="input-group">
+                            <input type="text" name="task_folder" id="taskFolder" class="form-control" readonly>
+                            <button class="btn btn-outline-secondary" type="button" id="refreshTaskName">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Будет создана автоматически</small>
+
+                        <!-- Существующие задачи в этом уровне -->
+                        <div id="existingTasksContainer" style="display: none;">
+                            <label class="form-label mt-3">Существующие задачи в этом уровне:</label>
+                            <div id="existingTasks" class="existing-tasks"></div>
+                        </div>
+                    </div>
+
+                    <!-- Предпросмотр пути -->
+                    <div class="path-preview">
+                        <div class="path-label">
+                            <i class="fas fa-link"></i> Полный путь к задаче:
+                        </div>
+                        <div class="path-value" id="pathPreview">
+                            /tasks_for_tests/...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка - информация о задаче и файлы -->
+            <div class="col-md-6">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Информация о задаче
+                    </div>
+
+                    <!-- Название задачи -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-heading"></i> Название задачи
+                        </label>
+                        {{ form.title }}
+                    </div>
+
+                    <!-- Уровень сложности -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-signal"></i> Уровень сложности
+                        </label>
+                        {{ form.difficulty }}
+                    </div>
+
+                    <!-- Описание -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-align-left"></i> Описание (необязательно)
+                        </label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="section-title mt-4">
+                        <i class="fas fa-file-upload"></i>
+                        Загрузка файлов
+                    </div>
+
+                    <!-- task.md -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-file-alt"></i> task.md (описание задачи)
+                        </label>
+                        {{ file_form.task_md }}
+                        <small class="text-muted">Файл с описанием задачи в формате Markdown</small>
+                    </div>
+
+                    <!-- task.py -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fab fa-python"></i> task.py (решение учителя)
+                        </label>
+                        {{ file_form.task_py }}
+                        <small class="text-muted">Образцовое решение задачи</small>
+                    </div>
+
+                    <!-- Тесты -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-vial"></i> Файлы тестов
+                        </label>
+                        <div class="alert-upload">
+                            <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #667eea;"></i>
+                            <p class="mb-2">Выберите все файлы тестов (test1.in, test1.out, ...)</p>
+                            {{ file_form.test_files }}
+                            <small class="text-muted d-block mt-2">
+                                Можно выбрать несколько файлов одновременно
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Информация о файлах -->
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <strong>Выбрано файлов:</strong>
+                        <ul id="fileList"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка отправки -->
+        <div class="row">
+            <div class="col-12">
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Создать новую задачу
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Модальное окно успеха -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Успешно!
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="successMessage">Задача успешно создана!</p>
+                <div class="alert alert-info mt-3">
+                    <strong>Путь к задаче:</strong><br>
+                    <code id="successPath"></code>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'task_add' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Создать ещё
+                </a>
+                <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-home me-2"></i>На главную
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно ошибки -->
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Ошибка!
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="errorMessage">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Глобальная структура из JSON
+    const structure = {{ structure_json|safe }};
+
+    // Обновление предпросмотра пути
+    function updatePathPreview() {
+        const classVal = document.getElementById('classSelect').value;
+        const topicVal = document.getElementById('topicSelect').value;
+        const lessonVal = document.getElementById('lessonSelect').value;
+        const levelVal = document.getElementById('levelSelect').value;
+        const taskFolder = document.getElementById('taskFolder').value;
+
+        const parts = [];
+        if (classVal) parts.push(classVal);
+        if (topicVal) parts.push(topicVal);
+        if (lessonVal) parts.push(lessonVal);
+        if (levelVal) parts.push(levelVal);
+        if (taskFolder) parts.push(taskFolder);
+
+        document.getElementById('pathPreview').textContent =
+            parts.length > 0 ? '/tasks_for_tests/' + parts.join('/') : '/tasks_for_tests/...';
+    }
+
+    // Загрузка тем для выбранного класса
+    document.getElementById('classSelect').addEventListener('change', function () {
+        const classVal = this.value;
+        const topicSelect = document.getElementById('topicSelect');
+        const lessonSelect = document.getElementById('lessonSelect');
+        const levelSelect = document.getElementById('levelSelect');
+
+        // Сбрасываем и блокируем зависимые поля
+        topicSelect.innerHTML = '<option value="">-- Загрузка... --</option>';
+        topicSelect.disabled = true;
+        lessonSelect.innerHTML = '<option value="">-- Сначала выберите тему --</option>';
+        lessonSelect.disabled = true;
+        levelSelect.innerHTML = '<option value="">-- Сначала выберите урок --</option>';
+        levelSelect.disabled = true;
+
+        if (!classVal) {
+            topicSelect.innerHTML = '<option value="">-- Сначала выберите класс --</option>';
+            updatePathPreview();
+            return;
+        }
+
+        // Отправляем AJAX запрос
+        fetch('/get-topics/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'class_name=' + encodeURIComponent(classVal)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    topicSelect.innerHTML = '<option value="">-- Выберите тему --</option>';
+                    data.topics.forEach(topic => {
+                        topicSelect.innerHTML += `<option value="${topic}">${topic}</option>`;
+                    });
+                    topicSelect.disabled = false;
+                } else {
+                    topicSelect.innerHTML = '<option value="">-- Ошибка загрузки --</option>';
+                }
+            });
+    });
+
+    // Загрузка уроков для выбранной темы
+    document.getElementById('topicSelect').addEventListener('change', function () {
+        const classVal = document.getElementById('classSelect').value;
+        const topicVal = this.value;
+        const lessonSelect = document.getElementById('lessonSelect');
+        const levelSelect = document.getElementById('levelSelect');
+
+        lessonSelect.innerHTML = '<option value="">-- Загрузка... --</option>';
+        lessonSelect.disabled = true;
+        levelSelect.innerHTML = '<option value="">-- Сначала выберите урок --</option>';
+        levelSelect.disabled = true;
+
+        if (!topicVal) {
+            lessonSelect.innerHTML = '<option value="">-- Сначала выберите тему --</option>';
+            updatePathPreview();
+            return;
+        }
+
+        fetch('/get-lessons/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `class_name=${encodeURIComponent(classVal)}&topic=${encodeURIComponent(topicVal)}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    lessonSelect.innerHTML = '<option value="">-- Выберите урок --</option>';
+                    data.lessons.forEach(lesson => {
+                        lessonSelect.innerHTML += `<option value="${lesson}">${lesson}</option>`;
+                    });
+                    lessonSelect.disabled = false;
+                } else {
+                    lessonSelect.innerHTML = '<option value="">-- Ошибка загрузки --</option>';
+                }
+            });
+    });
+
+    // Загрузка уровней для выбранного урока
+    document.getElementById('lessonSelect').addEventListener('change', function () {
+        const classVal = document.getElementById('classSelect').value;
+        const topicVal = document.getElementById('topicSelect').value;
+        const lessonVal = this.value;
+        const levelSelect = document.getElementById('levelSelect');
+
+        levelSelect.innerHTML = '<option value="">-- Загрузка... --</option>';
+        levelSelect.disabled = true;
+
+        if (!lessonVal) {
+            levelSelect.innerHTML = '<option value="">-- Сначала выберите урок --</option>';
+            updatePathPreview();
+            return;
+        }
+
+        fetch('/get-levels/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `class_name=${encodeURIComponent(classVal)}&topic=${encodeURIComponent(topicVal)}&lesson=${encodeURIComponent(lessonVal)}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    levelSelect.innerHTML = '<option value="">-- Выберите уровень --</option>';
+                    data.levels.forEach(level => {
+                        levelSelect.innerHTML += `<option value="${level}">${level}</option>`;
+                    });
+                    levelSelect.disabled = false;
+                } else {
+                    levelSelect.innerHTML = '<option value="">-- Ошибка загрузки --</option>';
+                }
+            });
+    });
+
+    // Загрузка существующих задач при выборе уровня
+    document.getElementById('levelSelect').addEventListener('change', function () {
+        const classVal = document.getElementById('classSelect').value;
+        const topicVal = document.getElementById('topicSelect').value;
+        const lessonVal = document.getElementById('lessonSelect').value;
+        const levelVal = this.value;
+
+        if (classVal && topicVal && lessonVal && levelVal) {
+            fetch('/get-existing-tasks/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `class_name=${encodeURIComponent(classVal)}&topic=${encodeURIComponent(topicVal)}&lesson=${encodeURIComponent(lessonVal)}&level=${encodeURIComponent(levelVal)}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const container = document.getElementById('existingTasksContainer');
+                        const tasksDiv = document.getElementById('existingTasks');
+
+                        if (data.existing_tasks && data.existing_tasks.length > 0) {
+                            container.style.display = 'block';
+                            tasksDiv.innerHTML = '';
+                            data.existing_tasks.forEach(task => {
+                                tasksDiv.innerHTML += `<span class="task-badge">${task}</span>`;
+                            });
+                        } else {
+                            container.style.display = 'none';
+                        }
+
+                        document.getElementById('taskFolder').value = data.next_task;
+                        updatePathPreview();
+                    }
+                });
+        }
+    });
+
+    // Обновление имени задачи
+    document.getElementById('refreshTaskName').addEventListener('click', function () {
+        const classVal = document.getElementById('classSelect').value;
+        const topicVal = document.getElementById('topicSelect').value;
+        const lessonVal = document.getElementById('lessonSelect').value;
+        const levelVal = document.getElementById('levelSelect').value;
+
+        if (classVal && topicVal && lessonVal && levelVal) {
+            fetch('/get-existing-tasks/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `class_name=${encodeURIComponent(classVal)}&topic=${encodeURIComponent(topicVal)}&lesson=${encodeURIComponent(lessonVal)}&level=${encodeURIComponent(levelVal)}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('taskFolder').value = data.next_task;
+                        updatePathPreview();
+                    }
+                });
+        }
+    });
+
+    // Отслеживание выбранных файлов
+    document.querySelector('input[name="test_files"]').addEventListener('change', function (e) {
+        const fileList = document.getElementById('fileList');
+        const fileInfo = document.getElementById('fileInfo');
+
+        fileList.innerHTML = '';
+
+        if (this.files.length > 0) {
+            fileInfo.style.display = 'block';
+            for (let i = 0; i < this.files.length; i++) {
+                const file = this.files[i];
+                const li = document.createElement('li');
+                li.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                fileList.appendChild(li);
+            }
+        } else {
+            fileInfo.style.display = 'none';
+        }
+    });
+
+    // Отправка формы
+    document.getElementById('taskAddForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const submitBtn = document.getElementById('submitBtn');
+
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Создание задачи...';
+        submitBtn.disabled = true;
+
+        fetch('', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('successMessage').textContent = data.message;
+                    document.getElementById('successPath').textContent = data.path;
+                    new bootstrap.Modal(document.getElementById('successModal')).show();
+                    this.reset();
+                } else {
+                    let errorHtml = '<ul class="mb-0">';
+                    for (let field in data.errors) {
+                        errorHtml += `<li><strong>${field}:</strong> ${data.errors[field]}</li>`;
+                    }
+                    errorHtml += '</ul>';
+                    document.getElementById('errorMessage').innerHTML = errorHtml;
+                    new bootstrap.Modal(document.getElementById('errorModal')).show();
+                }
+            })
+            .catch(error => {
+                document.getElementById('errorMessage').innerHTML = 'Произошла ошибка при отправке формы';
+                new bootstrap.Modal(document.getElementById('errorModal')).show();
+            })
+            .finally(() => {
+                submitBtn.innerHTML = '<i class="fas fa-plus-circle me-2"></i>Создать новую задачу';
+                submitBtn.disabled = false;
+            });
+    });
+
+    // Обновление предпросмотра при изменении любого поля
+    document.getElementById('classSelect').addEventListener('change', updatePathPreview);
+    document.getElementById('topicSelect').addEventListener('change', updatePathPreview);
+    document.getElementById('lessonSelect').addEventListener('change', updatePathPreview);
+    document.getElementById('levelSelect').addEventListener('change', updatePathPreview);
+</script>
+</body>
+</html>
