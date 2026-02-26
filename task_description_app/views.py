@@ -2,6 +2,7 @@
 import os
 from datetime import datetime
 
+from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -11,14 +12,25 @@ import markdown
 import json
 
 from make_json import scan_tasks_simple
-from .forms import TaskAddForm, TaskFileUploadForm
+from .forms import TaskAddForm, TaskContentForm
+
 from .models import Task, DifficultyLevel
+
+
+def get_cached_structure():
+    """Получить структуру из кэша или пересканировать"""
+    structure = cache.get('tasks_structure')
+    if structure is None:
+        structure = scan_tasks_simple('tasks_for_tests')
+        cache.set('tasks_structure', structure, 3600)  # кэш на 1 час
+    return structure
 
 
 def task_list(request):
     """Страница со списком всех задач"""
     tasks = Task.objects.all()
-    json_structure = scan_tasks_simple('tasks_for_tests')
+    # json_structure = scan_tasks_simple('tasks_for_tests')
+    json_structure = get_cached_structure()
     context = {
         'tasks': tasks,
         'title': 'Список задач',
@@ -74,8 +86,9 @@ def get_task_info(request, task_id):
         'test_path': task.test_path if task.test_file else None,
     })
 
+    # для добавления задачи
 
-# для добавления задачи
+
 @login_required
 def task_add(request):
     """Страница добавления новой задачи"""
@@ -83,59 +96,83 @@ def task_add(request):
         return redirect('student_dashboard')
 
     if request.method == 'POST':
-        form = TaskAddForm(request.POST)
-        file_form = TaskFileUploadForm(request.POST, request.FILES)
+        # Добавим отладочный вывод
+        print("=== ДАННЫЕ POST ЗАПРОСА ===")
+        print("POST данные:", request.POST)
+        print("FILES данные:", request.FILES)
+        print("===========================")
+        # Получаем данные из формы
+        task_form = TaskAddForm(request.POST)
+        content_form = TaskContentForm(request.POST)
+        print("Данные с форм получены")
 
-        if form.is_valid() and file_form.is_valid():
+        # Проверяем валидность форм
+        print("Task form is valid:", task_form.is_valid())
+        if not task_form.is_valid():
+            print("Task form errors:", task_form.errors)
+
+        print("Content form is valid:", content_form.is_valid())
+        if not content_form.is_valid():
+            print("Content form errors:", content_form.errors)
+
+        # Получаем количество тестов
+        test_count = int(request.POST.get('test_count', 0))
+
+        if task_form.is_valid() and content_form.is_valid() and test_count > 0:
             try:
                 # Создаем задачу в БД
-                task = form.save(commit=False)
+                task = task_form.save(commit=False)
 
-                # Получаем выбранный путь
-                class_name = form.cleaned_data['class_level']
-                topic = form.cleaned_data['topic']
-                lesson = form.cleaned_data['lesson']
-                level = form.cleaned_data['level']
-                task_folder = request.POST.get('task_folder') or f"task_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                # Получаем данные пути
+                class_name = task_form.cleaned_data['class_name'].strip()
+                topic = task_form.cleaned_data['topic'].strip()
+                lesson = task_form.cleaned_data['lesson'].strip()
+                level = task_form.cleaned_data['level']
+                task_folder = task_form.cleaned_data['task_folder'].strip()
 
-                # Формируем полный путь к папке задачи
+                # Формируем полный путь
                 relative_path = os.path.join(class_name, topic, lesson, level, task_folder)
-                task.test_file = relative_path  # сохраняем путь в поле test_file
-
+                task.test_file = relative_path
                 task.created_by = request.user
+                print(f"{task = }")
+                print(f"{relative_path=}")
+
                 task.save()
 
-                # Создаем папку для задачи
+                # СОЗДАЕМ ПАПКИ (даже если их нет)
                 task_dir = os.path.join(settings.TASKS_ROOT, relative_path)
                 os.makedirs(task_dir, exist_ok=True)
 
-                # Сохраняем файлы
-                files = request.FILES
+                # 1. Сохраняем task.md
+                md_content = content_form.cleaned_data['task_md_content']
+                with open(os.path.join(task_dir, 'task.md'), 'w', encoding='utf-8') as f:
+                    f.write(md_content)
 
-                # task.md
-                with open(os.path.join(task_dir, 'task.md'), 'wb+') as destination:
-                    for chunk in files['task_md'].chunks():
-                        destination.write(chunk)
+                # 2. Сохраняем task.py
+                py_content = content_form.cleaned_data['task_py_content']
+                with open(os.path.join(task_dir, 'task.py'), 'w', encoding='utf-8') as f:
+                    f.write(py_content)
 
-                # task.py (решение учителя)
-                with open(os.path.join(task_dir, 'task.py'), 'wb+') as destination:
-                    for chunk in files['task_py'].chunks():
-                        destination.write(chunk)
+                # 3. Создаем тесты
+                for i in range(1, test_count + 1):
+                    input_data = request.POST.get(f'test_{i}_input', '')
+                    output_data = request.POST.get(f'test_{i}_output', '')
 
-                # Тестовые файлы
-                test_files = request.FILES.getlist('test_files')
-                for test_file in test_files:
-                    file_path = os.path.join(task_dir, test_file.name)
-                    with open(file_path, 'wb+') as destination:
-                        for chunk in test_file.chunks():
-                            destination.write(chunk)
+                    if input_data and output_data:
+                        # Сохраняем .in файл
+                        with open(os.path.join(task_dir, f'test{i}.in'), 'w', encoding='utf-8') as f:
+                            f.write(input_data)
 
-                # Обновляем structure.json
+                        # Сохраняем .out файл
+                        with open(os.path.join(task_dir, f'test{i}.out'), 'w', encoding='utf-8') as f:
+                            f.write(output_data)
+
+                # 4. Обновляем structure.json
                 update_structure_json(class_name, topic, lesson, level, task_folder)
 
                 return JsonResponse({
                     'success': True,
-                    'message': 'Задача успешно добавлена!',
+                    'message': 'Задача успешно создана!',
                     'task_id': task.id,
                     'path': relative_path
                 })
@@ -147,185 +184,97 @@ def task_add(request):
                 }, status=500)
         else:
             errors = {}
-            errors.update(form.errors)
-            errors.update(file_form.errors)
+            errors.update(task_form.errors)
+            errors.update(content_form.errors)
+            if test_count == 0:
+                errors['tests'] = ['Добавьте хотя бы один тест']
             return JsonResponse({
                 'success': False,
                 'errors': errors
             }, status=400)
 
     else:
-        form = TaskAddForm()
-        file_form = TaskFileUploadForm()
+        task_form = TaskAddForm()
+        content_form = TaskContentForm()
 
-    # Получаем все уровни сложности для select
-    difficulty_levels = DifficultyLevel.objects.all()
+        # Шаблон для task.md
+        default_md = '''# Номер задачи
+## Название задачи
+Описание задачи...
+#### Формат ввода
+    Опишите формат входных данных.
+#### Формат вывода
+    Опишите формат выходных данных.        
+### Пример
+        Вход: 5 3
+        Выход: 8'''
 
-    context = {
-        'form': form,
-        'file_form': file_form,
-        'difficulty_levels': difficulty_levels,
-        'structure_json': json.dumps(get_structure_for_js())
-    }
+        content_form.fields['task_md_content'].initial = default_md
 
-    return render(request, 'task_description_app/task_add.html', context)
+        # Шаблон для task.py
+        default_py = '''def solve():
+    """Основная функция решения"""
+    # Чтение данных
+    data = input().split()
+    # Ваш код здесь
+    result = 0
+    print(result)
 
+if __name__ == "__main__":
+    solve()'''
+        content_form.fields['task_py_content'].initial = default_py
 
-@login_required
-@require_POST
-def get_topics(request):
-    """AJAX: Получить темы для выбранного класса"""
-    class_name = request.POST.get('class_name')
+        difficulty_levels = DifficultyLevel.objects.all()
 
-    try:
-        json_path = os.path.join(settings.BASE_DIR, 'structure.json')
-        with open(json_path, 'r', encoding='utf-8') as f:
-            structure = json.load(f)
+        context = {
+            'task_form': task_form,
+            'content_form': content_form,
+            'difficulty_levels': difficulty_levels,
+        }
 
-        topics = list(structure.get(class_name, {}).keys())
-
-        return JsonResponse({
-            'success': True,
-            'topics': topics
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
-
-
-@login_required
-@require_POST
-def get_lessons(request):
-    """AJAX: Получить уроки для выбранной темы"""
-    class_name = request.POST.get('class_name')
-    topic = request.POST.get('topic')
-
-    try:
-        json_path = os.path.join(settings.BASE_DIR, 'structure.json')
-        with open(json_path, 'r', encoding='utf-8') as f:
-            structure = json.load(f)
-
-        lessons = list(structure.get(class_name, {}).get(topic, {}).keys())
-
-        return JsonResponse({
-            'success': True,
-            'lessons': lessons
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
-
-
-@login_required
-@require_POST
-def get_levels(request):
-    """AJAX: Получить уровни для выбранного урока"""
-    class_name = request.POST.get('class_name')
-    topic = request.POST.get('topic')
-    lesson = request.POST.get('lesson')
-
-    try:
-        json_path = os.path.join(settings.BASE_DIR, 'structure.json')
-        with open(json_path, 'r', encoding='utf-8') as f:
-            structure = json.load(f)
-
-        levels = list(structure.get(class_name, {}).get(topic, {}).get(lesson, {}).keys())
-
-        return JsonResponse({
-            'success': True,
-            'levels': levels
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
-
-
-@login_required
-@require_POST
-def get_existing_tasks(request):
-    """AJAX: Получить существующие задачи для выбранного уровня"""
-    class_name = request.POST.get('class_name')
-    topic = request.POST.get('topic')
-    lesson = request.POST.get('lesson')
-    level = request.POST.get('level')
-
-    try:
-        json_path = os.path.join(settings.BASE_DIR, 'structure.json')
-        with open(json_path, 'r', encoding='utf-8') as f:
-            structure = json.load(f)
-
-        tasks = structure.get(class_name, {}).get(topic, {}).get(lesson, {}).get(level, [])
-
-        # Генерируем следующее имя задачи
-        if tasks:
-            # Ищем максимальный номер задачи
-            max_num = 0
-            for task in tasks:
-                if task.startswith('task_'):
-                    try:
-                        num = int(task.replace('task_', '').rstrip('ab'))
-                        max_num = max(max_num, num)
-                    except:
-                        pass
-
-            next_task = f"task_{max_num + 1:03d}"
-        else:
-            next_task = "task_001"
-
-        return JsonResponse({
-            'success': True,
-            'existing_tasks': tasks,
-            'next_task': next_task
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
+        return render(request, 'task_description_app/task_add.html', context)
 
 
 def update_structure_json(class_name, topic, lesson, level, task_folder):
     """Обновляет structure.json, добавляя новую задачу"""
     json_path = os.path.join(settings.BASE_DIR, 'structure.json')
 
+    print(f"Обновление structure.json по пути: {json_path}")
+
     try:
-        with open(json_path, 'r', encoding='utf-8') as f:
-            structure = json.load(f)
-    except FileNotFoundError:
-        structure = {}
+        # Проверяем существование директории
+        os.makedirs(os.path.dirname(json_path), exist_ok=True)
 
-    # Создаем структуру, если её нет
-    if class_name not in structure:
-        structure[class_name] = {}
-    if topic not in structure[class_name]:
-        structure[class_name][topic] = {}
-    if lesson not in structure[class_name][topic]:
-        structure[class_name][topic][lesson] = {}
-    if level not in structure[class_name][topic][lesson]:
-        structure[class_name][topic][lesson][level] = []
+        # Читаем существующий файл или создаем новый
+        if os.path.exists(json_path):
+            with open(json_path, 'r', encoding='utf-8') as f:
+                structure = json.load(f)
+            print("Существующий structure.json загружен")
+        else:
+            structure = {}
+            print("Создан новый structure.json")
 
-    # Добавляем задачу, если её ещё нет
-    if task_folder not in structure[class_name][topic][lesson][level]:
-        structure[class_name][topic][lesson][level].append(task_folder)
-        # Сортируем список
-        structure[class_name][topic][lesson][level].sort()
+        # СОЗДАЕМ структуру, если её нет
+        if class_name not in structure:
+            structure[class_name] = {}
+        if topic not in structure[class_name]:
+            structure[class_name][topic] = {}
+        if lesson not in structure[class_name][topic]:
+            structure[class_name][topic][lesson] = {}
+        if level not in structure[class_name][topic][lesson]:
+            structure[class_name][topic][lesson][level] = []
 
-    # Сохраняем
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(structure, f, ensure_ascii=False, indent=2)
+        # Добавляем задачу, если её ещё нет
+        if task_folder not in structure[class_name][topic][lesson][level]:
+            structure[class_name][topic][lesson][level].append(task_folder)
+            structure[class_name][topic][lesson][level].sort()
+            print(f"Добавлена задача {task_folder} в структуру")
 
+        # Сохраняем
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(structure, f, ensure_ascii=False, indent=2)
+        print("structure.json успешно сохранен")
 
-def get_structure_for_js():
-    """Возвращает структуру для JavaScript в безопасном формате"""
-    json_path = os.path.join(settings.BASE_DIR, 'structure.json')
-    try:
-        with open(json_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return {}
+    except Exception as e:
+        print(f"Ошибка в update_structure_json: {e}")
+        raise  # Пробрасываем ошибку дальше

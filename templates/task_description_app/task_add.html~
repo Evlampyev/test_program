@@ -429,7 +429,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="{% url 'tasks:task_add' %}" class="btn btn-primary">
+                <a href="{% url 'task_add' %}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Создать ещё
                 </a>
                 <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary">

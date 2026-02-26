@@ -1,27 +1,8 @@
 from django import forms
-from django.conf import settings
 from .models import Task, DifficultyLevel
 import os
 import json
-
-
-# Создаем кастомное поле для множественной загрузки файлов
-class MultipleFileInput(forms.ClearableFileInput):
-    allow_multiple_selected = True
-
-
-class MultipleFileField(forms.FileField):
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("widget", MultipleFileInput())
-        super().__init__(*args, **kwargs)
-
-    def clean(self, data, initial=None):
-        single_file_clean = super().clean
-        if isinstance(data, (list, tuple)):
-            result = [single_file_clean(d, initial) for d in data]
-        else:
-            result = [single_file_clean(data, initial)]
-        return result
+from django.conf import settings
 
 
 class TaskAddForm(forms.ModelForm):
@@ -38,33 +19,45 @@ class TaskAddForm(forms.ModelForm):
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 5,
-                'placeholder': 'Введите описание задачи (необязательно)'
+                'rows': 3,
+                'placeholder': 'Краткое описание задачи (необязательно)'
             }),
         }
 
-    # Дополнительные поля для выбора пути
-    class_level = forms.ChoiceField(
+    # Поля для выбора/создания пути
+    class_name = forms.CharField(
         label='Класс',
-        choices=[],
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Например: 8 класс или 10 класс'
+        })
     )
 
-    topic = forms.ChoiceField(
+    topic = forms.CharField(
         label='Тема',
-        choices=[],
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Например: Тема №1. Введение в программирование'
+        })
     )
 
-    lesson = forms.ChoiceField(
+    lesson = forms.CharField(
         label='Урок',
-        choices=[],
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Например: Урок_27 или Урок_84(38)'
+        })
     )
 
     level = forms.ChoiceField(
         label='Уровень',
-        choices=[],
+        choices=[
+            ('level_A', 'level_A'),
+            ('level_B', 'level_B'),
+            ('level_C', 'level_C'),
+            ('level_D', 'level_D'),
+            ('level_E', 'level_E'),
+        ],
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
@@ -72,58 +65,50 @@ class TaskAddForm(forms.ModelForm):
         label='Папка задачи',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Например: task_001',
-            'readonly': True
-        }),
-        required=False
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Загружаем структуру из JSON файла
-
-        json_path = os.path.join(settings.BASE_DIR, 'structure.json')
-        try:
-            with open(json_path, 'r', encoding='utf-8') as f:
-                self.structure = json.load(f)
-        except FileNotFoundError:
-            self.structure = {}
-
-        # Заполняем choices для классов
-        class_choices = [('', '-- Выберите класс --')]
-        for class_name in self.structure.keys():
-            class_choices.append((class_name, class_name))
-        self.fields['class_level'].choices = class_choices
-
-
-class TaskFileUploadForm(forms.Form):
-    """Форма для загрузки файлов задачи"""
-    task_md = forms.FileField(
-        label='Файл task.md',
-        required=True,
-        widget=forms.FileInput(attrs={
-            'class': 'form-control',
-            'accept': '.md, .txt'
+            'placeholder': 'Например: task_001'
         })
     )
 
-    task_py = forms.FileField(
-        label='Файл task.py (решение учителя)',
+
+class TaskContentForm(forms.Form):
+    """Форма для содержимого задачи"""
+    task_md_content = forms.CharField(
+        label='Описание задачи (task.md)',
         required=True,
-        widget=forms.FileInput(attrs={
+        widget=forms.Textarea(attrs={
             'class': 'form-control',
-            'accept': '.py'
+            'rows': 15,
+            'placeholder': '# Номер задачи\n\n## Условие\n\nОписание задачи...\n\n### Пример\n\nВход: 5 3\nВыход: 8'
         })
     )
 
-    # ИСПРАВЛЕНО: используем MultipleFileField вместо FileField
-    test_files = MultipleFileField(
-        label='Файлы тестов (test1.in, test1.out, test2.in, test2.out, ...)',
+    task_py_content = forms.CharField(
+        label='Решение учителя (task.py)',
         required=True,
-        widget=MultipleFileInput(attrs={
+        widget=forms.Textarea(attrs={
             'class': 'form-control',
-            'accept': '.in,.out,.txt',
-            'multiple': True
+            'rows': 10,
+            'placeholder': 'def solve():\n    # Ваш код\n    pass\n\nif __name__ == "__main__":\n    solve()'
+        })
+    )
+
+
+class TestCaseForm(forms.Form):
+    """Форма для одного теста"""
+    input_data = forms.CharField(
+        label='Входные данные',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control test-input',
+            'rows': 3,
+            'placeholder': 'Введите входные данные (каждая строка - отдельный тест?)'
+        })
+    )
+
+    output_data = forms.CharField(
+        label='Выходные данные',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control test-output',
+            'rows': 3,
+            'placeholder': 'Введите ожидаемый результат'
         })
     )

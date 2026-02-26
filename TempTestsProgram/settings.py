@@ -14,7 +14,17 @@ from pathlib import Path
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# BASE_DIR = Path(__file__).resolve().parent.parent
+# Путь к папке с задачами
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TASKS_ROOT = os.path.join(BASE_DIR, 'tasks_for_tests')
+
+# Проверяем, что папка существует
+if not os.path.exists(TASKS_ROOT):
+    os.makedirs(TASKS_ROOT)
+    print(f"Создана папка {TASKS_ROOT}")
+
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -59,7 +69,7 @@ ROOT_URLCONF = 'TempTestsProgram.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
+        'DIRS': [BASE_DIR +  '/templates']
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -80,7 +90,7 @@ WSGI_APPLICATION = 'TempTestsProgram.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR + '/db.sqlite3',
     }
 }
 
@@ -118,10 +128,10 @@ STATIC_URL = '/static/'
 
 # Общие статические файлы (для всего проекта)
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # Общая статика
+    BASE_DIR + '/static',  # Общая статика
 ]
 # Для production - куда собирать статику
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR + '/staticfiles'
 
 # Для разработки - автоматический сбор статики
 STATICFILES_FINDERS = [
