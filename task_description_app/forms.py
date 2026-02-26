@@ -1,7 +1,27 @@
 from django import forms
+from django.conf import settings
 from .models import Task, DifficultyLevel
 import os
 import json
+
+
+# Создаем кастомное поле для множественной загрузки файлов
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = [single_file_clean(data, initial)]
+        return result
 
 
 class TaskAddForm(forms.ModelForm):
@@ -62,6 +82,7 @@ class TaskAddForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Загружаем структуру из JSON файла
+
         json_path = os.path.join(settings.BASE_DIR, 'structure.json')
         try:
             with open(json_path, 'r', encoding='utf-8') as f:
@@ -75,8 +96,6 @@ class TaskAddForm(forms.ModelForm):
             class_choices.append((class_name, class_name))
         self.fields['class_level'].choices = class_choices
 
-        # Остальные поля будут заполняться через AJAX
-
 
 class TaskFileUploadForm(forms.Form):
     """Форма для загрузки файлов задачи"""
@@ -85,7 +104,7 @@ class TaskFileUploadForm(forms.Form):
         required=True,
         widget=forms.FileInput(attrs={
             'class': 'form-control',
-            'accept': '.md'
+            'accept': '.md, .txt'
         })
     )
 
@@ -98,12 +117,13 @@ class TaskFileUploadForm(forms.Form):
         })
     )
 
-    test_files = forms.FileField(
-        label='Файлы тестов (test1.in, test1.out, ...)',
+    # ИСПРАВЛЕНО: используем MultipleFileField вместо FileField
+    test_files = MultipleFileField(
+        label='Файлы тестов (test1.in, test1.out, test2.in, test2.out, ...)',
         required=True,
-        widget=forms.FileInput(attrs={
+        widget=MultipleFileInput(attrs={
             'class': 'form-control',
-            'multiple': True,
-            'accept': '.in,.out'
+            'accept': '.in,.out,.txt',
+            'multiple': True
         })
     )

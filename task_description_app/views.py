@@ -168,7 +168,7 @@ def task_add(request):
         'structure_json': json.dumps(get_structure_for_js())
     }
 
-    return render(request, 'teacher/task_add.html', context)
+    return render(request, 'task_description_app/task_add.html', context)
 
 
 @login_required
