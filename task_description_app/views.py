@@ -48,8 +48,11 @@ def task_detail(request, task_id):
     # if task.md_file and os.path.exists(task.md_path):
     #     with open(task.md_path, 'r', encoding='utf-8') as f:
     #         md_content = f.read()
+    print(f"{task.test_path=}")
+    # ----------------проблема здесь-------------------
     if task.test_file and os.path.exists(task.test_path):
         with open(task.test_path + 'task.md', 'r', encoding='utf-8') as f:
+            print(f"Файл md найден и открыт")
             md_content = f.read()
     # Конвертируем Markdown в HTML
     html_content = markdown.markdown(md_content, extensions=['extra', 'codehilite'])
