@@ -48,9 +48,11 @@ def task_detail(request, task_id):
     # if task.md_file and os.path.exists(task.md_path):
     #     with open(task.md_path, 'r', encoding='utf-8') as f:
     #         md_content = f.read()
-
+    print(f"{task.test_path=}")
+    print(f"{task.test_file=}")
+    print(f"{os.path.exists('tasks_for_test\\' + task.test_path)=}")
     task_dir = os.path.join(settings.TASKS_ROOT, task.test_path)
-    # print(f"{task_dir=}")
+    print(f"{task_dir=}")
     # ----------------проблема здесь-------------------
     if task.test_file and os.path.exists(task_dir):
         with open(task_dir + '\\task.md', 'r', encoding='utf-8') as f:

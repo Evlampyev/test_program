@@ -1,6 +1,7 @@
 # testing_app/views.py
 import os
 
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from task_description_app.models import UploadedProgram, Task
 import subprocess
@@ -30,7 +31,8 @@ def run_tests(request, program_id):
     # test_path = task_data.test_path
     # print(f"{test_path = }")
     # print(f"{task.test_path}")
-    tests_path = task.test_path
+    # tests_path = task.test_path
+    tests_path = os.path.join(settings.TASKS_ROOT, task.test_path)
     student_code_path = program.program_file.path
 
     logger.info(f"Задача №{task_id}; папка с тестами: {tests_path}; путь к коду ученика: {student_code_path}")
