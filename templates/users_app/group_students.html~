@@ -136,7 +136,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'task_list' %}">
+                        <a class="nav-link" href="{% url 'tasks:task_list' %}">
                             <i class="fas fa-tasks me-1"></i> Задачи
                         </a>
                     </li>

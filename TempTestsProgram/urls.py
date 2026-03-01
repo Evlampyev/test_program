@@ -18,14 +18,17 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('task_description_app.urls')),  # Главная страница со списком задач
+    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+
+    path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
+    path('tasks/', include('task_description_app.urls')),  # Главная страница со списком задач
     path('upload/', include('upload_app.urls')),
     path('tester/', include('testing_app.urls')),
     path('users/', include('users_app.urls')),
-
 
 ]
 

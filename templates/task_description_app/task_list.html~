@@ -257,7 +257,7 @@
                         <div class="markdown-content">
                             ${htmlContent}
                         </div>
-                        <a href="/tasks/task/${taskId}/" class="btn btn-primary">
+                        <a href=" tasks/task/${taskId}/" class="btn btn-primary">
                             ✅ Проверить решение этой задачи
                         </a>
                     </div>
