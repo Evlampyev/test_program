@@ -1,11 +1,3 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'testing_app/css/testing_app.css' %}">
-{% endblock %}
-
-{% block content %}
     <div class="results-container">
         <div class="results-card">
             <!-- Шапка -->
@@ -194,8 +186,8 @@ tests/
             </div>
         </div>
     </div>
-{% endblock %}
 
-{% block extra_js %}
-    <script src="{% static 'testing_app/js/testing_app.js' %}"></script>
-{% endblock %}
+
+{#{% block extra_js %}#}
+{#    <script src="{% static 'testing_app/js/testing_app.js' %}"></script>#}
+{#{% endblock %}#}

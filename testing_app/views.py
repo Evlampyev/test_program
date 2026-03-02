@@ -10,8 +10,6 @@ from testing_app.tester_project.tester import PythonCodeTester
 from manage import logger
 
 
-# logger = logging.getLogger(__name__)
-
 
 
 
@@ -79,8 +77,11 @@ def run_tests(request, program_id):
     failed_count = total_tests - passed_count
     success_rate = int((passed_count / total_tests * 100)) if total_tests > 0 else 0
     task_data = get_object_or_404(Task, id=task_id)
+    # user = request.user
+    # print(f"{user=}")
     if success_rate == 100:
         task_data.update_statistics('passed')
+        user = request.user
         # user.salved_tasks += 1
     else:
         task_data.update_statistics('failed')

@@ -1,13 +1,12 @@
 # views.py (приложение tasks)
 import os
-from datetime import datetime
 
 from django.core.cache import cache
+from django.db.models import Max
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 import markdown
 import json
 
@@ -139,8 +138,8 @@ def task_add(request):
                 relative_path = os.path.join(class_name, topic, lesson, level, task_folder)
                 task.test_file = relative_path
                 task.created_by = request.user
-                print(f"{task = }")
-                print(f"{relative_path=}")
+                # print(f"{task = }")
+                # print(f"{relative_path=}")
 
                 task.save()
 
@@ -230,11 +229,12 @@ if __name__ == "__main__":
         content_form.fields['task_py_content'].initial = default_py
 
         difficulty_levels = DifficultyLevel.objects.all()
-
+        max_id = Task.objects.aggregate(Max('id'))['id__max']
         context = {
             'task_form': task_form,
             'content_form': content_form,
             'difficulty_levels': difficulty_levels,
+            'task_id': max_id + 1,
         }
 
         return render(request, 'task_description_app/task_add.html', context)

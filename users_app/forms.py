@@ -32,12 +32,12 @@ class StudentRegistrationForm(UserCreationForm):
     # Поля для ученика
     class_number = forms.ChoiceField(
         label='Класс',
-        choices=[(i, f'{i} класс') for i in range(1, 12)],
+        choices=[(i, f'{i} класс') for i in range(5, 12)],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     class_letter = forms.ChoiceField(
         label='Буква класса',
-        choices=[('А', 'А'), ('Б', 'Б'), ('В', 'В'), ('Г', 'Г')],
+        choices=[('А', 'А'), ('Б', 'Б'), ('В', 'В'), ('Г', 'Г'), ('Д', 'Д'), ('Е', 'Е')],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     group_number = forms.ChoiceField(
