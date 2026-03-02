@@ -59,18 +59,15 @@ def teacher_dashboard(request):
     # Получаем группы учителя
     groups = Group.objects.filter(teacher=request.user).select_related('school_class')
 
-    # Получаем учеников по группам
-    students_by_group = {}
+    # Для каждой группы добавляем учеников
     for group in groups:
-        students = User.objects.filter(
+        group.students_list = User.objects.filter(
             user_type='student',
             student_profile__group=group
         ).select_related('student_profile')
-        students_by_group[group] = students
 
     context = {
         'groups': groups,
-        'students_by_group': students_by_group,
     }
     return render(request, 'users_app/th_dashboard.html', context)
 

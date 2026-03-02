@@ -101,7 +101,7 @@
                 <div class="col-md-3 col-6 mb-4">
                     <div class="stat-item">
                         <div class="stat-number">{{ total_tasks }}</div>
-                        <div class="stat-label">Задач</div>
+                        <div class="stat-label">Задач (и, а)</div>
                     </div>
                 </div>
                 <div class="col-md-3 col-6 mb-4">

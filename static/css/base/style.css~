@@ -63,10 +63,9 @@ body {
 .me-auto {
     margin: auto;
 }
-
 .user-menu {
     display: flex;
-    align-items: center; /**/
+    align-items: center;/**/
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 8px;
@@ -109,9 +108,5 @@ body {
 }
 
 .mb-4 {
-    text-align: justify;
-}
-
-p {
     text-align: justify;
 }

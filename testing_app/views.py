@@ -1,13 +1,15 @@
 # testing_app/views.py
 import os
+import json
 
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
-from task_description_app.models import UploadedProgram, Task
+from task_description_app.models import UploadedProgram, Task, TaskAttempt
 import subprocess
 
 from testing_app.tester_project.tester import PythonCodeTester
 from manage import logger
+from task_description_app.models import update_solved_tasks
 
 
 
@@ -21,6 +23,15 @@ def run_tests(request, program_id):
     # Обновляем статус
     program.status = 'testing'
     program.save()
+
+    # Создаем запись о попытке
+    attempt = TaskAttempt.objects.create(
+        user=request.user,
+        task_path=program.program_path,
+        task_id=program_id,
+        # code=code,
+        status='pending'
+    )
 
     # Получаем путь к тестам из задачи
     task = program.task
@@ -54,6 +65,12 @@ def run_tests(request, program_id):
         program.status = 'passed' if results.returncode == 0 else 'failed'
         program.save()
 
+        # Обновляем статус попытки
+        attempt.status = 'correct' if results.get('success') else 'incorrect'
+        attempt.result = json.dumps(results, ensure_ascii=False)
+        attempt.is_solved = results.get('success', False)
+        attempt.save()
+
     except subprocess.TimeoutExpired:
         test_results = {
             'error': 'Таймаут выполнения тестов',
@@ -81,8 +98,7 @@ def run_tests(request, program_id):
     # print(f"{user=}")
     if success_rate == 100:
         task_data.update_statistics('passed')
-        user = request.user
-        # user.salved_tasks += 1
+        update_solved_tasks(request, program)
     else:
         task_data.update_statistics('failed')
 
