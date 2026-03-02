@@ -64,7 +64,7 @@ def run_tests(request, program_id):
         program.test_results = results
         program.status = 'passed' if results.returncode == 0 else 'failed'
         program.save()
-
+# проблема здесь, не обновляется статус попытки, нужно разобрать словарь results
         # Обновляем статус попытки
         attempt.status = 'correct' if results.get('success') else 'incorrect'
         attempt.result = json.dumps(results, ensure_ascii=False)
@@ -98,7 +98,7 @@ def run_tests(request, program_id):
     # print(f"{user=}")
     if success_rate == 100:
         task_data.update_statistics('passed')
-        update_solved_tasks(request, program)
+        # update_solved_tasks(request, program)
     else:
         task_data.update_statistics('failed')
 
