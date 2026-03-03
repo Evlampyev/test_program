@@ -65,6 +65,7 @@ def run_tests(request, program_id):
         program.status = 'passed' if results.returncode == 0 else 'failed'
         program.save()
 # проблема здесь, не обновляется статус попытки, нужно разобрать словарь results
+
         # Обновляем статус попытки
         attempt.status = 'correct' if results.get('success') else 'incorrect'
         attempt.result = json.dumps(results, ensure_ascii=False)

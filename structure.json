@@ -22,6 +22,22 @@
           "task_001"
         ],
         "level_B": [
+          "task_001",
+          "task_002",
+          "task_003"
+        ],
+        "level_C": [
+          "task_001"
+        ]
+      },
+      "Урок 103(44)": {
+        "level_B": [
+          "task_001"
+        ],
+        "level_C": [
+          "task_001"
+        ],
+        "level_A": [
           "task_001"
         ]
       }
