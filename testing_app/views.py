@@ -100,10 +100,20 @@ def run_tests(request, program_id):
     # failed_count = total_tests - passed_count
     # success_rate = int((passed_count / total_tests * 100)) if total_tests > 0 else 0
     task_data = get_object_or_404(Task, id=task_id)
-    user = request.user.student_profile
-    print(f"{user = }")
-    print(f"{task_id = }")
-    user.add_solved_task(task_id)
+    try:
+        user = request.user.student_profile
+        user.add_solved_task(task_id)
+    except Exception as e:
+        pass
+
+    # if not user:
+    #     try:
+    #         user = request.user.t
+
+
+    # print(f"{user = }")
+    # print(f"{task_id = }")
+    # user.add_solved_task(task_id)
     if success_rate == 100:
         task_data.update_statistics('passed')
         # update_solved_tasks(request, program)
