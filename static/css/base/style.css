@@ -23,6 +23,11 @@ body {
     flex-direction: column;
 }
 
+.container {
+    max-width: 1900px;
+    min-width: 1360px;
+
+}
 .navbar {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     box-shadow: 0 8px 10px rgba(0, 0, 0, 0.1);

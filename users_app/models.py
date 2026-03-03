@@ -1,8 +1,9 @@
+import json
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group as AuthGroup
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
-
 
 
 # Кастомная модель пользователя
@@ -68,8 +69,17 @@ class Group(models.Model):
 class StudentProfile(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='student_profile')
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, related_name='students')
+
     # Дополнительные поля ученика
     solved_tasks = models.IntegerField('Решено задач', default=0)
+
+    # ПОЛЕ СО СПИСКОМ ID ЗАДАЧ (реальных ID задач из UploadedProgram.task_id)
+    solved_tasks_list = models.TextField(
+        'Список решенных задач',
+        default='[]',
+        blank=True,
+        help_text='JSON-список ID решенных задач (из UploadedProgram.task_id)'
+    )
 
     class Meta:
         verbose_name = 'Профиль ученика'
@@ -78,7 +88,77 @@ class StudentProfile(models.Model):
     def __str__(self):
         return f"{self.user.last_name} {self.user.first_name} - {self.group}"
 
+    # МЕТОДЫ ДЛЯ РАБОТЫ СО СПИСКОМ РЕШЕННЫХ ЗАДАЧ
 
+    def _get_tasks_list(self):
+        """Внутренний метод: преобразует JSON строку в список"""
+        try:
+            return json.loads(self.solved_tasks_list)
+        except (json.JSONDecodeError, TypeError):
+            return []
+
+    def _set_tasks_list(self, tasks):
+        """Внутренний метод: преобразует список в JSON строку"""
+        self.solved_tasks_list = json.dumps(tasks)
+
+    def add_solved_task(self, real_task_id):
+        """
+        Добавляет реальный ID задачи в список решенных
+        real_task_id - это значение из UploadedProgram.task_id (например, "34")
+        """
+        tasks = self._get_tasks_list()
+
+        # Преобразуем в строку для единообразия
+        task_id_str = str(real_task_id)
+
+        if task_id_str not in tasks:
+            tasks.append(task_id_str)
+            self._set_tasks_list(tasks)
+            self.solved_tasks = len(tasks)
+            self.save()
+            return True
+        return False
+
+    def remove_solved_task(self, real_task_id):
+        """Удаляет ID задачи из списка решенных"""
+        tasks = self._get_tasks_list()
+        task_id_str = str(real_task_id)
+
+        if task_id_str in tasks:
+            tasks.remove(task_id_str)
+            self._set_tasks_list(tasks)
+            self.solved_tasks = len(tasks)
+            self.save()
+            return True
+        return False
+
+    def is_task_solved(self, real_task_id):
+        """Проверяет, решена ли задача по её реальному ID"""
+        tasks = self._get_tasks_list()
+        return str(real_task_id) in tasks
+
+    def get_solved_tasks(self):
+        """Возвращает список ID решенных задач"""
+        return self._get_tasks_list()
+
+    def get_solved_tasks_count(self):
+        """Возвращает количество решенных задач"""
+        return len(self._get_tasks_list())
+
+    def clear_solved_tasks(self):
+        """Очищает список решенных задач"""
+        self._set_tasks_list([])
+        self.solved_tasks = 0
+        self.save()
+
+    def get_solved_tasks_display(self):
+        """Возвращает строку для отображения в админке"""
+        tasks = self._get_tasks_list()
+        if tasks:
+            if len(tasks) > 5:
+                return f"{len(tasks)} задач: {', '.join(tasks[:5])}..."
+            return f"{len(tasks)} задач: {', '.join(tasks)}"
+        return "Нет решенных задач"
 
 # Профиль учителя (расширение User)
 class TeacherProfile(models.Model):

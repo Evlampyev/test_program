@@ -162,6 +162,7 @@ LOGGING = {
             "class": "logging.FileHandler",
             "filename": "debug.log",
             "encoding": "utf-8",
+            "mode": "w",  # Добавьте эту строку - 'w' для перезаписи при каждом запуске
         },
     },
     "root": {

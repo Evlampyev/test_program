@@ -10,7 +10,7 @@ class PythonCodeTester:
     Класс для тестирования Python-программ учеников.
     """
 
-    def __init__(self, student_code_path: str, test_dir: str = "tests"):
+    def __init__(self, student_code_path: str, test_dir):
         """
         Инициализация тестера.
 

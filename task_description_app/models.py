@@ -11,6 +11,7 @@ from users_app.models import StudentProfile
 
 User = get_user_model()
 
+
 class DifficultyLevel(models.Model):
     """
     Модель уровней сложности задач
@@ -172,6 +173,7 @@ class TaskAttempt(models.Model):
     code = models.TextField('Код решения', blank=True)
     result = models.TextField('Результат', blank=True)
     is_solved = models.BooleanField('Решено', default=False)  # флаг, что задача решена (для статистики)
+    real_task_id = models.CharField('ID задачи', max_length=50, blank=True)
 
     class Meta:
         ordering = ['-attempt_time']
@@ -180,25 +182,6 @@ class TaskAttempt(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.task_id} - {self.attempt_time}"
-
-
-# Сигнал для обновления solved_tasks при успешном решении
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-
-@receiver(post_save, sender=TaskAttempt)
-def update_solved_tasks(sender, instance, created, **kwargs):
-    """
-    При создании новой попытки с is_solved=True увеличиваем счетчик у ученика
-    """
-    if created and instance.is_solved:
-        try:
-            profile = instance.user.student_profile
-            profile.solved_tasks += 1
-            profile.save()
-        except StudentProfile.DoesNotExist:
-            pass  # У пользователя нет профиля ученика
 
 
 class UploadedProgram(models.Model):

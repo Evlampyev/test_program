@@ -3,6 +3,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+
+from task_description_app.models import Task
 from .forms import StudentRegistrationForm, LoginForm, AssignTeacherForm
 from .models import User, StudentProfile, Group, SchoolClass
 
@@ -80,18 +82,34 @@ def student_dashboard(request):
 
     try:
         profile = request.user.student_profile
+        # print(f"{profile=}")
         group = profile.group
         # Получаем одноклассников (учеников из той же группы)
         classmates = StudentProfile.objects.filter(group=group).exclude(user=request.user).select_related('user')
+        print(f"{classmates=}")
     except StudentProfile.DoesNotExist:
         profile = None
         group = None
         classmates = []
 
+    # Получаем список решенных задач (реальные ID)
+    solved_task_ids = profile.get_solved_tasks()
+    print(f"{solved_task_ids=}")
+
+    # Если нужно получить полные объекты задач
+    solved_tasks = Task.objects.filter(id__in=solved_task_ids)
+
+    # # Проверяем, решена ли конкретная задача
+    # task_id = 34  # реальный ID задачи
+    # is_solved = profile.is_task_solved(task_id)
+
     context = {
         'profile': profile,
         'group': group,
         'classmates': classmates,
+        'solved_task_ids': solved_task_ids,
+        'solved_tasks': solved_tasks,
+        'solved_count': profile.get_solved_tasks_count(),
     }
     return render(request, 'users_app/st_dashboard.html', context)
 

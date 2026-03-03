@@ -1,0 +1,1 @@
+default_app_config = 'task_description_app.apps.TaskDescriptionConfig'

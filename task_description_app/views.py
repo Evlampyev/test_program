@@ -11,9 +11,13 @@ import markdown
 import json
 
 from make_json import scan_tasks_simple
+from users_app.models import StudentProfile
 from .forms import TaskAddForm, TaskContentForm
 
-from .models import Task, DifficultyLevel
+from .models import Task, DifficultyLevel, TaskAttempt
+
+
+
 
 
 def get_cached_structure():
