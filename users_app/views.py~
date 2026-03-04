@@ -73,7 +73,6 @@ def teacher_dashboard(request):
     }
     return render(request, 'users_app/th_dashboard.html', context)
 
-
 def get_task_level(task_id):
     """
     Определяет уровень задачи по её ID
@@ -139,6 +138,41 @@ def student_dashboard(request):
                 if len(tasks_stats) >= 3:  # Хотим только 3 последние задачи
                     break
 
+        # Вариант 2: Через UploadedProgram (если у вас там хранятся программы)
+        # last_programs = UploadedProgram.objects.filter(
+        #     user=request.user
+        # ).order_by('-upload_time')[:10]
+
+        # # Группируем по задачам
+        # tasks_stats = []
+        # seen_tasks = set()
+
+        # for program in last_programs:
+        #     task_id = program.task_id
+        #     if task_id not in seen_tasks:
+        #         seen_tasks.add(task_id)
+
+        #         # Получаем все попытки по этой задаче
+        #         attempts = TaskAttempt.objects.filter(
+        #             user=request.user,
+        #             task_id=task_id
+        #         )
+
+        #         is_solved = attempts.filter(is_solved=True).exists()
+
+        #         task_info = {
+        #             'id': task_id,
+        #             'title': f'Задача #{task_id}',
+        #             'level': get_task_level(task_id),
+        #             'attempts_count': attempts.count(),
+        #             'is_solved': is_solved,
+        #             'status_class': 'status-done' if is_solved else 'status-pending',
+        #         }
+        #         tasks_stats.append(task_info)
+
+        #         if len(tasks_stats) >= 3:
+        #             break
+
     except StudentProfile.DoesNotExist:
         profile = None
         group = None
@@ -167,6 +201,45 @@ def student_dashboard(request):
         'success_rate': success_rate,
     }
     return render(request, 'users_app/st_dashboard.html', context)
+
+# Личный кабинет ученика
+# @login_required
+# def student_dashboard(request):
+#     if request.user.user_type != 'student':
+#         return redirect('teacher_dashboard')
+#
+#     try:
+#         profile = request.user.student_profile
+#         # print(f"{profile=}")
+#         group = profile.group
+#         # Получаем одноклассников (учеников из той же группы)
+#         classmates = StudentProfile.objects.filter(group=group).exclude(user=request.user).select_related('user')
+#         print(f"{classmates=}")
+#     except StudentProfile.DoesNotExist:
+#         profile = None
+#         group = None
+#         classmates = []
+#
+#     # Получаем список решенных задач (реальные ID)
+#     solved_task_ids = profile.get_solved_tasks()
+#     print(f"{solved_task_ids=}")
+#
+#     # Если нужно получить полные объекты задач
+#     solved_tasks = Task.objects.filter(id__in=solved_task_ids)
+#
+#     # # Проверяем, решена ли конкретная задача
+#     # task_id = 34  # реальный ID задачи
+#     # is_solved = profile.is_task_solved(task_id)
+#
+#     context = {
+#         'profile': profile,
+#         'group': group,
+#         'classmates': classmates,
+#         'solved_task_ids': solved_task_ids,
+#         'solved_tasks': solved_tasks,
+#         'solved_count': profile.get_solved_tasks_count(),
+#     }
+#     return render(request, 'users_app/st_dashboard.html', context)
 
 
 # Просмотр учеников группы (для учителя)
