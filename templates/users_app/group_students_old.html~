@@ -474,7 +474,7 @@
 
     // Просмотр задач ученика
     function viewStudentTasks(studentId) {
-        window.location.href = '/users/teacher/student/' + studentId + '/tasks/';
+        window.location.href = '/teacher/student/' + studentId + '/tasks/';
     }
 
     // Сброс пароля
