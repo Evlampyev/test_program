@@ -1,30 +1,27 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ученики группы | {{ group.school_class }} - Группа {{ group.number }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" >
+{% extends "base.html" %}
+
+{% block title %}Ученики группы | {{ group.school_class }} - Группа {{ group.number }}{% endblock %}
+
+{% block extra_css %}
+    {#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">#}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+{% endblock %}
+
+{% block content %}
+
+
     <style>
-        body {
-            background: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .navbar-brand, .nav-link {
-            color: white !important;
-        }
+
+
         .page-header {
             background: white;
             padding: 25px;
             border-radius: 15px;
             margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
+
         .group-info {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -32,13 +29,15 @@
             border-radius: 12px;
             margin-bottom: 25px;
         }
+
         .stats-card {
             background: white;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
+
         .student-card {
             background: white;
             border-radius: 12px;
@@ -47,10 +46,12 @@
             border-left: 4px solid #667eea;
             transition: transform 0.3s, box-shadow 0.3s;
         }
+
         .student-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
         }
+
         .student-avatar {
             width: 50px;
             height: 50px;
@@ -63,40 +64,48 @@
             font-size: 20px;
             font-weight: 600;
         }
+
         .student-info h5 {
             margin: 0;
             color: #333;
             font-weight: 600;
         }
+
         .student-info small {
             color: #6c757d;
         }
+
         .progress {
             height: 8px;
             border-radius: 4px;
             margin-top: 10px;
         }
+
         .progress-bar {
             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         }
+
         .badge-success {
             background: #d4edda;
             color: #155724;
             padding: 5px 10px;
             border-radius: 20px;
         }
+
         .badge-warning {
             background: #fff3cd;
             color: #856404;
             padding: 5px 10px;
             border-radius: 20px;
         }
+
         .filter-section {
             background: white;
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 20px;
         }
+
         .btn-export {
             background: #28a745;
             color: white;
@@ -105,57 +114,32 @@
             border-radius: 8px;
             transition: background 0.3s;
         }
+
         .btn-export:hover {
             background: #218838;
             color: white;
         }
+
         .task-progress {
             font-size: 13px;
         }
+
         .task-progress i {
             margin-right: 5px;
         }
     </style>
-</head>
-<body>
-    <!-- Навигация -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'teacher_dashboard' %}">
-                <i class="fas fa-chalkboard-teacher me-2"></i>
-                Панель учителя
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'teacher_dashboard' %}">
-                            <i class="fas fa-home me-1"></i> Главная
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'tasks:task_list' %}">
-                            <i class="fas fa-tasks me-1"></i> Задачи
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">
-                            <i class="fas fa-sign-out-alt me-1"></i> Выход
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+
+
 
     <div class="container mt-4">
         <!-- Хлебные крошки -->
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'teacher_dashboard' %}" class="text-decoration-none">Главная</a></li>
-                <li class="breadcrumb-item active" aria-current="page">{{ group.school_class }} - Группа {{ group.number }}</li>
+                <li class="breadcrumb-item"><a href="{% url 'teacher_dashboard' %}"
+                                               class="text-decoration-none">Главная</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">{{ group.school_class }} -
+                    Группа {{ group.number }}</li>
             </ol>
         </nav>
 
@@ -249,97 +233,105 @@
 
         <!-- Список учеников -->
         <div class="row" id="studentsList">
-            {% if students %}
-                {% for student in students %}
-                    <div class="col-md-6 student-item"
-                         data-name="{{ student.last_name }} {{ student.first_name }}"
-                         data-solved="{{ student.student_profile.solved_tasks|default:0 }}"
-                         data-progress="85">
-                        <div class="student-card">
-                            <div class="d-flex">
-                                <div class="student-avatar me-3">
-                                    {{ student.first_name|first }}{{ student.last_name|first }}
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="student-info">
-                                            <h5>
-                                                {{ student.last_name }} {{ student.first_name }} {{ student.middle_name }}
-                                                {% if student.student_profile.solved_tasks > 10 %}
-                                                    <span class="badge bg-success ms-2">Отличник</span>
-                                                {% endif %}
-                                            </h5>
-                                            <small class="text-muted">
-                                                <i class="fas fa-user me-1"></i> Логин: {{ student.username }}
-                                            </small>
-                                            {% if student.student_profile.parent_phone %}
-                                                <small class="text-muted d-block">
-                                                    <i class="fas fa-phone me-1"></i> {{ student.student_profile.parent_phone }}
-                                                </small>
-                                            {% endif %}
-                                        </div>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#" onclick="viewStudentStats('{{ student.id }}')">
-                                                    <i class="fas fa-chart-line me-2"></i>Статистика
-                                                </a></li>
-                                                <li><a class="dropdown-item" href="#" onclick="viewStudentTasks('{{ student.id }}')">
-                                                    <i class="fas fa-tasks me-2"></i>Задачи
-                                                </a></li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item text-danger" href="#" onclick="resetPassword('{{ student.id }}')">
-                                                    <i class="fas fa-key me-2"></i>Сбросить пароль
-                                                </a></li>
-                                            </ul>
-                                        </div>
+            {% if students_data %}
+                {% for student_data in students_data %}
+                    {% with student=student_data.student %}
+                        <div class="col-md-6 student-item">
+                            <div class="student-card">
+                                <div class="d-flex">
+                                    <div class="student-avatar me-3">
+                                        {{ student.first_name|first }}{{ student.last_name|first }}
                                     </div>
-
-                                    <!-- Прогресс -->
-                                    <div class="mt-3">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="task-progress">
-                                                <i class="fas fa-check-circle text-success"></i>
-                                                Решено: {{ student.student_profile.solved_tasks|default:"0" }} задач
-                                            </span>
-                                            <span class="task-progress">
-                                                <i class="fas fa-clock text-warning"></i>
-                                                В процессе: 2
-                                            </span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar" role="progressbar"
-                                                 style="width: {% widthratio student.student_profile.solved_tasks|default:0 20 100 %}%"
-                                                 aria-valuenow="{{ student.student_profile.solved_tasks|default:0 }}"
-                                                 aria-valuemin="0"
-                                                 aria-valuemax="20">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="student-info">
+                                                <h5>
+                                                    {{ student.last_name }} {{ student.first_name }} {{ student.middle_name }}
+                                                    {% if student.student_profile.solved_tasks > 10 %}
+                                                        <span class="badge bg-success ms-2">Отличник</span>
+                                                    {% endif %}
+                                                </h5>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user me-1"></i> Логин: {{ student.username }}
+                                                </small>
+                                                {#                                                {% if student.student_profile.parent_phone %}#}
+                                                {#                                                    <small class="text-muted d-block">#}
+                                                {#                                                        <i class="fas fa-phone me-1"></i> {{ student.student_profile.parent_phone }}#}
+                                                {#                                                    </small>#}
+                                                {#                                                {% endif %}#}
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button"
+                                                        data-bs-toggle="dropdown">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="#"
+                                                           onclick="viewStudentStats('{{ student.id }}')">
+                                                        <i class="fas fa-chart-line me-2"></i>Статистика
+                                                    </a></li>
+                                                    <li><a class="dropdown-item" href="#"
+                                                           onclick="viewStudentTasks('{{ student.id }}')">
+                                                        <i class="fas fa-tasks me-2"></i>Задачи
+                                                    </a></li>
+                                                    <li>
+                                                        <hr class="dropdown-divider">
+                                                    </li>
+                                                    <li><a class="dropdown-item text-danger" href="#"
+                                                           onclick="resetPassword('{{ student.id }}')">
+                                                        <i class="fas fa-key me-2"></i>Сбросить пароль
+                                                    </a></li>
+                                                </ul>
                                             </div>
                                         </div>
-                                        <div class="d-flex justify-content-between mt-2">
-                                            <span class="badge-success">
-                                                <i class="fas fa-star me-1"></i>Точность: 85%
-                                            </span>
-                                            <span class="badge-warning">
-                                                <i class="fas fa-clock me-1"></i>Последний вход: сегодня
-                                            </span>
+                                        <!-- Прогресс (обновленная версия) -->
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="task-progress">
+                                                    <i class="fas fa-check-circle text-success"></i>
+                                                    Решено: {{ student_data.solved_count }} задач
+                                                </span>
+                                                <span class="task-progress">
+                                                    <i class="fas fa-clock text-warning"></i>
+                                                    В процессе: {{ student_data.in_progress_count }}
+                                                </span>
+                                            </div>
+                                            <div class="progress">
+                                                <div class="progress-bar" role="progressbar"
+                                                     style="width: {{ student_data.progress_width }}%"
+                                                     aria-valuenow="{{ student_data.solved_count }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="{{ student_data.max_tasks }}">
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <span class="badge-success">
+                                                    <i class="fas fa-star me-1"></i>
+                                                    Точность: {{ student_data.accuracy }}%
+                                                </span>
+                                                <span class="badge-warning">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    Последний вход: {{ student_data.last_login_display }}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Быстрые действия -->
-                                    <div class="mt-3 pt-2 border-top">
-                                        <a href="#" class="btn btn-sm btn-outline-primary me-2" onclick="assignTask('{{ student.id }}')">
-                                            <i class="fas fa-plus-circle me-1"></i>Назначить задачу
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-outline-info" onclick="sendMessage('{{ student.id }}')">
-                                            <i class="fas fa-envelope me-1"></i>Сообщение
-                                        </a>
+                                        <!-- Быстрые действия -->
+                                        <div class="mt-3 pt-2 border-top">
+                                            <a href="#" class="btn btn-sm btn-outline-primary me-2"
+                                               onclick="assignTask('{{ student.id }}')">
+                                                <i class="fas fa-plus-circle me-1"></i>Назначить задачу
+                                            </a>
+                                            <a href="#" class="btn btn-sm btn-outline-info"
+                                               onclick="sendMessage('{{ student.id }}')">
+                                                <i class="fas fa-envelope me-1"></i>Сообщение
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    {% endwith %}
                 {% endfor %}
             {% else %}
                 <div class="col-12">
@@ -370,132 +362,460 @@
         {% endif %}
     </div>
 
-    <!-- Модальное окно для статистики -->
-    <div class="modal fade" id="studentStatsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+    {#    <!-- Модальное окно для статистики -->#}
+    {#    <div class="modal fade" id="studentStatsModal" tabindex="-1">#}
+    {#        <div class="modal-dialog modal-lg">#}
+    {#            <div class="modal-content">#}
+    {#                <div class="modal-header">#}
+    {#                    <h5 class="modal-title">Статистика ученика</h5>#}
+    {#                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>#}
+    {#                </div>#}
+    {#                <div class="modal-body" id="statsModalBody">#}
+    {#                    <!-- Статистика будет загружена через JS -->#}
+    {#                </div>#}
+    {#            </div>#}
+    {#        </div>#}
+    {#    </div>#}
+    <!-- Модальное окно для статистики (обновленное) -->
+    <div class="modal fade" id="studentStatsModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl"> <!-- Увеличиваем размер -->
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Статистика ученика</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Статистика ученика
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="statsModalBody">
-                    <!-- Статистика будет загружена через JS -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Загрузка статистики...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-primary" onclick="exportStats()">
+                        <i class="fas fa-download me-2"></i>Экспорт
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+{% endblock %}
 
+
+{% block extra_js %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Поиск учеников
-        document.getElementById('searchStudent').addEventListener('keyup', function() {
-            let searchText = this.value.toLowerCase();
-            let students = document.querySelectorAll('.student-item');
-
-            students.forEach(function(student) {
-                let name = student.getAttribute('data-name').toLowerCase();
-                if (name.includes(searchText)) {
-                    student.style.display = 'block';
-                } else {
-                    student.style.display = 'none';
-                }
-            });
-        });
-
-        // Применить фильтры
-        function applyFilters() {
-            let sortBy = document.getElementById('sortBy').value;
-            let students = Array.from(document.querySelectorAll('.student-item'));
-
-            students.sort(function(a, b) {
-                if (sortBy === 'name') {
-                    return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
-                } else if (sortBy === 'solved') {
-                    return parseInt(b.getAttribute('data-solved')) - parseInt(a.getAttribute('data-solved'));
-                }
-            });
-
-            let container = document.getElementById('studentsList');
-            container.innerHTML = '';
-            students.forEach(function(student) {
-                container.appendChild(student);
-            });
-        }
+        // Подключаем Chart.js для графиков
+        document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>');
 
         // Просмотр статистики ученика
         function viewStudentStats(studentId) {
-            // Здесь можно загрузить статистику через AJAX
             let modal = new bootstrap.Modal(document.getElementById('studentStatsModal'));
-            document.getElementById('statsModalBody').innerHTML = `
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Загрузка...</span>
-                    </div>
-                </div>
-            `;
+            let modalBody = document.getElementById('statsModalBody');
+
+            // Показываем загрузку
+            modalBody.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+            <p class="mt-3 text-muted">Загрузка статистики...</p>
+        </div>
+    `;
+
             modal.show();
 
-            // Имитация загрузки
-            setTimeout(function() {
-                document.getElementById('statsModalBody').innerHTML = `
-                    <canvas id="statsChart" width="400" height="200"></canvas>
-                `;
-            }, 1000);
-        }
-
-        // Просмотр задач ученика
-        function viewStudentTasks(studentId) {
-            window.location.href = '/teacher/student/' + studentId + '/tasks/';
-        }
-
-        // Сброс пароля
-        function resetPassword(studentId) {
-            if (confirm('Вы уверены, что хотите сбросить пароль ученика?')) {
-                // AJAX запрос на сброс пароля
-                fetch('/api/reset-password/' + studentId + '/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}'
+            // Загружаем реальные данные
+            fetch(`/api/student-stats/${studentId}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка загрузки данных');
                     }
+                    return response.json();
                 })
-                .then(response => response.json())
                 .then(data => {
-                    alert('Новый пароль: ' + data.new_password);
+                    renderStatsModal(data);
+                })
+                .catch(error => {
+                    modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Ошибка загрузки статистики: ${error.message}
+                </div>
+            `;
                 });
+        }
+
+        // Отрисовка статистики
+        function renderStatsModal(data) {
+            const modalBody = document.getElementById('statsModalBody');
+
+            let html = `
+        <div class="container-fluid">
+            <!-- Информация об ученике -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h4 class="card-title">${data.student.name}</h4>
+                            <p class="card-text">
+                                <i class="fas fa-layer-group me-2"></i> Группа: ${data.student.group}<br>
+                                <i class="fas fa-calendar me-2"></i> Всего попыток: ${data.stats.total_attempts}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Статистика в цифрах -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body text-center">
+                            <h3>${data.stats.solved_tasks}</h3>
+                            <span>Решено задач</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body text-center">
+                            <h3>${data.stats.in_progress}</h3>
+                            <span>В процессе</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body text-center">
+                            <h3>${data.stats.total_attempts}</h3>
+                            <span>Всего попыток</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body text-center">
+                            <h3>${data.stats.accuracy}%</h3>
+                            <span>Точность</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- График активности -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Активность за последние 30 дней</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="activityChart" style="height: 250px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Последние задачи -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Последние задачи</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Задача</th>
+                                            <th>Попыток</th>
+                                            <th>Статус</th>
+                                            <th>Последняя попытка</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+    `;
+
+            data.recent_tasks.forEach(task => {
+                html += `
+            <tr>
+                <td>${task.title}</td>
+                <td>${task.attempts}</td>
+                <td>
+                    ${task.is_solved ?
+                    '<span class="badge bg-success">Решено</span>' :
+                    '<span class="badge bg-warning">В процессе</span>'}
+                </td>
+                <td>${task.last_attempt}</td>
+            </tr>
+        `;
+            });
+
+            html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Статистика по уровням -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Прогресс по уровням</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+    `;
+
+            for (let level in data.levels_stats) {
+                let levelData = data.levels_stats[level];
+                let progressPercent = levelData.total > 0 ?
+                    Math.round((levelData.solved / levelData.total) * 100) : 0;
+
+                html += `
+            <div class="col-md-4 mb-3">
+                <h6>${level}</h6>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar" role="progressbar"
+                         style="width: ${progressPercent}%;"
+                         aria-valuenow="${levelData.solved}"
+                         aria-valuemin="0"
+                         aria-valuemax="${levelData.total}">
+                        ${levelData.solved}/${levelData.total}
+                    </div>
+                </div>
+            </div>
+        `;
             }
+
+            html += `
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+            modalBody.innerHTML = html;
+
+            // Создаем график
+            createActivityChart(data.daily_stats);
         }
 
-        // Назначить задачу
-        function assignTask(studentId) {
-            window.location.href = '/task/assign/?student=' + studentId;
-        }
+        // Создание графика активности
+        function createActivityChart(dailyStats) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
 
-        // Отправить сообщение
-        function sendMessage(studentId) {
-            window.location.href = '/messages/new/?to=' + studentId;
-        }
-
-        // Экспорт в CSV
-        function exportToCSV() {
-            let students = [];
-            document.querySelectorAll('.student-item').forEach(function(item) {
-                let name = item.querySelector('.student-info h5').textContent.trim();
-                let solved = item.querySelector('.task-progress').textContent.match(/\d+/)[0];
-                students.push({name: name, solved: solved});
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dailyStats.map(d => d.date),
+                    datasets: [{
+                        label: 'Попытки',
+                        data: dailyStats.map(d => d.attempts),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Решено',
+                        data: dailyStats.map(d => d.solved),
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
             });
+        }
 
-            let csv = 'ФИО,Решено задач\n';
-            students.forEach(function(s) {
-                csv += s.name + ',' + s.solved + '\n';
-            });
+        // Экспорт статистики
+        function exportStats() {
+            // Получаем данные из модального окна
+            const stats = document.getElementById('statsModalBody').innerText;
 
-            let blob = new Blob([csv], { type: 'text/csv' });
-            let url = window.URL.createObjectURL(blob);
-            let a = document.createElement('a');
+            // Создаем файл для скачивания
+            const blob = new Blob([stats], {type: 'text/plain'});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
             a.href = url;
-            a.download = 'students.csv';
+            a.download = 'statistics.txt';
             a.click();
         }
+
+        // Просмотр задач ученика (улучшенная версия)
+        function viewStudentTasks(studentId) {
+            // Можно добавить подтверждение
+            if (confirm('Перейти к списку задач ученика?')) {
+                window.location.href = '/teacher/student/' + studentId + '/tasks/';
+            }
+        }
     </script>
-</body>
-</html>
+
+    <!-- Добавим немного CSS для модального окна -->
+    <style>
+        #studentStatsModal .modal-xl {
+            max-width: 95%;
+        }
+
+        #studentStatsModal .card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+        }
+
+        #studentStatsModal .card-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+        }
+
+        #studentStatsModal .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+        }
+    </style>
+
+
+
+    {#    <script>#}
+    {#        // Поиск учеников#}
+    {#        document.getElementById('searchStudent').addEventListener('keyup', function () {#}
+    {#            let searchText = this.value.toLowerCase();#}
+    {#            let students = document.querySelectorAll('.student-item');#}
+    {##}
+    {#            students.forEach(function (student) {#}
+    {#                let name = student.getAttribute('data-name').toLowerCase();#}
+    {#                if (name.includes(searchText)) {#}
+    {#                    student.style.display = 'block';#}
+    {#                } else {#}
+    {#                    student.style.display = 'none';#}
+    {#                }#}
+    {#            });#}
+    {#        });#}
+    {##}
+    {#        // Применить фильтры#}
+    {#        function applyFilters() {#}
+    {#            let sortBy = document.getElementById('sortBy').value;#}
+    {#            let students = Array.from(document.querySelectorAll('.student-item'));#}
+    {##}
+    {#            students.sort(function (a, b) {#}
+    {#                if (sortBy === 'name') {#}
+    {#                    return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));#}
+    {#                } else if (sortBy === 'solved') {#}
+    {#                    return parseInt(b.getAttribute('data-solved')) - parseInt(a.getAttribute('data-solved'));#}
+    {#                }#}
+    {#            });#}
+    {##}
+    {#            let container = document.getElementById('studentsList');#}
+    {#            container.innerHTML = '';#}
+    {#            students.forEach(function (student) {#}
+    {#                container.appendChild(student);#}
+    {#            });#}
+    {#        }#}
+    {##}
+    {#        // Просмотр статистики ученика#}
+    {#        function viewStudentStats(studentId) {#}
+    {#            // Здесь можно загрузить статистику через AJAX#}
+    {#            let modal = new bootstrap.Modal(document.getElementById('studentStatsModal'));#}
+    {#            document.getElementById('statsModalBody').innerHTML = `#}
+    {#                <div class="text-center py-4">#}
+    {#                    <div class="spinner-border text-primary" role="status">#}
+    {#                        <span class="visually-hidden">Загрузка...</span>#}
+    {#                    </div>#}
+    {#                </div>#}
+    {#            `;#}
+    {#            modal.show();#}
+    {##}
+    {#            // Имитация загрузки#}
+    {#            setTimeout(function () {#}
+    {#                document.getElementById('statsModalBody').innerHTML = `#}
+    {#                    <canvas id="statsChart" width="400" height="200"></canvas>#}
+    {#                `;#}
+    {#            }, 1000);#}
+    {#        }#}
+    {##}
+    {#        // Просмотр задач ученика#}
+    {#        function viewStudentTasks(studentId) {#}
+    {#            window.location.href = '/teacher/student/' + studentId + '/tasks/';#}
+    {#        }#}
+    {##}
+    {#        // Сброс пароля#}
+    {#        function resetPassword(studentId) {#}
+    {#            if (confirm('Вы уверены, что хотите сбросить пароль ученика?')) {#}
+    {#                // AJAX запрос на сброс пароля#}
+    {#                fetch('/api/reset-password/' + studentId + '/', {#}
+    {#                    method: 'POST',#}
+    {#                    headers: {#}
+    {#                        'X-CSRFToken': '{{ csrf_token }}'#}
+    {#                    }#}
+    {#                })#}
+    {#                    .then(response => response.json())#}
+    {#                    .then(data => {#}
+    {#                        alert('Новый пароль: ' + data.new_password);#}
+    {#                    });#}
+    {#            }#}
+    {#        }#}
+    {##}
+    {#        // Назначить задачу#}
+    {#        function assignTask(studentId) {#}
+    {#            window.location.href = '/task/assign/?student=' + studentId;#}
+    {#        }#}
+    {##}
+    {#        // Отправить сообщение#}
+    {#        function sendMessage(studentId) {#}
+    {#            window.location.href = '/messages/new/?to=' + studentId;#}
+    {#        }#}
+    {##}
+    {#        // Экспорт в CSV#}
+    {#        function exportToCSV() {#}
+    {#            let students = [];#}
+    {#            document.querySelectorAll('.student-item').forEach(function (item) {#}
+    {#                let name = item.querySelector('.student-info h5').textContent.trim();#}
+    {#                let solved = item.querySelector('.task-progress').textContent.match(/\d+/)[0];#}
+    {#                students.push({name: name, solved: solved});#}
+    {#            });#}
+    {##}
+    {#            let csv = 'ФИО,Решено задач\n';#}
+    {#            students.forEach(function (s) {#}
+    {#                csv += s.name + ',' + s.solved + '\n';#}
+    {#            });#}
+    {##}
+    {#            let blob = new Blob([csv], {type: 'text/csv'});#}
+    {#            let url = window.URL.createObjectURL(blob);#}
+    {#            let a = document.createElement('a');#}
+    {#            a.href = url;#}
+    {#            a.download = 'students.csv';#}
+    {#            a.click();#}
+    {#        }#}
+    {#    </script>#}
+{% endblock %}
+

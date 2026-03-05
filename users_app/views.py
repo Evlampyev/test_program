@@ -1,8 +1,12 @@
+from datetime import datetime, timedelta
+
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.utils import timezone
 
 from task_description_app.models import Task, TaskAttempt
 from .forms import StudentRegistrationForm, LoginForm, AssignTeacherForm
@@ -66,11 +70,9 @@ def teacher_dashboard(request):
         group.students_list = User.objects.filter(
             user_type='student',
             student_profile__group=group
-        ).select_related('student_profile')
+        ).select_related('student_profile').order_by('last_name', 'first_name')
 
-    context = {
-        'groups': groups,
-    }
+    context = {'groups': groups}
     return render(request, 'users_app/th_dashboard.html', context)
 
 
@@ -103,7 +105,6 @@ def student_dashboard(request):
                 student_profile__group=group
             ).select_related('student_profile')
             rating_data = []
-
 
             for student in group_students:
                 # Получаем количество решенных задач (уникальных)
@@ -230,23 +231,233 @@ def student_dashboard(request):
     return render(request, 'users_app/st_dashboard.html', context)
 
 
+# Вспомогательная функция для форматирования последнего входа
+def format_last_login(last_login):
+    if not last_login:
+        return "никогда"
+
+    time_diff = timezone.now() - last_login
+
+    if time_diff < timedelta(minutes=1):
+        return "только что"
+    elif time_diff < timedelta(hours=1):
+        minutes = int(time_diff.total_seconds() / 60)
+        return f"{minutes} мин. назад"
+    elif time_diff < timedelta(days=1):
+        hours = int(time_diff.total_seconds() / 3600)
+        return f"{hours} ч. назад"
+    elif time_diff < timedelta(days=7):
+        days = time_diff.days
+        return f"{days} д. назад"
+    else:
+        return last_login.strftime("%d.%m.%Y %H:%M")
+
+
 # Просмотр учеников группы (для учителя)
 @login_required
 def group_students(request, group_id):
     if request.user.user_type != 'teacher':
         return redirect('student_dashboard')
 
+    # Получаем группу и проверяем, что учитель имеет к ней доступ
     group = get_object_or_404(Group, id=group_id, teacher=request.user)
+
+    # Получаем всех учеников группы с дополнительной статистикой
     students = User.objects.filter(
         user_type='student',
         student_profile__group=group
     ).select_related('student_profile')
 
+    # Для каждого ученика собираем статистику
+    students_data = []
+    for student in students:
+        # Получаем все попытки ученика
+        all_attempts = TaskAttempt.objects.filter(user=student)
+
+        # Количество решенных задач (уникальных)
+        solved_count = all_attempts.filter(
+            is_solved=True
+        ).values('task_id').distinct().count()
+
+        # Количество задач "в процессе" (пытался, но не решил)
+        # Находим все задачи, которые ученик пробовал решать
+        attempted_tasks = all_attempts.values('task_id').distinct()
+
+        # Из них находим те, которые не решены
+        in_progress_count = 0
+        for task_data in attempted_tasks:
+            task_id = task_data['task_id']
+            has_solved = all_attempts.filter(
+                task_id=task_id,
+                is_solved=True
+            ).exists()
+            if not has_solved:
+                in_progress_count += 1
+
+        # Точность (процент успешных попыток)
+        total_attempts = all_attempts.count()
+        successful_attempts = all_attempts.filter(is_solved=True).count()
+
+        if total_attempts > 0:
+            accuracy = round((successful_attempts / total_attempts) * 100)
+        else:
+            accuracy = 0
+
+        # Последний вход (берем из last_login пользователя)
+        last_login_display = format_last_login(student.last_login)
+        # if last_login:
+        #     # Форматируем для отображения
+        #     time_diff = timezone.now() - last_login
+        #     if time_diff < timedelta(minutes=1):
+        #         last_login_display = "только что"
+        #     elif time_diff < timedelta(hours=1):
+        #         minutes = int(time_diff.total_seconds() / 60)
+        #         last_login_display = f"{minutes} мин. назад"
+        #     elif time_diff < timedelta(days=1):
+        #         hours = int(time_diff.total_seconds() / 3600)
+        #         last_login_display = f"{hours} ч. назад"
+        #     elif time_diff < timedelta(days=7):
+        #         days = time_diff.days
+        #         last_login_display = f"{days} д. назад"
+        #     else:
+        #         last_login_display = last_login.strftime("%d.%m.%Y")
+        # else:
+        #     last_login_display = "никогда"
+
+        # Максимальное количество задач для прогресс-бара
+        # Можно взять общее количество задач в этом уровне или установить константу
+        max_tasks = 20  # или рассчитать динамически
+
+        students_data.append({
+            'student': student,
+            'solved_count': solved_count,
+            'in_progress_count': in_progress_count,
+            'accuracy': accuracy,
+            # 'last_login': last_login,
+            'last_login_display': last_login_display,
+            'progress_width': min(100, int((solved_count / max_tasks) * 100)),
+            'max_tasks': max_tasks,
+        })
+
+    # Сортируем учеников (например, по фамилии)
+    students_data.sort(key=lambda x: (x['student'].last_name, x['student'].first_name))
+    print(f"{students_data = }")
     context = {
         'group': group,
-        'students': students,
+        'students_data': students_data,
     }
     return render(request, 'users_app/group_students.html', context)
+
+
+@login_required
+def get_student_stats(request, student_id):
+    """API для получения статистики ученика"""
+    if request.user.user_type != 'teacher':
+        return JsonResponse({'error': 'Доступ запрещен'}, status=403)
+
+    try:
+        student = User.objects.get(id=student_id, user_type='student')
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Ученик не найден'}, status=404)
+
+    # Получаем все попытки ученика
+    attempts = TaskAttempt.objects.filter(user=student).order_by('-attempt_time')
+
+    # Общая статистика
+    total_attempts = attempts.count()
+    successful_attempts = attempts.filter(is_solved=True).count()
+
+    # Уникальные решенные задачи
+    solved_tasks = attempts.filter(is_solved=True).values('task_id').distinct().count()
+
+    # Задачи в процессе (пробовал, но не решил)
+    attempted_tasks = attempts.values('task_id').distinct()
+    in_progress = 0
+    for task in attempted_tasks:
+        task_id = task['task_id']
+        if not attempts.filter(task_id=task_id, is_solved=True).exists():
+            in_progress += 1
+
+    # Точность
+    accuracy = round((successful_attempts / total_attempts * 100)) if total_attempts > 0 else 0
+
+    # Статистика по дням для графика
+    last_30_days = datetime.now() - timedelta(days=30)
+    daily_stats = []
+
+    for i in range(30):
+        day = (datetime.now() - timedelta(days=i)).date()
+        day_attempts = attempts.filter(attempt_time__date=day).count()
+        day_solved = attempts.filter(attempt_time__date=day, is_solved=True).count()
+
+        daily_stats.append({
+            'date': day.strftime('%d.%m'),
+            'attempts': day_attempts,
+            'solved': day_solved
+        })
+
+    daily_stats.reverse()  # чтобы шли по порядку
+
+    # Статистика по задачам (последние 10)
+    recent_tasks = []
+    seen_tasks = set()
+
+    for attempt in attempts:
+        task_id = attempt.task_id
+        if task_id not in seen_tasks:
+            seen_tasks.add(task_id)
+
+            task_attempts = attempts.filter(task_id=task_id)
+            is_solved = task_attempts.filter(is_solved=True).exists()
+
+            recent_tasks.append({
+                'id': task_id,
+                'title': f'Задача #{task_id}',
+                'attempts': task_attempts.count(),
+                'is_solved': is_solved,
+                'last_attempt': attempt.attempt_time.strftime('%d.%m.%Y %H:%M')
+            })
+
+            if len(recent_tasks) >= 10:
+                break
+
+    # Прогресс по уровням сложности (если есть информация об уровнях)
+    levels_stats = {}
+    for attempt in attempts:
+        level = get_task_level(attempt.task_id)  # вам нужно реализовать эту функцию
+        if level not in levels_stats:
+            levels_stats[level] = {'total': 0, 'solved': 0}
+
+        levels_stats[level]['total'] += 1
+        if attempt.is_solved:
+            levels_stats[level]['solved'] += 1
+
+    return JsonResponse({
+        'student': {
+            'id': student.id,
+            'name': f"{student.last_name} {student.first_name}",
+            'group': student.student_profile.group.school_class if student.student_profile.group else 'Не назначена',
+        },
+        'stats': {
+            'total_attempts': total_attempts,
+            'successful_attempts': successful_attempts,
+            'solved_tasks': solved_tasks,
+            'in_progress': in_progress,
+            'accuracy': accuracy,
+        },
+        'daily_stats': daily_stats,
+        'recent_tasks': recent_tasks,
+        'levels_stats': levels_stats,
+    })
+
+
+def get_task_level(task_id):
+    """Вспомогательная функция для получения уровня задачи"""
+    # Реализуйте в соответствии с вашей логикой
+    # Например, можно загрузить structure.json и найти там задачу
+    levels = ['A', 'B', 'C', 'D']
+    import random
+    return f"level_{random.choice(levels)}"
 
 
 # Для администратора: назначение учителя на группу
