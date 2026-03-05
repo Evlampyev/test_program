@@ -96,8 +96,70 @@ def student_dashboard(request):
         # Получаем одноклассников
         classmates = StudentProfile.objects.filter(group=group).exclude(user=request.user).select_related('user')
 
+        if group:
+            # Получаем всех учеников группы
+            group_students = User.objects.filter(
+                user_type='student',
+                student_profile__group=group
+            ).select_related('student_profile')
+            rating_data = []
+
+
+            for student in group_students:
+                # Получаем количество решенных задач (уникальных)
+                solved_count = TaskAttempt.objects.filter(user=student, is_solved=True).values(
+                    'task_id').distinct().count()
+
+                # Получаем общее количество попыток
+                total_attempts = TaskAttempt.objects.filter(user=student).count()
+
+                # Получаем количество неудачных попыток
+                failed_attempts = TaskAttempt.objects.filter(
+                    user=student,
+                    is_solved=False
+                ).count()
+
+                rating_data.append({
+                    'user': student,
+                    'solved_count': solved_count,
+                    'total_attempts': total_attempts,
+                    'failed_attempts': failed_attempts,
+                    'full_name': f"{student.last_name} {student.first_name}",
+                })
+
+                # Сортируем:
+                # 1. По количеству решенных задач (по убыванию)
+                # 2. Если одинаково, то по количеству попыток (по возрастанию)
+                rating_data.sort(
+                    key=lambda x: (-x['solved_count'], x['total_attempts'])
+                )
+
+                # Добавляем место
+                for idx, item in enumerate(rating_data, 1):
+                    item['place'] = idx
+                    # Определяем цвет медали
+                    if idx == 1:
+                        item['badge_class'] = 'bg-warning text-dark'  # золото
+                    elif idx == 2:
+                        item['badge_class'] = 'bg-secondary'  # серебро
+                    elif idx == 3:
+                        item['badge_class'] = 'bg-danger'  # бронза
+                    else:
+                        item['badge_class'] = 'bg-light text-dark'
+
+                # Находим место текущего ученика
+                current_user_place = None
+                for item in rating_data:
+                    if item['user'].id == request.user.id:
+                        current_user_place = item['place']
+                        break
+
+        else:
+            rating_data = []
+            current_user_place = None
+
         # ПОЛУЧАЕМ ПОСЛЕДНИЕ ЗАДАЧИ УЧЕНИКА
-        # Вариант 1: Через TaskAttempt (все попытки)
+
         last_attempts = TaskAttempt.objects.filter(
             user=request.user
         ).order_by('-attempt_time')[:10]  # последние 10 попыток
@@ -136,7 +198,7 @@ def student_dashboard(request):
                 }
                 tasks_stats.append(task_info)
 
-                if len(tasks_stats) >= 3:  # Хотим только 3 последние задачи
+                if len(tasks_stats) >= 5:  # Хотим только 3 последние задачи
                     break
 
     except StudentProfile.DoesNotExist:
@@ -151,12 +213,10 @@ def student_dashboard(request):
         user=request.user,
         is_solved=True
     ).values('task_id').distinct().count()
-
     if total_attempts > 0:
         success_rate = round((solved_tasks_count / total_attempts) * 100)
     else:
         success_rate = 0
-
     context = {
         'profile': profile,
         'group': group,
@@ -165,6 +225,7 @@ def student_dashboard(request):
         'total_attempts': total_attempts,
         'solved_tasks_count': solved_tasks_count,
         'success_rate': success_rate,
+        'rating_data': rating_data,
     }
     return render(request, 'users_app/st_dashboard.html', context)
 
