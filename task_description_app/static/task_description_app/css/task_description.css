@@ -303,13 +303,12 @@
 .list-container {
     display: flex;
     gap: 20px;
-    max-width: 1400px;
     margin: 0 auto;
     height: calc(100vh - 40px);
 }
 
 .sidebar {
-    width: 400px;
+    /*width: 500px;*/
     background: white;
     border-radius: 12px;
     overflow: hidden;
