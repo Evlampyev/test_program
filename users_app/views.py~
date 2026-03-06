@@ -76,11 +76,9 @@ def teacher_dashboard(request):
     return render(request, 'users_app/th_dashboard.html', context)
 
 
-def get_task_level(task_id:int) -> str:
+def get_task_level(task_id):
     """
     Определяет уровень задачи по её ID
-    :param task_id:
-    :return: A, B, C or D
     """
     try:
         task = Task.objects.get(id=task_id)

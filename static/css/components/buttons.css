@@ -70,3 +70,32 @@
     background: rgba(255, 255, 255, 0.25);
     color: white;
 }
+
+.btn-back {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.btn-back:hover {
+    background: #5a6268;
+    color: white;
+}
+
+.btn-export {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.btn-export:hover {
+    background: #218838;
+    color: white;
+}
