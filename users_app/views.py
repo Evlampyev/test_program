@@ -1,6 +1,10 @@
 from datetime import datetime, timedelta
+import string
+import random
 
+from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -11,6 +15,9 @@ from django.utils import timezone
 from task_description_app.models import Task, TaskAttempt
 from .forms import StudentRegistrationForm, LoginForm, AssignTeacherForm
 from .models import User, StudentProfile, Group, SchoolClass
+from manage import logger
+
+User = get_user_model()
 
 
 # Регистрация ученика
@@ -76,7 +83,7 @@ def teacher_dashboard(request):
     return render(request, 'users_app/th_dashboard.html', context)
 
 
-def get_task_level(task_id:int) -> str:
+def get_task_level(task_id: int) -> str:
     """
     Определяет уровень задачи по её ID
     :param task_id:
@@ -516,3 +523,53 @@ def assign_teacher(request):
         'total_groups': Group.objects.count(),
     }
     return render(request, 'users_app/assign_teacher.html', context)
+
+
+@csrf_exempt  # ТОЛЬКО ДЛЯ ОТЛАДКИ!
+@login_required
+def reset_password(request, student_id):
+    """Сброс пароля ученика"""
+    logger.info(f"Запрос на сброс пароля для ученика {student_id} от пользователя {request.user.username}")
+
+    # Проверка метода
+    if request.method != 'POST':
+        logger.warning(f"Неверный метод: {request.method}")
+        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+
+    # Проверка прав доступа
+    if request.user.user_type != 'teacher':
+        logger.warning(f"Пользователь {request.user.username} не является учителем")
+        return JsonResponse({'error': 'Доступ запрещен'}, status=403)
+
+    try:
+        User = get_user_model()
+        student = User.objects.get(id=student_id, user_type='student')
+        logger.info(f"Найден ученик: {student.last_name} {student.first_name}")
+
+        # Генерируем новый пароль
+        new_password = generate_random_password()
+        logger.info(f"Сгенерирован новый пароль для {student.username}")
+
+        # Устанавливаем новый пароль
+        student.set_password(new_password)
+        student.save()
+        logger.info(f"Пароль успешно изменен для {student.username}")
+
+        return JsonResponse({
+            'success': True,
+            'new_password': new_password,
+            'message': f'Пароль для {student.last_name} {student.first_name} сброшен'
+        })
+
+    except User.DoesNotExist:
+        logger.error(f"Ученик с id {student_id} не найден")
+        return JsonResponse({'error': 'Ученик не найден'}, status=404)
+    except Exception as e:
+        logger.error(f"Ошибка при сбросе пароля: {str(e)}")
+        return JsonResponse({'error': f'Внутренняя ошибка сервера: {str(e)}'}, status=500)
+
+
+def generate_random_password(length=8):
+    """Генерирует случайный пароль"""
+    chars = string.ascii_letters + string.digits
+    return ''.join(random.choice(chars) for _ in range(length))

@@ -1,5 +1,6 @@
 # views.py (приложение tasks)
 import os
+import re
 
 from django.core.cache import cache
 from django.db.models import Max
@@ -15,9 +16,6 @@ from users_app.models import StudentProfile
 from .forms import TaskAddForm, TaskContentForm
 
 from .models import Task, DifficultyLevel, TaskAttempt
-
-
-
 
 
 def get_cached_structure():
@@ -42,6 +40,22 @@ def task_list(request):
     return render(request, 'task_description_app/task_list.html', context)
 
 
+def render_markdown_without_empty_blocks(md_content):
+    """Конвертирует Markdown в HTML и удаляет пустые блоки кода"""
+
+    # Конвертируем Markdown в HTML
+    html_content = markdown.markdown(md_content, extensions=['extra'])
+
+    # Удаляем пустые блоки <pre><code></code></pre>
+    # Вариант 1: через регулярное выражение
+    html_content = re.sub(r'<pre><code[^>]*>\s*</code></pre>\n?', '', html_content)
+
+    # Вариант 2: более агрессивная очистка
+    # html_content = re.sub(r'<pre[^>]*>\s*<code[^>]*>\s*</code>\s*</pre>\n?', '', html_content)
+
+    return html_content
+
+
 def task_detail(request, task_id):
     """Отображение конкретной задачи с Markdown"""
     task = get_object_or_404(Task, id=task_id)
@@ -53,14 +67,13 @@ def task_detail(request, task_id):
     #         md_content = f.read()
 
     task_dir = os.path.join(settings.TASKS_ROOT, task.test_path)
-    # print(f"{task_dir=}")
-    # ----------------проблема здесь-------------------
+
     if task.test_file and os.path.exists(task_dir):
         with open(task_dir + '\\task.md', 'r', encoding='utf-8') as f:
             print(f"Файл md найден и открыт")
             md_content = f.read()
-    # Конвертируем Markdown в HTML
-    html_content = markdown.markdown(md_content, extensions=['extra', 'codehilite'])
+        # Используем очищенную версию
+    html_content = render_markdown_without_empty_blocks(md_content)
 
     # Создаем экземпляр UploadedProgram для этой задачи и пользователя
     from task_description_app.models import UploadedProgram
@@ -105,23 +118,23 @@ def task_add(request):
 
     if request.method == 'POST':
         # Добавим отладочный вывод
-        print("=== ДАННЫЕ POST ЗАПРОСА ===")
-        print("POST данные:", request.POST)
-        print("FILES данные:", request.FILES)
-        print("===========================")
+        # print("=== ДАННЫЕ POST ЗАПРОСА ===")
+        # print("POST данные:", request.POST)
+        # print("FILES данные:", request.FILES)
+        # print("===========================")
         # Получаем данные из формы
         task_form = TaskAddForm(request.POST)
         content_form = TaskContentForm(request.POST)
-        print("Данные с форм получены")
+        # print("Данные с форм получены")
 
         # Проверяем валидность форм
-        print("Task form is valid:", task_form.is_valid())
-        if not task_form.is_valid():
-            print("Task form errors:", task_form.errors)
-
-        print("Content form is valid:", content_form.is_valid())
-        if not content_form.is_valid():
-            print("Content form errors:", content_form.errors)
+        # print("Task form is valid:", task_form.is_valid())
+        # if not task_form.is_valid():
+        #     print("Task form errors:", task_form.errors)
+        #
+        # print("Content form is valid:", content_form.is_valid())
+        # if not content_form.is_valid():
+        #     print("Content form errors:", content_form.errors)
 
         # Получаем количество тестов
         test_count = int(request.POST.get('test_count', 0))
@@ -161,18 +174,42 @@ def task_add(request):
                 with open(os.path.join(task_dir, 'task.py'), 'w', encoding='utf-8') as f:
                     f.write(py_content)
 
+                # # 3. Создаем тесты
+                # for i in range(1, test_count + 1):
+                #     input_data = request.POST.get(f'test_{i}_input', '')
+                #     output_data = request.POST.get(f'test_{i}_output', '')
+                #
+                #     if input_data and output_data:
+                #         # Сохраняем .in файл
+                #         with open(os.path.join(task_dir, f'test{i}.in'), 'w', encoding='utf-8') as f:
+                #             f.write(input_data)
+                #
+                #         # Сохраняем .out файл
+                #         with open(os.path.join(task_dir, f'test{i}.out'), 'w', encoding='utf-8') as f:
+                #             f.write(output_data)
+
                 # 3. Создаем тесты
                 for i in range(1, test_count + 1):
-                    input_data = request.POST.get(f'test_{i}_input', '')
-                    output_data = request.POST.get(f'test_{i}_output', '')
+                    input_data = request.POST.get(f'test_{i}_input', '').strip()
+                    output_data = request.POST.get(f'test_{i}_output', '').strip()
 
-                    if input_data and output_data:
+                    if input_data or output_data:  # Разрешаем пустые тесты
+                        # Обрабатываем переносы строк
+                        # Заменяем \r\n на \n для единообразия
+                        input_data = input_data.replace('\r\n', '\n').replace('\r', '\n')
+                        output_data = output_data.replace('\r\n', '\n').replace('\r', '\n')
+
+                        # Убираем множественные пустые строки (опционально)
+                        # input_data = '\n'.join(line for line in input_data.split('\n') if line.strip() or not line)
+
                         # Сохраняем .in файл
-                        with open(os.path.join(task_dir, f'test{i}.in'), 'w', encoding='utf-8') as f:
+                        in_path = os.path.join(task_dir, f'test{i}.in')
+                        with open(in_path, 'w', encoding='utf-8') as f:
                             f.write(input_data)
 
                         # Сохраняем .out файл
-                        with open(os.path.join(task_dir, f'test{i}.out'), 'w', encoding='utf-8') as f:
+                        out_path = os.path.join(task_dir, f'test{i}.out')
+                        with open(out_path, 'w', encoding='utf-8') as f:
                             f.write(output_data)
 
                 # 4. Обновляем structure.json
@@ -209,13 +246,28 @@ def task_add(request):
         default_md = '''# Номер задачи
 ## Название задачи
 Описание задачи...
-#### Формат ввода
-    Опишите формат входных данных.
-#### Формат вывода
-    Опишите формат выходных данных.        
+### Формат данных
+<table> 
+    <tr>
+        <th><b><i>Формат ввода</i></b></th>
+        <th><b><i>Формат вывода</i></b></th>
+    </tr>
+    <tr>
+        <td style="vertical-align: top" >Строка данных</td>
+        <td style="vertical-align: top">Строка данных</td>
+    </tr>
+</table>      
 ### Пример
-        Вход: 5 3
-        Выход: 8'''
+<table> 
+    <tr>
+        <th><b><i>Ввод</i></b></th>
+        <th><b><i>Вывод</i></b></th>
+    </tr>
+    <tr>
+        <td style="vertical-align: top" >Нечто</td>
+        <td style="vertical-align: top">Что-то</td>
+    </tr>
+</table>  '''
 
         content_form.fields['task_md_content'].initial = default_md
 

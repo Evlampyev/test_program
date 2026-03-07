@@ -120,3 +120,17 @@ body {
 p {
     text-align: justify;
 }
+
+/* Скрыть пустые pre */
+pre:empty,
+pre:has(code:empty) {
+    display: none;
+}
+
+/* Альтернатива для старых браузеров */
+pre code:empty {
+    display: none;
+}
+pre:has(code:empty) {
+    display: none;
+}

@@ -531,21 +531,115 @@
             window.location.href = '/users/teacher/student/' + studentId + '/tasks/';
         }
 
-        // Сброс пароля
+        // Сброс пароля с подробной отладкой
         function resetPassword(studentId) {
             if (confirm('Вы уверены, что хотите сбросить пароль ученика?')) {
-                // AJAX запрос на сброс пароля
-                fetch('/api/reset-password/' + studentId + '/', {
+                const btn = event.currentTarget;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+
+                console.log('Отправка запроса на сброс пароля для studentId:', studentId);
+
+                fetch('/users/api/reset-password/' + studentId + '/', {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': '{{ csrf_token }}'
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
                     }
                 })
-                    .then(response => response.json())
+                    .then(async response => {
+                        console.log('Статус ответа:', response.status);
+                        console.log('Статус текста:', response.statusText);
+
+                        // Пытаемся получить тело ответа, даже если это ошибка
+                        const text = await response.text();
+                        console.log('Тело ответа:', text);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}\n${text}`);
+                        }
+
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            throw new Error('Ответ не является JSON: ' + text);
+                        }
+                    })
                     .then(data => {
-                        alert('Новый пароль: ' + data.new_password);
+                        console.log('Данные ответа:', data);
+                        if (data.success) {
+                            // Показываем новый пароль
+                            alert('Новый пароль: ' + data.new_password);
+                        } else {
+                            alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Детальная ошибка:', error);
+                        alert('Произошла ошибка: ' + error.message);
+                    })
+                    .finally(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
                     });
             }
+        }
+
+        // Функция для красивого показа пароля
+        function showNewPasswordModal(password) {
+            // Создаем модальное окно Bootstrap
+            const modalHtml = `
+        <div class="modal fade" id="passwordModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-key me-2"></i>
+                            Пароль сброшен
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Новый пароль ученика:</p>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="${password}" readonly id="newPassword">
+                            <button class="btn btn-outline-primary" type="button" onclick="copyPassword()">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <p class="text-muted mt-2 small">
+                            <i class="fas fa-info-circle"></i>
+                            Сообщите этот пароль ученику
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+            // Добавляем модальное окно в DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Показываем модальное окно
+            const modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+            modal.show();
+
+            // Удаляем из DOM после закрытия
+            document.getElementById('passwordModal').addEventListener('hidden.bs.modal', function () {
+                this.remove();
+            });
+        }
+
+        // Функция копирования пароля
+        function copyPassword() {
+            const passwordInput = document.getElementById('newPassword');
+            passwordInput.select();
+            document.execCommand('copy');
+            alert('Пароль скопирован в буфер обмена');
         }
 
         // Назначить задачу

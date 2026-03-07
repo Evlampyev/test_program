@@ -519,6 +519,13 @@
             const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.innerHTML;
 
+            // Нормализуем переносы строк во всех textarea
+            document.querySelectorAll('textarea').forEach(textarea => {
+                // Заменяем \r\n на \n
+                textarea.value = textarea.value.replace(/\r\n/g, '\n');
+            });
+
+
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Создание задачи...';
             submitBtn.disabled = true;
 
