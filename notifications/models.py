@@ -40,7 +40,7 @@ class Notification(models.Model):
 
     # Статус
     is_read = models.BooleanField(default=False, verbose_name='Прочитано')
-    created_at = models.DateTimeField(default=timezone.localtime().now(), verbose_name='Создано')
+    created_at = models.DateTimeField(default=timezone.now, verbose_name='Создано')
 
     class Meta:
         ordering = ['-created_at']
@@ -58,3 +58,11 @@ class Notification(models.Model):
         if not self.is_read:
             self.is_read = True
             self.save(update_fields=['is_read'])
+
+    def get_local_time(self):
+        """Вспомогательный метод для получения локального времени"""
+        return timezone.localtime(self.created_at)
+
+    def get_formatted_time(self, format='%d.%m.%Y %H:%M'):
+        """Форматированное локальное время"""
+        return self.get_local_time().strftime(format)

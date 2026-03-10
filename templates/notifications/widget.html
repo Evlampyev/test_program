@@ -1,16 +1,13 @@
 {% load static %}
 
-<!-- Добавляем CSRF-токен в meta -->
-{#<meta name="csrf-token" content="{{ csrf_token }}">#}
-
 <div class="dropdown notifications-dropdown">
     <button class="btn btn-outline-light position-relative" type="button" id="notificationsDropdown"
             data-bs-toggle="dropdown">
         <i class="fas fa-bell"></i>
-        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+        <span class="position-absolute top-0 start-80 translate-middle badge rounded-pill bg-danger"
               id="notificationBadge" style="display: none;">0</span>
     </button>
-    <div class="dropdown-menu dropdown-menu-end p-0" >
+    <div class="dropdown-menu dropdown-menu-end p-0">
         <div class="dropdown-header bg-light d-flex justify-content-between align-items-center py-2">
             <span class="fw-bold"><i class="fas fa-bell me-2"></i>Уведомления</span>
             <button class="btn btn-sm btn-link" onclick="markAllNotificationsRead(); return false;">Прочитать все

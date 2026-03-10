@@ -38,6 +38,8 @@ class SchoolClass(models.Model):
         return f"{self.number}{self.letter}"
 
 
+
+
 # Группа внутри класса (1 или 2)
 class Group(models.Model):
     GROUP_NUMBERS = (

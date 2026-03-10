@@ -70,8 +70,8 @@ def teacher_dashboard(request):
         return redirect('student_dashboard')
 
     # Получаем группы учителя
-    groups = Group.objects.filter(teacher=request.user).select_related('school_class')
-
+    groups = Group.objects.filter(teacher=request.user).select_related('school_class').order_by('school_class__number',
+                                                                                                'school_class__letter')
     # Для каждой группы добавляем учеников
     for group in groups:
         group.students_list = User.objects.filter(
@@ -80,7 +80,7 @@ def teacher_dashboard(request):
         ).select_related('student_profile').order_by('last_name', 'first_name')
 
     context = {'groups': groups}
-    return render(request, 'users_app/th_dashboard.html', context)
+    return render(request, 'users_app/teacher/dashboard.html', context)
 
 
 def get_task_title(task_id: int) -> str:
@@ -359,7 +359,7 @@ def group_students(request, group_id):
         'group': group,
         'students_data': students_data,
     }
-    return render(request, 'users_app/group_students.html', context)
+    return render(request, 'users_app/teacher/group_students.html', context)
 
 
 @login_required
@@ -398,16 +398,18 @@ def get_student_stats(request, student_id):
             # Проверяем, решена ли задача за эту неделю
             is_solved = task_attempts.filter(is_solved=True).exists()
 
-            task_level = get_task_level(task_id)
+            task_level = get_task_level(int(task_id))
             # task_level = get_task_level_from_db(task_id)
+            task_title = get_task_title(int(task_id))
+            # print(f"{tasks_data=}")
 
             tasks_data.append({
                 'id': task_id,
-                'title': f'Задача #{task_id}',
+                'title': task_title,
                 'level': task_level,  # Добавляем уровень
                 'attempts': attempts_count,
                 'is_solved': is_solved,
-                'last_attempt': attempt.attempt_time.strftime('%d.%m.%Y %H:%M'),
+                'last_attempt': attempt.get_local_time().strftime('%d.%m.%Y %H:%M'),
                 'status_text': '✅ Решена' if is_solved else '🔄 В процессе',
                 'status_class': 'success' if is_solved else 'warning',
             })
@@ -453,17 +455,17 @@ def student_tasks(request, student_id):
             last_attempt = task_attempts.first()
 
             # Определяем уровень задачи (из вашей логики)
-            task_level = get_task_level(task_id)  # реализуйте эту функцию
+            task_level = get_task_level(int(task_id))  # реализуйте эту функцию
 
             tasks_data.append({
                 'id': task_id,
-                'title': f'Задача #{task_id}',
+                'title': get_task_title(int(task_id)),
                 'level': task_level,
                 'total_attempts': total_attempts,
                 'successful_attempts': successful_attempts,
                 'is_solved': is_solved,
-                'first_attempt': first_attempt.attempt_time if first_attempt else None,
-                'last_attempt': last_attempt.attempt_time if last_attempt else None,
+                'first_attempt': first_attempt.get_local_time() if first_attempt else None,
+                'last_attempt': last_attempt.get_local_time() if last_attempt else None,
                 'status_class': 'success' if is_solved else 'warning',
                 'status_text': 'Решена' if is_solved else 'В процессе',
                 'success_rate': round((successful_attempts / total_attempts * 100)) if total_attempts > 0 else 0,
@@ -488,7 +490,6 @@ def student_tasks(request, student_id):
     }
 
     return render(request, 'users_app/teacher/student_tasks.html', context)
-
 
 # Для администратора: назначение учителя на группу
 @staff_member_required

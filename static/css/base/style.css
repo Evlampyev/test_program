@@ -140,7 +140,7 @@ pre:has(code:empty) {
 /*Для оповещений учителя*/
 
 .notifications-dropdown .dropdown-menu {
-    width: 30vw !important;  /* 90% ширины экрана */
+    width: 30vw !important; /* 90% ширины экрана */
     max-width: 500px !important; /* но не больше 600px */
     max-height: 80vh !important; /* 80% высоты экрана */
     right: 10px !important; /* отступ справа */
@@ -158,11 +158,6 @@ pre:has(code:empty) {
         right: 5px !important;
     }
 }
-
-
-
-
-
 
 .notification-item {
     padding: 12px 15px;
@@ -192,4 +187,19 @@ pre:has(code:empty) {
     padding: 2px 5px;
 }
 
+.col-lg-3 {
+    margin-left: 6rem;
+}
+
+.about-stat-item {
+    text-align: center;
+    padding: 10px 0;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+    color: #0d47a1;
+    font-weight: bold;
+    font-size: large;
+}
 /*Конец оповещений учителя*/

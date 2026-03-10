@@ -8,18 +8,19 @@
     <style>
         .page-header {
             background: white;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         .group-info {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #bd7eda 100%);
             color: white;
+
+        }
+
+        .page-header, .group-info {
             padding: 20px;
             border-radius: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         .stats-card {
@@ -106,6 +107,10 @@
         .task-progress i {
             margin-right: 5px;
         }
+
+        .row.custom-gap {
+            gap: 6rem;
+        }
     </style>
 {% endblock %}
 
@@ -123,8 +128,8 @@
             </ol>
         </nav>
 
-        <div class="row mt-4">
-            <div class="col mb-5  page-header d-flex justify-content-between align-items-center">
+        <div class="row custom-gap justify-content-md-center">
+            <div class="col-5  page-header d-flex justify-content-between align-items-center">
                 <div>
                     <h2 class="mb-1">
                         <i class="fas fa-users me-2" style="color: #667eea;"></i>
@@ -149,16 +154,16 @@
             </div>
 
             <!-- Информация о группе -->
-            <div class="col mb-5 group-info">
+            <div class="col-5 group-info">
                 <div class="row align-items-center">
-                    <div class="col-md-6">
+                    <div class="col-md-8">
                         <h4 class="mb-2">
                             <i class="fas fa-info-circle me-2"></i>
                             Информация о группе
                         </h4>
                         <p class="mb-1">
                             <i class="fas fa-user-tie me-2"></i>
-                            Учитель: {{ user.last_name }} {{ user.first_name }} {{ user.middle_name }}
+                            Учитель: <b>{{ user.last_name }} {{ user.first_name }} {{ user.middle_name }}</b>
                         </p>
                         <p class="mb-1">
                             <i class="fas fa-calendar me-2"></i>
@@ -299,11 +304,11 @@
 
                                         <!-- Быстрые действия -->
                                         <div class="row mt-3 pt-2 border-top">
-                                            <a href="#" class="col btn btn-sm btn-outline-primary me-2"
+                                            <a href="#" class="col btn btn-sm btn-outline me-2"
                                                onclick="assignTask('{{ student.id }}')">
                                                 <i class="fas fa-plus-circle me-1"></i>Назначить задачу
                                             </a>
-                                            <a href="#" class="col btn btn-sm btn-outline-info"
+                                            <a href="#" class="col btn btn-sm btn-outline-sms"
                                                onclick="sendMessage('{{ student.id }}')">
                                                 <i class="fas fa-envelope me-1"></i>Сообщение
                                             </a>
@@ -430,7 +435,8 @@
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead class="table-light">
-                        <tr>
+                        <tr style="text-align: center">
+                            <th>Task_ID</th>
                             <th>Задача</th>
                             <th>Уровень</th>
                             <th class="text-center">Попыток</th>
@@ -451,12 +457,17 @@
                         levelClass = 'text-warning';
                     } else if (task.level.includes('C') || task.level.includes('сложный')) {
                         levelClass = 'text-danger';
-                    } else if (task.level.includes('D') || task.level.includes('эксперт')) {
+                    } else if (task.level.includes('D') || task.level.includes('очень сложный')) {
+                        levelClass = 'text-brown';
+                    } else if (task.level.includes('E') || task.level.includes('эксперт')) {
                         levelClass = 'text-dark';
                     }
 
                     html += `
                 <tr>
+                    <td>
+                        <strong>${task.id}</strong>
+                    </td>
                     <td>
                         <strong>${task.title}</strong>
                     </td>
@@ -707,6 +718,10 @@
 
         #studentStatsModal .text-danger {
             color: #dc3545 !important;
+        }
+
+        #studentStatsModal .text-brown {
+            color: #3f0a0f !important;
         }
 
         #studentStatsModal .text-dark {

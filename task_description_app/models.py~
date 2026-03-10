@@ -185,10 +185,6 @@ class TaskAttempt(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.task_id} - {self.attempt_time}"
 
-    def get_local_time(self):
-        """Вспомогательный метод для получения локального времени"""
-        return timezone.localtime(self.attempt_time)
-
 
 class UploadedProgram(models.Model):
     """Модель загруженной программы ученика"""
