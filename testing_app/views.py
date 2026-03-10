@@ -11,6 +11,8 @@ from testing_app.tester_project.tester import PythonCodeTester
 from manage import logger
 
 
+from users_app.views import get_task_level
+
 def run_tests(request, program_id):
     """Запуск тестов для загруженной программы"""
     program = get_object_or_404(UploadedProgram, id=program_id)
@@ -19,6 +21,8 @@ def run_tests(request, program_id):
     # Обновляем статус
     program.status = 'testing'
     program.save()
+
+
 
     # Создаем запись о попытке
     attempt = TaskAttempt.objects.create(
@@ -30,6 +34,12 @@ def run_tests(request, program_id):
         status='pending'
     )
 
+    # notify_teacher_about_task_solved(
+    #     student=request.user,
+    #     task_id=attempt.real_task_id,
+    #     task_level=get_task_level(attempt.real_task_id),
+    #     task_title="task.title"
+    # )
     # Получаем путь к тестам из задачи
     task = program.task
     task_id = program.task_id
@@ -47,7 +57,7 @@ def run_tests(request, program_id):
 
     try:
         # Запускаем тесты
-        print(f"📁 Папка с тестами: {tests_path}; \nпуть к коду ученика: {student_code_path}")
+        # print(f"📁 Папка с тестами: {tests_path}; \nпуть к коду ученика: {student_code_path}")
         tester = PythonCodeTester(student_code_path, tests_path)
         results = tester.run_all_tests()
         logger.info(f"Результаты тестов: {results}")
@@ -68,11 +78,13 @@ def run_tests(request, program_id):
         # print(f"{program.status = }")
 
         attempt.status = 'correct' if program.status == 'passed' else 'incorrect'
-        print(f"{attempt.status = }")
+
+
+        # print(f"{attempt.status = }")
         attempt.result = json.dumps(results, ensure_ascii=False)
         attempt.is_solved = True if attempt.status == 'correct' else False
         attempt.save()
-        print("_______________________")
+        # print("_______________________")
 
 
 

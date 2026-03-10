@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
 # Путь к папке с задачами
@@ -23,8 +22,6 @@ TASKS_ROOT = os.path.join(BASE_DIR, 'tasks_for_tests')
 if not os.path.exists(TASKS_ROOT):
     os.makedirs(TASKS_ROOT)
     print(f"Создана папка {TASKS_ROOT}")
-
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -50,6 +47,7 @@ INSTALLED_APPS = [
     'upload_app.apps.UploadAppConfig',
     'testing_app.apps.TestingAppConfig',
     'users_app.apps.UsersAppConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [
@@ -69,7 +67,7 @@ ROOT_URLCONF = 'TempTestsProgram.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR +  '/templates']
+        'DIRS': [BASE_DIR + '/templates']
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -117,7 +115,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'Asia/Tashkent'
+TIME_ZONE = 'Asia/Yekaterinburg'
 
 USE_I18N = True
 
@@ -152,6 +150,10 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'student_dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
+
+# Настройки уведомлений (опционально)
+NOTIFICATIONS_LIMIT = 50  # лимит уведомлений по умолчанию
+NOTIFICATIONS_CLEANUP_DAYS = 30  # автоочистка старых уведомлений
 
 LOGGING = {
     "version": 1,

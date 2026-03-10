@@ -1,2 +1,1 @@
-data = list(input().split())
-print(max(data))
+data = list(input().split())print(max(data, key=len))

@@ -83,6 +83,19 @@ def teacher_dashboard(request):
     return render(request, 'users_app/th_dashboard.html', context)
 
 
+def get_task_title(task_id: int) -> str:
+    """
+    Определяет Заголовок задачи
+    :param task_id:
+    :return: title
+    """
+    try:
+        task = Task.objects.get(id=task_id)
+        return task.title
+    except Task.DoesNotExist:
+        return 'Нет данных'
+
+
 def get_task_level(task_id: int) -> str:
     """
     Определяет уровень задачи по её ID
@@ -94,6 +107,15 @@ def get_task_level(task_id: int) -> str:
         return task.difficulty.display_name[-1]
     except Task.DoesNotExist:
         return 'Неизвестно'
+
+
+# def get_task_level_from_db(task_id):
+#     """Получает уровень задачи из БД"""
+#     try:
+#         task = Task.objects.get(id=task_id)
+#         return task.difficulty.display_name if task.difficulty else 'Не определен'
+#     except Task.DoesNotExist:
+#         return 'Не определен'
 
 
 @login_required
@@ -376,7 +398,8 @@ def get_student_stats(request, student_id):
             # Проверяем, решена ли задача за эту неделю
             is_solved = task_attempts.filter(is_solved=True).exists()
 
-            task_level = get_task_level_from_db(task_id)
+            task_level = get_task_level(task_id)
+            # task_level = get_task_level_from_db(task_id)
 
             tasks_data.append({
                 'id': task_id,
@@ -394,15 +417,6 @@ def get_student_stats(request, student_id):
         'tasks': tasks_data,
         'total_tasks': len(tasks_data),
     })
-
-
-def get_task_level_from_db(task_id):
-    """Получает уровень задачи из БД"""
-    try:
-        task = Task.objects.get(id=task_id)
-        return task.difficulty.display_name if task.difficulty else 'Не определен'
-    except Task.DoesNotExist:
-        return 'Не определен'
 
 
 @login_required

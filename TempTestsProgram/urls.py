@@ -33,6 +33,7 @@ urlpatterns = [
     path('upload/', include('upload_app.urls')),
     path('tester/', include('testing_app.urls')),
     path('users/', include('users_app.urls')),
+    path('notifications/', include('notifications.urls')),
 
 ]
 

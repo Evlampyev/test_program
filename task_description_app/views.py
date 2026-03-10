@@ -1,6 +1,7 @@
 # views.py (приложение tasks)
 import os
 import re
+import textwrap
 
 from django.core.cache import cache
 from django.db.models import Max
@@ -107,7 +108,19 @@ def get_task_info(request, task_id):
         'test_path': task.test_path if task.test_file else None,
     })
 
-    # для добавления задачи
+
+# для добавления задачи
+
+# При сохранении очищаем
+def clean_text(text):
+    """Очищает текст от лишних пробелов"""
+    lines = [line.rstrip() for line in text.splitlines()]
+    # Убираем пустые строки в начале и конце
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return '\n'.join(lines)
 
 
 @login_required
@@ -165,7 +178,7 @@ def task_add(request):
                 os.makedirs(task_dir, exist_ok=True)
 
                 # 1. Сохраняем task.md
-                md_content = content_form.cleaned_data['task_md_content']
+                md_content = clean_text(content_form.cleaned_data['task_md_content'])
                 with open(os.path.join(task_dir, 'task.md'), 'w', encoding='utf-8') as f:
                     f.write(md_content)
 
@@ -243,31 +256,33 @@ def task_add(request):
         content_form = TaskContentForm()
 
         # Шаблон для task.md
-        default_md = '''# Номер задачи
-## Название задачи
-Описание задачи...
-### Формат данных
-<table> 
-    <tr>
-        <th><b><i>Формат ввода</i></b></th>
-        <th><b><i>Формат вывода</i></b></th>
-    </tr>
-    <tr>
-        <td style="vertical-align: top" >Строка данных</td>
-        <td style="vertical-align: top">Строка данных</td>
-    </tr>
-</table>      
-### Пример
-<table> 
-    <tr>
-        <th><b><i>Ввод</i></b></th>
-        <th><b><i>Вывод</i></b></th>
-    </tr>
-    <tr>
-        <td style="vertical-align: top" >Нечто</td>
-        <td style="vertical-align: top">Что-то</td>
-    </tr>
-</table>  '''
+        default_md = textwrap.dedent('''\
+            #Номер задачи
+            ## Название задачи
+            Описание задачи...
+            <table style="width: auto; margin: auto"> 
+                <tr style="text-align: center">
+                    <th><b><i>Формат ввода</i></b></th>
+                    <th><b><i>Формат вывода</i></b></th>
+                </tr>
+                <tr style="vertical-align: top">
+                    <td>Строка данных</td>
+                    <td style="vertical-align: top">Строка данных</td>
+                </tr>
+            </table> 
+                 
+            ### Пример
+            <table style="width: auto; margin: auto"> 
+                <tr style="text-align: center">
+                    <th><b><i>Ввод</i></b></th>
+                    <th><b><i>Вывод</i></b></th>
+                </tr>
+                <tr style="vertical-align: top">
+                    <td>Нечто</td>
+                    <td>Что-то</td>
+                </tr>
+            </table>
+        ''')
 
         content_form.fields['task_md_content'].initial = default_md
 

@@ -20,6 +20,7 @@ class DifficultyLevel(models.Model):
         ('easy', 'Легкий'),
         ('medium', 'Средний'),
         ('hard', 'Сложный'),
+        ('very_hard', 'Очень сложный'),
         ('expert', 'Эксперт'),
     ]
 
@@ -27,6 +28,7 @@ class DifficultyLevel(models.Model):
         ('success', 'Зеленый (Easy)'),
         ('warning', 'Желтый (Medium)'),
         ('danger', 'Красный (Hard)'),
+        ('brown', 'Коричневый (Very_Hard)'),
         ('dark', 'Черный (Expert)'),
     ]
 

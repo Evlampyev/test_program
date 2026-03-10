@@ -28,6 +28,7 @@ body {
     min-width: 1360px;
 
 }
+
 .navbar {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     box-shadow: 0 8px 10px rgba(0, 0, 0, 0.1);
@@ -131,6 +132,64 @@ pre:has(code:empty) {
 pre code:empty {
     display: none;
 }
+
 pre:has(code:empty) {
     display: none;
 }
+
+/*Для оповещений учителя*/
+
+.notifications-dropdown .dropdown-menu {
+    width: 30vw !important;  /* 90% ширины экрана */
+    max-width: 500px !important; /* но не больше 600px */
+    max-height: 80vh !important; /* 80% высоты экрана */
+    right: 10px !important; /* отступ справа */
+    left: auto !important; /* авто слева */
+    overflow-y: auto;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    border: none;
+    border-radius: 10px;
+}
+
+/* Для мобильных */
+@media (max-width: 768px) {
+    .notifications-dropdown .dropdown-menu {
+        width: 95vw !important;
+        right: 5px !important;
+    }
+}
+
+
+
+
+
+
+.notification-item {
+    padding: 12px 15px;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa !important;
+}
+
+.notification-item.fw-bold {
+    background-color: #e3f2fd;
+}
+
+.notification-item .badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+}
+
+.notification-item small {
+    font-size: 0.7rem;
+}
+
+#notificationBadge {
+    font-size: 0.6rem;
+    padding: 2px 5px;
+}
+
+/*Конец оповещений учителя*/

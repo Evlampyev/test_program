@@ -45,7 +45,7 @@ class TaskAddForm(forms.ModelForm):
         label='Урок',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Например: Урок_27 или Урок_84(38)'
+            'placeholder': 'Например: Урок 27 или Урок 84(38)'
         })
     )
 
