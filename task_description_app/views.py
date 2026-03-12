@@ -19,12 +19,24 @@ from .forms import TaskAddForm, TaskContentForm
 from .models import Task, DifficultyLevel, TaskAttempt
 
 
-def get_cached_structure():
-    """Получить структуру из кэша или пересканировать"""
+def get_cached_structure(force_refresh=False):
+    """
+    Получить структуру из кэша или пересканировать.
+    Если force_refresh=True - принудительно пересканировать и обновить кэш.
+    """
+    if force_refresh:
+        # Принудительное пересканирование
+        structure = scan_tasks_simple('tasks_for_tests')
+        cache.set('tasks_structure', structure, 3600)  # кэш на 1 час
+        print("✅ Структура принудительно пересканирована и кэш обновлен")
+        return structure
+
+    # Обычное получение из кэша
     structure = cache.get('tasks_structure')
     if structure is None:
         structure = scan_tasks_simple('tasks_for_tests')
         cache.set('tasks_structure', structure, 3600)  # кэш на 1 час
+        print("✅ Структура отсканирована и сохранена в кэш")
     return structure
 
 
@@ -228,11 +240,19 @@ def task_add(request):
                 # 4. Обновляем structure.json
                 update_structure_json(class_name, topic, lesson, level, task_folder)
 
+                # 5. ПРИНУДИТЕЛЬНО ПЕРЕСКАНИРуЕМ И ОБНОВЛЯЕМ КЭШ
+                get_cached_structure(force_refresh=True)
+
+                # # 6. Формируем URL для просмотра задачи
+                # task_view_url = f"/task/{task.id}/"
+
                 return JsonResponse({
                     'success': True,
                     'message': 'Задача успешно создана!',
                     'task_id': task.id,
-                    'path': relative_path
+                    # 'task_view_url': task_view_url,
+                    'path': relative_path,
+                    'task_title': task.title or f"Задача #{task.id}"
                 })
 
             except Exception as e:

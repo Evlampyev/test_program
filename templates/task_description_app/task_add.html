@@ -373,34 +373,78 @@
     </form>
 
     <!-- Модальные окна -->
-    <div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title">
                         <i class="fas fa-check-circle me-2"></i>
-                        Успешно!
+                        Задача создана!
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p id="successMessage">Задача успешно создана!</p>
-                    <div class="alert alert-info mt-3">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+
+                    <p id="successMessage" class="text-center">Задача успешно создана!</p>
+
+                    <div class="alert alert-info">
                         <strong>Путь к задаче:</strong><br>
-                        <code id="successPath"></code>
+                        <code id="successPath" class="small"></code>
+                    </div>
+
+                    <div class="alert alert-light border">
+                        <strong>ID задачи:</strong> <span id="successTaskId"></span>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <a href="{% url 'tasks:task_add' %}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Создать ещё
                     </a>
-                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-home me-2"></i>На главную
+                    <a href="{% url 'tasks:task_list' %}" class="btn btn-success">
+                        <i class="fas fa-eye me-2"></i>Посмотреть задачу
                     </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Закрыть
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    {#    <div class="modal fade" id="successModal" tabindex="-1">#}
+    {#        <div class="modal-dialog">#}
+    {#            <div class="modal-content">#}
+    {#                <div class="modal-header bg-success text-white">#}
+    {#                    <h5 class="modal-title">#}
+    {#                        <i class="fas fa-check-circle me-2"></i>#}
+    {#                        Успешно!#}
+    {#                    </h5>#}
+    {#                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>#}
+    {#                </div>#}
+    {#                <div class="modal-body">#}
+    {#                    <p id="successMessage">Задача успешно создана!</p>#}
+    {#                    <div class="alert alert-info mt-3">#}
+    {#                        <strong>Путь к задаче:</strong><br>#}
+    {#                        <code id="successPath"></code>#}
+    {#                    </div>#}
+    {#                </div>#}
+    {#                <div class="modal-footer">#}
+    {#                    <a href="{% url 'tasks:task_add' %}" class="btn btn-primary">#}
+    {#                        <i class="fas fa-plus me-2"></i>Создать ещё#}
+    {#                    </a>#}
+    {#                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary">#}
+    {#                        <i class="fas fa-home me-2"></i>На главную#}
+    {#                    </a>#}
+    {#                    <a href="{% url 'tasks:task_detail' %}" class="btn btn-outline-sms">#}
+    {#                        <i class="fas fa-home me-2"></i>Проверить задачу#}
+    {#                    </a>#}
+    {#                </div>#}
+    {#            </div>#}
+    {#        </div>#}
+    {#    </div>#}
 
     <div class="modal fade" id="errorModal" tabindex="-1">
         <div class="modal-dialog">
@@ -541,6 +585,13 @@
                     if (data.success) {
                         document.getElementById('successMessage').textContent = data.message;
                         document.getElementById('successPath').textContent = data.path;
+                        document.getElementById('successTaskId').textContent = data.task_id;
+
+                        // Настраиваем кнопку просмотра
+                        {#const viewBtn = document.getElementById('viewTaskBtn');#}
+                        {#viewBtn.href = data.task_view_url;#}
+                        {#viewBtn.innerHTML = `<i class="fas fa-eye me-2"></i>Посмотреть задачу "${data.task_title}"`;#}
+                        // Показываем модальное окно
                         new bootstrap.Modal(document.getElementById('successModal')).show();
                     } else {
                         let errorHtml = '<ul class="mb-0">';
