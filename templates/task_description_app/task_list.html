@@ -251,9 +251,9 @@
                 document.getElementById('currentTitle').innerHTML = `Задача: ${taskName}`;
                 document.getElementById('taskContent').innerHTML = `
                     <div>
-                        <div class="task-header">
-                            <span class="task-id">ID: #${taskId}</span>
-                        </div>
+                        {#<div class="task-header">#}
+                        {#    <span class="task-id">ID: #${taskId}</span>#}
+                        {#</div>#}
                         <div class="markdown-content">
                             ${htmlContent}
                         </div>
