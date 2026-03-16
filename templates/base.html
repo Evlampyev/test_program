@@ -41,9 +41,9 @@
             {% endif %}
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+{#        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">#}
+{#            <span class="navbar-toggler-icon"></span>#}
+{#        </button>#}
 
         <div class="collapse navbar-collapse" id="navbarNav">
             {% if user.is_authenticated %}
@@ -134,7 +134,7 @@
 
             {% else %}
                 <!-- Меню для неавторизованных пользователей -->
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
                            href="{% url 'home' %}">

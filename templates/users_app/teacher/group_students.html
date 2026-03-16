@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 
 {% block title %}Ученики группы | {{ group.school_class }} - Группа {{ group.number }}{% endblock %}
 
@@ -238,9 +239,17 @@
                                             <div class="student-info">
                                                 <h5>
                                                     {{ student.last_name }} {{ student.first_name }} {{ student.middle_name }}
-                                                    {% if student.student_profile.solved_tasks > 10 %}
-                                                        <span class="badge bg-success ms-2">Отличник</span>
-                                                    {% endif %}
+                                                    {#                                                    {% if student.student_profile.solved_tasks > 10 %}#}
+                                                    {#                                                        <span class="badge bg-success ms-2">Отличник</span>#}
+                                                    {#                                                    {% endif %}#}
+                                                    {% with stars=student_data.solved_count|star_rating %}
+                                                        {% if stars %}
+                                                            <span class="stars-container ms-2">
+                                                                {{ stars|safe }}
+{#                                         <small class="text-muted ms-1">({{ student_data.solved_count }})</small>#}
+                                                            </span>
+                                                        {% endif %}
+                                                    {% endwith %}
                                                 </h5>
                                                 <small class="text-muted">
                                                     <i class="fas fa-user me-1"></i> Логин: {{ student.username }}

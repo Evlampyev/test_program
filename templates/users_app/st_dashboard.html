@@ -20,6 +20,16 @@
                 </div>
                 <div class="user-details">
                     <h3>{{ user.last_name }} {{ user.first_name }} {{ user.middle_name }}</h3>
+
+                    <p>
+                        {% with stars=solved_tasks_count|star_rating %}
+                            {% if stars %}
+                                <span class="stars-container ms-2">{{ stars|safe }}
+{#                                    <small class="text-muted ms-1">({{ solved_tasks_count }})</small>#}
+                                </span>
+                            {% endif %}
+                        {% endwith %}
+                    </p>
                     <p>
                         <i class="fas fa-school me-2"></i>
                         {% if group %}
@@ -155,27 +165,27 @@
                         </small>
                     </div>
 
-{#                    {% if classmates %}#}
-{#                        {% for classmate in classmates %}#}
-{#                            <div class="classmate-item">#}
-{#                                <div class="classmate-avatar">#}
-{#                                    <i class="fas fa-user"></i>#}
-{#                                </div>#}
-{#                                <div>#}
-{#                                    <strong>{{ classmate.user.last_name }} {{ classmate.user.first_name }}</strong><br>#}
-{#                                    <small class="text-muted">#}
-{#                                        <i class="fas fa-chart-line me-1"></i>#}
-{#                                        Решено: {{ classmate.solved_tasks|default:"0" }} задач#}
-{#                                    </small>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                        {% endfor %}#}
-{#                    {% else %}#}
-{#                        <div class="text-center text-muted py-4">#}
-{#                            <i class="fas fa-user-friends fa-3x mb-3"></i>#}
-{#                            <p>В вашей группе пока нет других учеников</p>#}
-{#                        </div>#}
-{#                    {% endif %}#}
+                    {#                    {% if classmates %}#}
+                    {#                        {% for classmate in classmates %}#}
+                    {#                            <div class="classmate-item">#}
+                    {#                                <div class="classmate-avatar">#}
+                    {#                                    <i class="fas fa-user"></i>#}
+                    {#                                </div>#}
+                    {#                                <div>#}
+                    {#                                    <strong>{{ classmate.user.last_name }} {{ classmate.user.first_name }}</strong><br>#}
+                    {#                                    <small class="text-muted">#}
+                    {#                                        <i class="fas fa-chart-line me-1"></i>#}
+                    {#                                        Решено: {{ classmate.solved_tasks|default:"0" }} задач#}
+                    {#                                    </small>#}
+                    {#                                </div>#}
+                    {#                            </div>#}
+                    {#                        {% endfor %}#}
+                    {#                    {% else %}#}
+                    {#                        <div class="text-center text-muted py-4">#}
+                    {#                            <i class="fas fa-user-friends fa-3x mb-3"></i>#}
+                    {#                            <p>В вашей группе пока нет других учеников</p>#}
+                    {#                        </div>#}
+                    {#                    {% endif %}#}
                 {% else %}
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle me-2"></i>
