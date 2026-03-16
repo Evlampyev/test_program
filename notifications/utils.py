@@ -61,7 +61,7 @@ def create_task_solved_notification(task_attempt):
             task_level=get_task_level(task_attempt.real_task_id)
         )
 
-        print(f"✅ Уведомление создано для учителя {teacher.username}")
+        # print(f"✅ Уведомление создано для учителя {teacher.username}")
         return notification
 
     except Exception as e:

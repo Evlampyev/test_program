@@ -21,7 +21,7 @@ def notify_on_task_solved(sender, **kwargs):
     if not instance.is_solved:
         return
 
-    print(f"📨 Задача решена! Ученик: {instance.user.username}, задача: {instance.real_task_id}")
+    # print(f"📨 Задача решена! Ученик: {instance.user.username}, задача: {instance.real_task_id}")
 
     try:
         # Импортируем здесь, чтобы избежать циклических зависимостей
@@ -30,10 +30,10 @@ def notify_on_task_solved(sender, **kwargs):
         # Создаем уведомление
         notification = create_task_solved_notification(instance)
 
-        if notification:
-            print(f"✅ Уведомление создано: ID {notification.id}")
-        else:
-            print("❌ Уведомление не создано")
+        # if notification:
+        #     print(f"✅ Уведомление создано: ID {notification.id}")
+        # else:
+        #     print("❌ Уведомление не создано")
 
     except Exception as e:
         print(f"❌ Ошибка в сигнале: {e}")

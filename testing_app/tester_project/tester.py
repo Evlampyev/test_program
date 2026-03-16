@@ -1,9 +1,9 @@
 import subprocess
 import sys
-import os
-import tempfile
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
+
+from manage import logger
 
 class PythonCodeTester:
     """
@@ -44,7 +44,8 @@ class PythonCodeTester:
             output_file = input_file.with_suffix('.out')
 
             if not output_file.exists():
-                print(f"⚠ Предупреждение: для входного файла {input_file.name} не найден выходной файл")
+                # print(f"⚠ Предупреждение: для входного файла {input_file.name} не найден выходной файл")
+                logger.info(f"⚠ Предупреждение: для входного файла {input_file.name} не найден выходной файл")
                 output_file = None
 
             test_pairs.append((input_file, output_file))
@@ -60,8 +61,11 @@ class PythonCodeTester:
                 # Пробуем вариант .out
                 output_file = input_file.with_suffix('.out')
                 if not output_file.exists():
-                    print(f"⚠ Предупреждение: для {input_file.name} не найден выходной файл")
+
+                    # print(f"⚠ Предупреждение: для {input_file.name} не найден выходной файл")
+                    logger.info(f"⚠ Предупреждение: для входного файла {input_file.name} не найден выходной файл")
                     output_file = None
+
 
             test_pairs.append((input_file, output_file))
 
@@ -180,43 +184,46 @@ class PythonCodeTester:
 
         if not test_pairs:
             print("❌ Не найдено тестовых файлов!")
-            print("   Ожидаются файлы с расширениями .in/.input для входных данных")
-            print("   и .out/.output для ожидаемых выходных данных")
+            logger.error("❌ Не найдено тестовых файлов!")
+            # print("   Ожидаются файлы с расширениями .in/.input для входных данных")
+            # print("   и .out/.output для ожидаемых выходных данных")
             return []
 
         print(f"📁 Найдено тестов: {len(test_pairs)}")
+        logger.info(f"📁 Найдено тестов: {len(test_pairs)}")
 
         results = []
         passed_count = 0
 
         for i, (input_file, output_file) in enumerate(test_pairs, 1):
-            print(f"\n🔍 Тест {i}/{len(test_pairs)}: {input_file.name}")
+            # print(f"\n🔍 Тест {i}/{len(test_pairs)}: {input_file.name}")
 
             result = self.run_test(input_file, output_file)
             results.append(result)
 
             if result['passed']:
-                print("   ✅ ПРОЙДЕН")
+                # print("   ✅ ПРОЙДЕН")
                 passed_count += 1
             else:
-                print("   ❌ НЕ ПРОЙДЕН")
+                # print("   ❌ НЕ ПРОЙДЕН")
                 if result['error']:
-                    print(f"   Ошибка: {result['error']}")
+                    # print(f"   Ошибка: {result['error']}")
+                    pass
 
         # Выводим итоговую статистику
-        print("\n" + "="*50)
-        print(f"📊 ИТОГИ ТЕСТИРОВАНИЯ")
-        print("="*50)
-        print(f"Всего тестов: {len(test_pairs)}")
-        print(f"Пройдено: {passed_count}")
-        print(f"Не пройдено: {len(test_pairs) - passed_count}")
-
-        if passed_count == len(test_pairs):
-            print("🎉 Все тесты пройдены успешно!")
-        elif passed_count == 0:
-            print("💥 Ни один тест не пройден")
-        else:
-            print(f"📈 Успешность: {passed_count/len(test_pairs)*100:.1f}%")
+        # print("\n" + "="*50)
+        # print(f"📊 ИТОГИ ТЕСТИРОВАНИЯ")
+        # print("="*50)
+        # print(f"Всего тестов: {len(test_pairs)}")
+        # print(f"Пройдено: {passed_count}")
+        # print(f"Не пройдено: {len(test_pairs) - passed_count}")
+        #
+        # if passed_count == len(test_pairs):
+        #     print("🎉 Все тесты пройдены успешно!")
+        # elif passed_count == 0:
+        #     print("💥 Ни один тест не пройден")
+        # else:
+        #     print(f"📈 Успешность: {passed_count/len(test_pairs)*100:.1f}%")
 
         return results
 

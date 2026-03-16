@@ -33,7 +33,7 @@
 
 .results-header::before {
     content: '';
-    position: absolute;
+    /*position: absolute;*/
     top: 0;
     right: 0;
     width: 300px;
@@ -486,7 +486,7 @@
     color: #17a2b8;
     font-weight: bold;
     font-size: 1.2em;
-    position: absolute;
+    /*position: absolute;*/
     left: 10px;
 }
 

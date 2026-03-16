@@ -116,11 +116,11 @@ def run_tests(request, program_id):
         user = request.user.student_profile
         user.add_solved_task(task_id)
     except Exception as e:
-        pass
+        logger.error(f"Пользователь не найден. Ошибка {e}")
 
-    # if not user:
-    #     try:
-    #         user = request.user.t
+    logger.info(f"Тестирование: {user}\n   результат {success_rate}%\n   задача {task.title}")
+    print(f"Тестирование: {user}\n       результат {success_rate}%\n       задача {task.title}")
+
 
 
     # print(f"{user = }")

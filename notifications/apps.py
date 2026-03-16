@@ -8,4 +8,4 @@ class NotificationsConfig(AppConfig):
 
     def ready(self):
         import notifications.signals
-        print("✅ Сигналы уведомлений загружены")
+        # print("✅ Сигналы уведомлений загружены")
