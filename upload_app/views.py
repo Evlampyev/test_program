@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from task_description_app.models import UploadedProgram
 from task_description_app.models import Task
+from manage import logger
 
 # Глобальный список для отслеживания временных файлов
 _temp_files = []
@@ -22,25 +23,28 @@ _temp_dirs = []
 
 def cleanup_temp_files():
     """Очистка всех временных файлов при остановке сервера"""
-    print("\n🧹 Очистка временных файлов...")
+    # print("\n🧹 Очистка временных файлов...")
 
     # Удаляем временные файлы
     for file_path in _temp_files:
         try:
             if os.path.exists(file_path):
                 os.remove(file_path)
-                print(f"   Удален файл: {file_path}")
+                # print(f"   Удален файл: {file_path}")
+                logger.info(f"   Удален файл: {file_path}")
         except Exception as e:
-            print(f"   Ошибка удаления файла {file_path}: {e}")
-
+            # print(f"   Ошибка удаления файла {file_path}: {e}")
+            logger.error(f"   Ошибка удаления файла {file_path}: {e}")
     # Удаляем временные директории
     for dir_path in _temp_dirs:
         try:
             if os.path.exists(dir_path):
                 shutil.rmtree(dir_path)
-                print(f"   Удалена директория: {dir_path}")
+                # print(f"   Удалена директория: {dir_path}")
+                logger.info(f"   Удалена директория: {dir_path}")
         except Exception as e:
-            print(f"   Ошибка удаления директории {dir_path}: {e}")
+            logger.error(f"   Ошибка удаления директории {dir_path}: {e}")
+            # print(f"   Ошибка удаления директории {dir_path}: {e}")
 
     # Также очищаем старые файлы из стандартной директории
     cleanup_old_files()
@@ -65,9 +69,12 @@ def cleanup_old_files(days=1):
                 file_time = datetime.fromtimestamp(os.path.getctime(file_path))
                 if now - file_time > timedelta(days=days):
                     os.remove(file_path)
-                    print(f"   Удален старый файл: {file_path}")
+                    # print(f"   Удален старый файл: {file_path}")
+                    logger.info(f"   Удален старый файл: {file_path}")
             except Exception as e:
-                print(f"   Ошибка удаления {file_path}: {e}")
+                # print(f"   Ошибка удаления {file_path}: {e}")
+                logger.error(f"   Ошибка удаления {file_path}: {e}")
+
 
         # Удаляем пустые директории
         for dir in dirs:
@@ -75,9 +82,11 @@ def cleanup_old_files(days=1):
             try:
                 if not os.listdir(dir_path):  # если директория пуста
                     os.rmdir(dir_path)
-                    print(f"   Удалена пустая директория: {dir_path}")
+                    # print(f"   Удалена пустая директория: {dir_path}")
+                    logger.info(f"   Удалена пустая директория: {dir_path}")
             except Exception as e:
-                print(f"   Ошибка удаления директории {dir_path}: {e}")
+                logger.error(f"   Ошибка удаления директории {dir_path}: {e}")
+                # print(f"   Ошибка удаления директории {dir_path}: {e}")
 
 
 # Регистрируем функцию очистки при остановке
@@ -120,21 +129,6 @@ def upload_python_file(request):
         if not uploaded_file.name.lower().endswith('.py'):
             return JsonResponse({'success': False, 'message': 'Только файлы .py разрешены'}, status=400)
 
-        # # ВАРИАНТ А: Использование временной директории
-        # # Создаем временную директорию
-        # temp_dir = tempfile.mkdtemp(prefix=f'task_{task.id}_', dir=settings.MEDIA_ROOT)
-        # _temp_dirs.append(temp_dir)
-        #
-        # file_path = os.path.join(temp_dir, uploaded_file.name)
-        #
-        # with open(file_path, 'wb+') as destination:
-        #     for chunk in uploaded_file.chunks():
-        #         destination.write(chunk)
-        #
-        # # Сохраняем путь для возможной очистки
-        # _temp_files.append(file_path)
-
-        # ВАРИАНТ Б: Использование стандартной папки с пометкой на удаление
         folder_id = generate_random_id()
         upload_dir = os.path.join('student_programs', str(task.id), folder_id)
         file_path = os.path.join(settings.MEDIA_ROOT, upload_dir, uploaded_file.name)

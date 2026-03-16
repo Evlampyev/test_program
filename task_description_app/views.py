@@ -13,11 +13,10 @@ import markdown
 import json
 
 from make_json import scan_tasks_simple
-from users_app.models import StudentProfile
 from .forms import TaskAddForm, TaskContentForm
+from .models import Task, DifficultyLevel
 
-from .models import Task, DifficultyLevel, TaskAttempt
-
+from manage import logger
 
 def get_cached_structure(force_refresh=False):
     """
@@ -28,7 +27,9 @@ def get_cached_structure(force_refresh=False):
         # Принудительное пересканирование
         structure = scan_tasks_simple('tasks_for_tests')
         cache.set('tasks_structure', structure, 3600)  # кэш на 1 час
-        print("✅ Структура принудительно пересканирована и кэш обновлен")
+        # print("✅ Структура принудительно пересканирована и кэш обновлен")
+        logger.info("✅ Структура принудительно пересканирована и кэш обновлен")
+
         return structure
 
     # Обычное получение из кэша
@@ -36,7 +37,8 @@ def get_cached_structure(force_refresh=False):
     if structure is None:
         structure = scan_tasks_simple('tasks_for_tests')
         cache.set('tasks_structure', structure, 3600)  # кэш на 1 час
-        print("✅ Структура отсканирована и сохранена в кэш")
+        # print("✅ Структура отсканирована и сохранена в кэш")
+        logger.info("✅ Структура отсканирована и сохранена в кэш")
     return structure
 
 
@@ -83,7 +85,7 @@ def task_detail(request, task_id):
 
     if task.test_file and os.path.exists(task_dir):
         with open(task_dir + '\\task.md', 'r', encoding='utf-8') as f:
-            print(f"Файл md найден и открыт")
+            # print(f"Файл md найден и открыт")
             md_content = f.read()
         # Используем очищенную версию
     html_content = render_markdown_without_empty_blocks(md_content)
@@ -142,24 +144,10 @@ def task_add(request):
         return redirect('student_dashboard')
 
     if request.method == 'POST':
-        # Добавим отладочный вывод
-        # print("=== ДАННЫЕ POST ЗАПРОСА ===")
-        # print("POST данные:", request.POST)
-        # print("FILES данные:", request.FILES)
-        # print("===========================")
+
         # Получаем данные из формы
         task_form = TaskAddForm(request.POST)
         content_form = TaskContentForm(request.POST)
-        # print("Данные с форм получены")
-
-        # Проверяем валидность форм
-        # print("Task form is valid:", task_form.is_valid())
-        # if not task_form.is_valid():
-        #     print("Task form errors:", task_form.errors)
-        #
-        # print("Content form is valid:", content_form.is_valid())
-        # if not content_form.is_valid():
-        #     print("Content form errors:", content_form.errors)
 
         # Получаем количество тестов
         test_count = int(request.POST.get('test_count', 0))
@@ -180,8 +168,6 @@ def task_add(request):
                 relative_path = os.path.join(class_name, topic, lesson, level, task_folder)
                 task.test_file = relative_path
                 task.created_by = request.user
-                # print(f"{task = }")
-                # print(f"{relative_path=}")
 
                 task.save()
 
@@ -198,20 +184,6 @@ def task_add(request):
                 py_content = content_form.cleaned_data['task_py_content']
                 with open(os.path.join(task_dir, 'task.py'), 'w', encoding='utf-8') as f:
                     f.write(py_content)
-
-                # # 3. Создаем тесты
-                # for i in range(1, test_count + 1):
-                #     input_data = request.POST.get(f'test_{i}_input', '')
-                #     output_data = request.POST.get(f'test_{i}_output', '')
-                #
-                #     if input_data and output_data:
-                #         # Сохраняем .in файл
-                #         with open(os.path.join(task_dir, f'test{i}.in'), 'w', encoding='utf-8') as f:
-                #             f.write(input_data)
-                #
-                #         # Сохраняем .out файл
-                #         with open(os.path.join(task_dir, f'test{i}.out'), 'w', encoding='utf-8') as f:
-                #             f.write(output_data)
 
                 # 3. Создаем тесты
                 for i in range(1, test_count + 1):
@@ -335,7 +307,7 @@ def update_structure_json(class_name, topic, lesson, level, task_folder):
     """Обновляет structure.json, добавляя новую задачу"""
     json_path = os.path.join(settings.BASE_DIR, 'structure.json')
 
-    print(f"Обновление structure.json по пути: {json_path}")
+    # print(f"Обновление structure.json по пути: {json_path}")
 
     try:
         # Проверяем существование директории
