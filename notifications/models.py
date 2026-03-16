@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.conf import settings
+import pytz
 
 User = get_user_model()
 
@@ -51,8 +53,8 @@ class Notification(models.Model):
         verbose_name = 'Уведомление'
         verbose_name_plural = 'Уведомления'
 
-    def __str__(self):
-        return f"{self.title} - {self.created_at.strftime('%d.%m.%Y %H:%M')}"
+    # def __str__(self):
+    #     return f"{self.title} - {self.created_at.strftime('%d.%m.%Y %H:%M')}"
 
     def mark_as_read(self):
         if not self.is_read:
