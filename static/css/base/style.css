@@ -24,9 +24,8 @@ body {
 }
 
 .container {
-    max-width: 1900px;
+    max-width: 1980px;
     min-width: 1024px;
-
 }
 
 .navbar {
@@ -202,4 +201,5 @@ pre:has(code:empty) {
     font-weight: bold;
     font-size: large;
 }
+
 /*Конец оповещений учителя*/
