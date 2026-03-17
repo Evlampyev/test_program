@@ -1,1 +1,0 @@
-data = input().split()print(data[1][0] + '.' + data[2][0] + '. ' + data[0])

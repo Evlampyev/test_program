@@ -1,1 +1,0 @@
-data = input()n = data.find('-')left = int(data[:n])right = int(data[n+1:])print(left-right)

@@ -1,1 +1,0 @@
-data = input()first = data.find('+')second = data.rfind('+')left = int(data[:first])midle = int(data[first + 1:second])right = int(data[second + 1:])print(left + +midle + right)

@@ -1,1 +1,0 @@
-data = input()all_char=""for i in range(len(data)):    if data[i].lower() not in all_char:        all_char+=data[i].lower()        count = 0        for j in range(i, len(data)):            if data[i].lower()==data[j].lower():                count+=1        print(f"{data[i].lower()}-{count}")

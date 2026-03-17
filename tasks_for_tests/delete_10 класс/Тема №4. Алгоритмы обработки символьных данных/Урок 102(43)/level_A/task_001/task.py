@@ -1,1 +1,0 @@
-data = input()result = ""for el in data:    if el == 'а':        el = "б"    elif el == 'б':        el = 'a'    elif el == 'А':        el = 'Б'    elif el == 'Б':        el = "А"    result += elprint(result)

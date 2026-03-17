@@ -1,1 +1,0 @@
-from math import pi, cos, sqrtB = int(input())S = int(input())a = int(input())b = int(input())H = int(input())c = b - aS = sqrt(S ** 2 - H ** 2)  # дальность до цели на плоскостиSpzugor = sqrt(B ** 2 + S ** 2 - 2 * B * S * cos(c * pi / 180))  # дальность с ПЗУ до цели горизонтальнаяSpzu = sqrt(H ** 2 + Spzugor ** 2)print(f"{Spzu:.2f}")
