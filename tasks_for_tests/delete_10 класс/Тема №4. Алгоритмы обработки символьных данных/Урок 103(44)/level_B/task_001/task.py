@@ -1,0 +1,1 @@
+file_name = input()n = file_name.find('/')while n != -1:    print(file_name[:n])    file_name = file_name[n + 1:]    n = file_name.find('/')print(file_name)

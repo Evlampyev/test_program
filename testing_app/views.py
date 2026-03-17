@@ -43,7 +43,7 @@ def run_tests(request, program_id):
     # Получаем путь к тестам из задачи
     task = program.task
     task_id = program.task_id
-    tests_path = os.path.join(settings.TASKS_ROOT, task.test_path)
+    tests_path = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
     student_code_path = program.program_file.path
 
     logger.info(f"Задача №{task_id}; папка с тестами: {tests_path};\nпуть к коду ученика: {student_code_path}")

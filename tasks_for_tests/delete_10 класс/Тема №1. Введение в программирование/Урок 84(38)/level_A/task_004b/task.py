@@ -1,0 +1,1 @@
+x = -5print("X | Y")while x <= 5:    y = 5 - x * x / 2    print(f"{x} | {y}")    x += 0.5

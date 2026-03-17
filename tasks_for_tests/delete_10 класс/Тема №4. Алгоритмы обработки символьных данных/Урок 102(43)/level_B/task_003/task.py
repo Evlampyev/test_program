@@ -1,0 +1,1 @@
+data = input() + " "char = input()result = 0for i in range(len(data) - 1):    if data[i] == char and data[i + 1] == " ":        result += 1print(result)

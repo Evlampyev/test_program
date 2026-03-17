@@ -7,8 +7,6 @@ from django.db import models
 from django.conf import settings
 import pytz
 
-from users_app.models import StudentProfile
-
 User = get_user_model()
 
 
@@ -84,15 +82,32 @@ class Task(models.Model):
         blank=True,
         verbose_name='Название задачи'
     )
+    description = models.TextField(
+        verbose_name="Описание",
+        blank=True
+    )
     difficulty = models.ForeignKey(
         DifficultyLevel,
         on_delete=models.PROTECT,
         related_name='tasks',
         verbose_name='Уровень сложности'
     )
-    description = models.TextField(blank=True)
-    test_file = models.FileField(help_text='Путь до папки задачи')
+
     created_at = models.DateTimeField(auto_now_add=True)
+    is_public = models.BooleanField(
+        verbose_name='Публичная',
+        default=True
+    )
+
+    # Файлы задачи
+    path = models.CharField(
+        verbose_name='Путь к task.md',
+        max_length=500
+    )
+    test_files = models.JSONField(
+        verbose_name='Файлы тестов',
+        default=list
+    )  # список файлов
 
     # Статистика выполнения
     total_attempts = models.PositiveIntegerField(
@@ -113,24 +128,16 @@ class Task(models.Model):
     )
 
     def __str__(self):
-        return self.title
+        return f"#{self.id}: {self.title}"
 
-    @property
-    def md_path(self):
-        """Полный путь к MD файлу"""
-        # if self.md_file:
-        #     return os.path.join(settings.MEDIA_ROOT, self.md_file.name)
-        if self.test_file:
-            # print(f"new = {os.path.join(settings.MEDIA_ROOT, 'task.md')}")
-            return os.path.join(settings.MEDIA_ROOT, 'task.md')
-        return None
+    def get_files_path(self):
+        """Возвращает путь к папке с файлами задачи"""
+        return os.path.join('tasks', str(self.id))
 
-    @property
-    def test_path(self):
-        """Полный путь к файлу тестов"""
-        if self.test_file:
-            return os.path.join(settings.MEDIA_ROOT, self.test_file.name)
-        return None
+    def increment_usage(self):
+        """Увеличить счетчик использования"""
+        self.usage_count += 1
+        self.save(update_fields=['usage_count'])
 
     @property
     def perfect_rate(self):
@@ -156,6 +163,80 @@ class Task(models.Model):
 
         # Деактивируем (опционально)
         timezone.deactivate()
+
+
+class ClassStructure(models.Model):
+    """Структура классов/тем/уроков (только для навигации)"""
+    name = models.CharField('Название', max_length=200)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    level = models.IntegerField('Уровень вложенности', default=0)  # 0-класс, 1-тема, 2-урок, 3-уровень
+    order = models.IntegerField('Порядок', default=0)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['parent']),
+            models.Index(fields=['level']),
+            models.Index(fields=['order']),
+        ]
+        ordering = ['level', 'order', 'name']  # сортировка по умолчанию
+
+    def __str__(self):
+        return self.name
+
+    def get_full_path(self):
+        """Возвращает полный путь в виде списка"""
+        path = []
+        current = self
+        while current:
+            path.append(current.name)
+            current = current.parent
+        return list(reversed(path))
+
+
+class TaskPlacement(models.Model):
+    """Размещение задачи в структуре (связь многие-ко-многим)"""
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='placements')
+    structure_node = models.ForeignKey(ClassStructure, on_delete=models.CASCADE, related_name='task_placements')
+    order = models.IntegerField('Порядок', default=0)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['structure_node__level', 'order']
+        indexes = [
+            models.Index(fields=['structure_node']),
+            models.Index(fields=['task']),
+        ]
+        unique_together = ['task', 'structure_node']  # задача может быть размещена в узле только один раз
+
+    def __str__(self):
+        return f"{self.task} -> {self.structure_node}"
+
+
+class Collection(models.Model):
+    """Подборка задач (например, контрольная работа)"""
+    title = models.CharField('Название', max_length=200)
+    description = models.TextField('Описание', blank=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='collections')
+    is_public = models.BooleanField('Публичная', default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    tasks = models.ManyToManyField(Task, through='CollectionItem')
+
+    def __str__(self):
+        return self.title
+
+
+class CollectionItem(models.Model):
+    """Задача в подборке"""
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    order = models.IntegerField('Порядок', default=0)
+    max_score = models.IntegerField('Макс. балл', default=10)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ['collection', 'task']
 
 
 # Модель для отслеживания попыток решения

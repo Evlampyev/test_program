@@ -481,8 +481,13 @@
             if (levelVal) parts.push(levelVal);
             if (taskFolder) parts.push(taskFolder);
 
+            // Показываем путь в старой структуре (для информации)
             document.getElementById('pathPreview').textContent =
                 parts.length > 0 ? '/tasks_for_tests/' + parts.join('/') : '/tasks_for_tests/...';
+
+            // Добавляем информацию о новом месте хранения
+            const newTaskId = document.getElementById('id_task_id')?.value || 'новый ID';
+            console.log(`Файлы будут сохранены в: /tasks_for_tests/tasks/${newTaskId}/`);
         }
 
         // Слушатели для обновления пути
@@ -565,10 +570,8 @@
 
             // Нормализуем переносы строк во всех textarea
             document.querySelectorAll('textarea').forEach(textarea => {
-                // Заменяем \r\n на \n
                 textarea.value = textarea.value.replace(/\r\n/g, '\n');
             });
-
 
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Создание задачи...';
             submitBtn.disabled = true;
@@ -587,10 +590,12 @@
                         document.getElementById('successPath').textContent = data.path;
                         document.getElementById('successTaskId').textContent = data.task_id;
 
-                        // Настраиваем кнопку просмотра
-                        {#const viewBtn = document.getElementById('viewTaskBtn');#}
-                        {#viewBtn.href = data.task_view_url;#}
-                        {#viewBtn.innerHTML = `<i class="fas fa-eye me-2"></i>Посмотреть задачу "${data.task_title}"`;#}
+                        // Обновляем кнопку просмотра задачи
+                        const viewBtn = document.querySelector('#successModal .btn-success');
+                        if (viewBtn) {
+                            viewBtn.href = `/tasks/task/${data.task_id}/`;
+                        }
+
                         // Показываем модальное окно
                         new bootstrap.Modal(document.getElementById('successModal')).show();
                     } else {
@@ -604,7 +609,8 @@
                     }
                 })
                 .catch(error => {
-                    document.getElementById('errorMessage').innerHTML = 'Произошла ошибка при отправке формы';
+                    console.error('Error:', error);
+                    document.getElementById('errorMessage').innerHTML = 'Произошла ошибка при отправке формы: ' + error.message;
                     new bootstrap.Modal(document.getElementById('errorModal')).show();
                 })
                 .finally(() => {
