@@ -1,0 +1,1 @@
+data = input() + " "result = 0for i in range(len(data) - 1):    if data[i] == " " and (data[i + 1] == "к" or data[i + 1] == "К"):        result += 1print(result)

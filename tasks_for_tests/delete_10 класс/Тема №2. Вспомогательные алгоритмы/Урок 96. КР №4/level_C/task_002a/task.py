@@ -1,0 +1,1 @@
+data = input() + " "count = 0while data != "":    char_1 = data[0].lower()    end = data.find(" ")    char_2 = data[end - 1].lower()    data = data[end + 1:]    if char_1 == char_2:        count += 1print(count)

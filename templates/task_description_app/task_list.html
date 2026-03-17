@@ -3,11 +3,96 @@
 {% load pluralize_ru %}
 
 {% block extra_css %}
-    {#    для красивого Python#}
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    {#    Мой файл css #}
     <link rel="stylesheet" href="{% static 'task_description_app/css/task_description.css' %}">
+
+    <style>
+        /* Стили для дерева */
+        .tree, .tree ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .tree {
+            padding-left: 0;
+        }
+
+        .tree li {
+            margin: 2px 0;
+        }
+
+        .node {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .node:hover {
+            background: #e9ecef;
+        }
+
+        .node.selected {
+            background: #e3f2fd;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .arrow {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .icon {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .count {
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .tree ul {
+            display: none;
+        }
+
+        .tree li.expanded > ul {
+            display: block;
+        }
+
+        .task-container {
+            margin-top: 20px;
+        }
+
+        .markdown-content {
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn-primary {
+            margin-top: 20px;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -16,7 +101,7 @@
         <div class="col-md-3 sidebar">
             <div class="sidebar-header">
                 <span>📁 Задачи</span>
-                <span id="totalTasks">0</span>
+                <span id="totalTasks">{{ total_tasks }}</span>
             </div>
             <div class="tree-container">
                 <ul class="tree" id="tree"></ul>
@@ -36,45 +121,27 @@
             </div>
         </div>
     </div>
-
 {% endblock %}
 
 {% block extra_js %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="{% static 'task_description_app/js/task_detail.js' %}"></script>
+
     <script>
-        // Данные из structure.json
-        const tasks = {{ json_structure|safe }}
+        // Данные дерева из контекста
+        const treeData = {{ tree_data|safe }};
 
-
-        // Функция для загрузки содержимого task.md
-        async function loadTaskContent(taskPath) {
-            try {
-                // Формируем путь к файлу task.md
-                // Предполагается, что файлы лежат в папке tasks_for_tests
-                const mdPath = `/tasks_for_tests/${taskPath}/task.md`;
-
-                const response = await fetch(mdPath);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const content = await response.text();
-                return content;
-            } catch (error) {
-                console.error('Error loading task.md:', error);
-                throw error;
-            }
-        }
+        // Состояние развернутых узлов
+        const expandedNodes = new Set();
 
         // Функция для построения дерева
-        function renderTree(container, data, parent = null) {
+        function renderTree(container, data) {
             container.innerHTML = '';
 
-            function createNode(key, value, level = 0, path = []) {
+            function createNode(node, path = []) {
                 const li = document.createElement('li');
-                const currentPath = [...path, key];
+                const currentPath = [...path, node.name];
                 const pathStr = currentPath.join('/');
 
                 const div = document.createElement('div');
@@ -83,21 +150,20 @@
 
                 // Определяем иконку
                 let icon = '📁';
-                if (key.includes('класс')) icon = '📚';
-                else if (key.includes('Тема')) icon = '📖';
-                else if (key.includes('Урок')) icon = '📝';
-                else if (key.includes('level_')) icon = '📊';
+                if (node.name.includes('класс')) icon = '📚';
+                else if (node.name.includes('Тема')) icon = '📖';
+                else if (node.name.includes('Урок')) icon = '📝';
+                else if (node.name.includes('level_')) icon = '📊';
 
                 // Стрелка
                 const arrow = document.createElement('span');
                 arrow.className = 'arrow';
 
-                // Проверяем, есть ли дети
-                const hasChildren = Array.isArray(value) ? value.length > 0 :
-                    (typeof value === 'object' && value !== null && Object.keys(value).length > 0);
+                const hasChildren = (node.children && node.children.length > 0) ||
+                    (node.tasks && node.tasks.length > 0);
 
                 if (hasChildren) {
-                    arrow.textContent = '▶';
+                    arrow.textContent = expandedNodes.has(pathStr) ? '▼' : '▶';
                 } else {
                     arrow.textContent = '';
                 }
@@ -113,56 +179,65 @@
                 // Название
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'name';
-                nameSpan.textContent = key;
+                nameSpan.textContent = node.name;
                 div.appendChild(nameSpan);
 
-                // Счетчик для списка задач
-                if (Array.isArray(value)) {
+                // Счетчик задач
+                if (node.tasks && node.tasks.length > 0) {
                     const count = document.createElement('span');
                     count.className = 'count';
-                    count.textContent = value.length;
+                    count.textContent = node.tasks.length;
                     div.appendChild(count);
                 }
 
                 div.onclick = function (e) {
                     e.stopPropagation();
-                    handleNodeClick(this, key, value, currentPath);
+                    toggleNode(this, pathStr, hasChildren);
                 };
 
                 li.appendChild(div);
 
-                // Добавляем детей
-                if (hasChildren) {
+                // Добавляем детей (узлы структуры)
+                if (node.children && node.children.length > 0) {
                     const ul = document.createElement('ul');
-
-                    if (Array.isArray(value)) {
-                        // Это список задач
-                        value.forEach(task => {
-                            const taskLi = document.createElement('li');
-                            const taskDiv = document.createElement('div');
-                            taskDiv.className = 'node task';
-                            taskDiv.setAttribute('data-path', [...currentPath, task].join('/'));
-
-                            taskDiv.innerHTML = `
-                                <span class="arrow"></span>
-                                <span class="icon">📄</span>
-                                <span class="name">${task}</span>
-                            `;
-
-                            taskDiv.onclick = function (e) {
-                                e.stopPropagation();
-                                selectTask([...currentPath, task].join('/'), task);
-                            };
-
-                            taskLi.appendChild(taskDiv);
-                            ul.appendChild(taskLi);
-                        });
-                    } else {
-                        // Это объект с папками
-                        for (let childKey in value) {
-                            ul.appendChild(createNode(childKey, value[childKey], level + 1, currentPath));
-                        }
+                    if (!expandedNodes.has(pathStr)) {
+                        ul.style.display = 'none';
                     }
+
+                    node.children.forEach(child => {
+                        ul.appendChild(createNode(child, currentPath));
+                    });
+
+                    li.appendChild(ul);
+                }
+
+                // Добавляем задачи
+                if (node.tasks && node.tasks.length > 0) {
+                    const ul = document.createElement('ul');
+                    if (!expandedNodes.has(pathStr)) {
+                        ul.style.display = 'none';
+                    }
+
+                    node.tasks.forEach(task => {
+                        const taskLi = document.createElement('li');
+                        const taskDiv = document.createElement('div');
+                        taskDiv.className = 'node task';
+                        taskDiv.setAttribute('data-task-id', task.id);
+
+                        taskDiv.innerHTML = `
+                            <span class="arrow"></span>
+                            <span class="icon">📄</span>
+                            <span class="name">${task.name}</span>
+                        `;
+
+                        taskDiv.onclick = function (e) {
+                            e.stopPropagation();
+                            selectTask(task.id);
+                        };
+
+                        taskLi.appendChild(taskDiv);
+                        ul.appendChild(taskLi);
+                    });
 
                     li.appendChild(ul);
                 }
@@ -171,143 +246,115 @@
             }
 
             // Строим дерево
-            for (let key in data) {
-                container.appendChild(createNode(key, data[key], 0, []));
-            }
-
-            // Подсчитываем общее количество задач
-            countAllTasks();
+            data.forEach(node => {
+                container.appendChild(createNode(node));
+            });
         }
 
-        // Обработка клика на узел
-        function handleNodeClick(element, key, value, path) {
-            // Убираем выделение со всех
-            document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
-            element.classList.add('selected');
+        // Переключение узла
+        function toggleNode(element, path, hasChildren) {
+            if (!hasChildren) return;
 
-            // Находим родительский li и переключаем класс expanded
             const li = element.closest('li');
-            if (li) {
-                li.classList.toggle('expanded');
+            const ul = li.querySelector(':scope > ul');
 
-                // Меняем стрелку
-                const arrow = element.querySelector('.arrow');
-                if (li.classList.contains('expanded')) {
-                    arrow.textContent = '▼';
+            if (ul) {
+                if (ul.style.display === 'none') {
+                    ul.style.display = 'block';
+                    expandedNodes.add(path);
+                    element.querySelector('.arrow').textContent = '▼';
                 } else {
-                    arrow.textContent = '▶';
+                    ul.style.display = 'none';
+                    expandedNodes.delete(path);
+                    element.querySelector('.arrow').textContent = '▶';
                 }
             }
 
-            // Если это уровень с задачами, показываем информацию
-            if (Array.isArray(value)) {
-                document.getElementById('currentPath').innerHTML = path.join(' → ');
-                document.getElementById('currentTitle').innerHTML = `Уровень: ${key}`;
-                document.getElementById('taskContent').innerHTML = `
-                    <div class="task-info">
-                        <h3>Задачи уровня ${key}:</h3>
-                        <ul>
-                            ${value.map(task => `<li style="margin: 10px 0; cursor: pointer; color: #1976d2;" onclick="selectTask('${path.join('/')}/${task}', '${task}')">📄 ${task}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
-            }
+            // Подсветка выбранного элемента
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+            element.classList.add('selected');
         }
 
-        // Выбор конкретной задачи
-        window.selectTask = async function (path, taskName) {
-            // Убираем выделение со всех
+        // Выбор задачи
+        async function selectTask(taskId) {
+            // Подсветка
             document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
-
-            // Выделяем выбранную задачу
-            const taskElement = document.querySelector(`[data-path="${path}"]`);
+            const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
             if (taskElement) {
                 taskElement.classList.add('selected');
             }
 
-            // Показываем путь
-            document.getElementById('currentPath').innerHTML = path.split('/').join(' → ');
-            document.getElementById('currentTitle').innerHTML = `Загрузка...`;
-
-            // Показываем индикатор загрузки
+            // Показываем загрузку
+            document.getElementById('currentTitle').innerHTML = 'Загрузка...';
             document.getElementById('taskContent').innerHTML = `
-                <div class="loader-container">
-                    <span class="loading"></span> Загрузка задачи...
-                </div>
-            `;
+        <div class="loader-container">
+            <span class="loading"></span> Загрузка задачи...
+        </div>
+    `;
 
             try {
-                // Загружаем реальное содержимое task.md
-                const content = await loadTaskContent(path);
+                // ИСПРАВЛЕНО: правильный URL для API
+                const response = await fetch(`/tasks/api/task/${taskId}/`);
 
-                // Извлекаем ID задачи из первой строки
-                const firstLine = content.split('\n')[0];
-                const taskIdMatch = firstLine.match(/^#(\d+)/);
-                const taskId = taskIdMatch ? taskIdMatch[1] : 'unknown';
+                if (!response.ok) {
+                    throw new Error(`Ошибка загрузки: ${response.status}`);
+                }
+
+                const task = await response.json();
+
+                // Обновляем путь
+                document.getElementById('currentPath').innerHTML = `Задача #${task.id}`;
+                document.getElementById('currentTitle').innerHTML = task.title || `Задача #${task.id}`;
 
                 // Конвертируем Markdown в HTML
-                const htmlContent = marked.parse(content);
+                const htmlContent = task.md_content ? marked.parse(task.md_content) : '<p>Нет описания</p>';
 
-                document.getElementById('currentTitle').innerHTML = `Задача: ${taskName}`;
+                const checkUrl = `/tasks/task/${task.id}/`;
+
                 document.getElementById('taskContent').innerHTML = `
-                    <div>
-                        {#<div class="task-header">#}
-                        {#    <span class="task-id">ID: #${taskId}</span>#}
-                        {#</div>#}
-                        <div class="markdown-content">
-                            ${htmlContent}
-                        </div>
-                        <a href="/tasks/task/${taskId}/" class="btn btn-primary">
-                            ✅ Проверить решение этой задачи
-                        </a>
-                    </div>
-                `;
-            } catch (error) {
-                document.getElementById('currentTitle').innerHTML = `Ошибка`;
-                document.getElementById('taskContent').innerHTML = `
-                    <div class="error-message">
-                        <h3>❌ Ошибка загрузки задачи</h3>
-                        <p>Не удалось загрузить файл task.md по пути: ${path}</p>
-                        <p>Проверьте, что файл существует и доступен для чтения.</p>
-                        <p style="font-size: 12px; margin-top: 10px;">${error.message}</p>
-                    </div>
-                `;
-            }
+            <div>
+                <div class="markdown-content">
+                    ${htmlContent}
+                </div>
+                <a href="${checkUrl}" class="btn btn-primary mt-3">
+                    ✅ Проверить решение
+                </a>
+            </div>
+        `;
 
-            // Предотвращаем всплытие
-            event?.stopPropagation();
-        };
-
-        // Подсчет всех задач
-        function countAllTasks() {
-            let total = 0;
-
-            function count(obj) {
-                if (Array.isArray(obj)) {
-                    total += obj.length;
-                } else if (typeof obj === 'object' && obj !== null) {
-                    for (let key in obj) {
-                        count(obj[key]);
-                    }
+                // Подсветка синтаксиса
+                if (typeof hljs !== 'undefined') {
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
                 }
-            }
 
-            count(tasks);
-            document.getElementById('totalTasks').textContent = `📊 ${total} задач`;
+            } catch (error) {
+                console.error('Ошибка:', error);
+                document.getElementById('taskContent').innerHTML = `
+            <div class="error-message">
+                <h3>❌ Ошибка загрузки задачи</h3>
+                <p>${error.message}</p>
+                <p>Проверьте соединение и попробуйте снова.</p>
+            </div>
+        `;
+            }
         }
 
         // Инициализация
-        renderTree(document.getElementById('tree'), tasks);
+        document.addEventListener('DOMContentLoaded', function () {
+            const treeContainer = document.getElementById('tree');
+            if (treeContainer && treeData) {
+                renderTree(treeContainer, treeData);
 
-        // Для демо разворачиваем первый уровень
-        setTimeout(() => {
-            const firstClass = document.querySelector('.tree > li');
-            if (firstClass) {
-                firstClass.classList.add('expanded');
-                const arrow = firstClass.querySelector('.arrow');
-                if (arrow) arrow.textContent = '▼';
+                // Разворачиваем первый уровень для демо
+                setTimeout(() => {
+                    const firstNode = document.querySelector('.tree > li > .node');
+                    if (firstNode) {
+                        firstNode.click();
+                    }
+                }, 100);
             }
-        }, 100);
+        });
     </script>
-
 {% endblock %}

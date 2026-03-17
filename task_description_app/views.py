@@ -11,63 +11,85 @@ from django.conf import settings
 from django.http import JsonResponse
 import markdown
 import json
+import logging
 
-from make_json import scan_tasks_simple
 from .forms import TaskAddForm, TaskContentForm
-from .models import Task, DifficultyLevel
+from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement
+from .utils import get_task_files
 
-from manage import logger
+logger = logging.getLogger(__name__)
 
-def get_cached_structure(force_refresh=False):
+
+def build_tree_structure():
     """
-    Получить структуру из кэша или пересканировать.
-    Если force_refresh=True - принудительно пересканировать и обновить кэш.
+    Строит дерево для отображения на основе ClassStructure и TaskPlacement
     """
-    if force_refresh:
-        # Принудительное пересканирование
-        structure = scan_tasks_simple('tasks_for_tests')
-        cache.set('tasks_structure', structure, 3600)  # кэш на 1 час
-        # print("✅ Структура принудительно пересканирована и кэш обновлен")
-        logger.info("✅ Структура принудительно пересканирована и кэш обновлен")
+    root_nodes = ClassStructure.objects.filter(parent=None).order_by('name')
 
-        return structure
+    def build_node(node):
+        children = []
+        for child in node.children.all().order_by('name'):
+            children.append(build_node(child))
 
-    # Обычное получение из кэша
-    structure = cache.get('tasks_structure')
-    if structure is None:
-        structure = scan_tasks_simple('tasks_for_tests')
-        cache.set('tasks_structure', structure, 3600)  # кэш на 1 час
-        # print("✅ Структура отсканирована и сохранена в кэш")
-        logger.info("✅ Структура отсканирована и сохранена в кэш")
-    return structure
+        # Получаем задачи в этом узле
+        tasks = TaskPlacement.objects.filter(
+            structure_node=node
+        ).select_related('task').order_by('id')
+
+        # Формируем список задач в формате для дерева
+        task_list = []
+        for placement in tasks:
+            task_list.append({
+                'id': placement.task.id,
+                'name': f"Задача {placement.task.id}",
+                'title': placement.task.title,
+                'task_id': placement.task.id,
+            })
+
+        # Возвращаем узел в формате, который ожидает renderTree
+        return {
+            'name': node.name,
+            'children': children,
+            'tasks': task_list,
+            'level': node.level,
+        }
+
+    tree_data = []
+    for node in root_nodes:
+        tree_data.append(build_node(node))
+
+    return tree_data
+
+
+def get_structure(request):
+    """API для получения структуры дерева"""
+    structure = build_tree_structure()
+    return JsonResponse({'structure': structure})
 
 
 def task_list(request):
     """Страница со списком всех задач"""
     tasks = Task.objects.all()
-    # json_structure = scan_tasks_simple('tasks_for_tests')
-    json_structure = get_cached_structure()
+
+    # Получаем структуру для дерева
+    tree_data = build_tree_structure()
+
+    # Подсчитываем общее количество задач
+    total_tasks = Task.objects.count()
+
     context = {
         'tasks': tasks,
         'title': 'Список задач',
-        'json_structure': json_structure,
+        'tree_data': json.dumps(tree_data),  # Передаем как JSON строку
+        'total_tasks': total_tasks,
     }
     return render(request, 'task_description_app/task_list.html', context)
 
 
 def render_markdown_without_empty_blocks(md_content):
     """Конвертирует Markdown в HTML и удаляет пустые блоки кода"""
-
-    # Конвертируем Markdown в HTML
     html_content = markdown.markdown(md_content, extensions=['extra'])
-
-    # Удаляем пустые блоки <pre><code></code></pre>
-    # Вариант 1: через регулярное выражение
     html_content = re.sub(r'<pre><code[^>]*>\s*</code></pre>\n?', '', html_content)
-
-    # Вариант 2: более агрессивная очистка
-    # html_content = re.sub(r'<pre[^>]*>\s*<code[^>]*>\s*</code>\s*</pre>\n?', '', html_content)
-
     return html_content
 
 
@@ -75,32 +97,25 @@ def task_detail(request, task_id):
     """Отображение конкретной задачи с Markdown"""
     task = get_object_or_404(Task, id=task_id)
 
-    # Читаем и конвертируем Markdown файл
+    # Получаем файлы задачи
+    task_files = get_task_files(task_id)
     md_content = ""
-    # if task.md_file and os.path.exists(task.md_path):
-    #     with open(task.md_path, 'r', encoding='utf-8') as f:
-    #         md_content = f.read()
 
-    task_dir = os.path.join(settings.TASKS_ROOT, task.test_path)
-
-    if task.test_file and os.path.exists(task_dir):
-        with open(task_dir + '\\task.md', 'r', encoding='utf-8') as f:
-            # print(f"Файл md найден и открыт")
+    # Читаем task.md
+    if os.path.exists(task_files['md']):
+        with open(task_files['md'], 'r', encoding='utf-8') as f:
             md_content = f.read()
-        # Используем очищенную версию
+
     html_content = render_markdown_without_empty_blocks(md_content)
 
-    # Создаем экземпляр UploadedProgram для этой задачи и пользователя
+    # Получаем загруженную программу
     from task_description_app.models import UploadedProgram
-
-    # Проверяем, есть ли уже загруженная программа для этой задачи
+    uploaded_program = None
     if request.user.is_authenticated:
         uploaded_program = UploadedProgram.objects.filter(
             task=task,
             user=request.user
         ).order_by('-upload_time').first()
-    else:
-        uploaded_program = None
 
     context = {
         'task': task,
@@ -112,24 +127,29 @@ def task_detail(request, task_id):
 
 
 def get_task_info(request, task_id):
-    """API для получения информации о задаче (AJAX)"""
+    """API для получения информации о задаче"""
     task = get_object_or_404(Task, id=task_id)
+    task_files = get_task_files(task_id)
+
+    # Читаем содержимое task.md
+    md_content = ""
+    if os.path.exists(task_files['md']):
+        with open(task_files['md'], 'r', encoding='utf-8') as f:
+            md_content = f.read()
 
     return JsonResponse({
-        'task_id': task.id,
-        'task_title': task.title,
-        'md_path': task.test_path if task.test_file else None,
-        'test_path': task.test_path if task.test_file else None,
+        'id': task.id,
+        'title': task.title,
+        'description': task.description,
+        'difficulty': task.difficulty_id,
+        'md_content': md_content,
+        'test_files': task.test_files,
     })
 
 
-# для добавления задачи
-
-# При сохранении очищаем
 def clean_text(text):
     """Очищает текст от лишних пробелов"""
     lines = [line.rstrip() for line in text.splitlines()]
-    # Убираем пустые строки в начале и конце
     while lines and not lines[0].strip():
         lines.pop(0)
     while lines and not lines[-1].strip():
@@ -144,35 +164,26 @@ def task_add(request):
         return redirect('student_dashboard')
 
     if request.method == 'POST':
-
-        # Получаем данные из формы
         task_form = TaskAddForm(request.POST)
         content_form = TaskContentForm(request.POST)
-
-        # Получаем количество тестов
         test_count = int(request.POST.get('test_count', 0))
 
         if task_form.is_valid() and content_form.is_valid() and test_count > 0:
             try:
-                # Создаем задачу в БД
-                task = task_form.save(commit=False)
-
-                # Получаем данные пути
+                # Получаем данные из формы
                 class_name = task_form.cleaned_data['class_name'].strip()
                 topic = task_form.cleaned_data['topic'].strip()
                 lesson = task_form.cleaned_data['lesson'].strip()
                 level = task_form.cleaned_data['level']
                 task_folder = task_form.cleaned_data['task_folder'].strip()
 
-                # Формируем полный путь
-                relative_path = os.path.join(class_name, topic, lesson, level, task_folder)
-                task.test_file = relative_path
+                # Создаем задачу в БД
+                task = task_form.save(commit=False)
                 task.created_by = request.user
-
                 task.save()
 
-                # СОЗДАЕМ ПАПКИ (даже если их нет)
-                task_dir = os.path.join(settings.TASKS_ROOT, relative_path)
+                # СОЗДАЕМ ПАПКУ ДЛЯ ЗАДАЧИ В НОВОМ МЕСТЕ (tasks/ID/)
+                task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
                 os.makedirs(task_dir, exist_ok=True)
 
                 # 1. Сохраняем task.md
@@ -186,45 +197,65 @@ def task_add(request):
                     f.write(py_content)
 
                 # 3. Создаем тесты
+                test_files = []
                 for i in range(1, test_count + 1):
                     input_data = request.POST.get(f'test_{i}_input', '').strip()
                     output_data = request.POST.get(f'test_{i}_output', '').strip()
 
-                    if input_data or output_data:  # Разрешаем пустые тесты
-                        # Обрабатываем переносы строк
-                        # Заменяем \r\n на \n для единообразия
-                        input_data = input_data.replace('\r\n', '\n').replace('\r', '\n')
-                        output_data = output_data.replace('\r\n', '\n').replace('\r', '\n')
-
-                        # Убираем множественные пустые строки (опционально)
-                        # input_data = '\n'.join(line for line in input_data.split('\n') if line.strip() or not line)
-
-                        # Сохраняем .in файл
+                    if input_data:
                         in_path = os.path.join(task_dir, f'test{i}.in')
                         with open(in_path, 'w', encoding='utf-8') as f:
-                            f.write(input_data)
+                            f.write(input_data.replace('\r\n', '\n').replace('\r', '\n'))
+                        test_files.append(f'test{i}.in')
 
-                        # Сохраняем .out файл
+                    if output_data:
                         out_path = os.path.join(task_dir, f'test{i}.out')
                         with open(out_path, 'w', encoding='utf-8') as f:
-                            f.write(output_data)
+                            f.write(output_data.replace('\r\n', '\n').replace('\r', '\n'))
+                        test_files.append(f'test{i}.out')
 
-                # 4. Обновляем structure.json
-                update_structure_json(class_name, topic, lesson, level, task_folder)
+                # 4. Сохраняем список тестов
+                task.test_files = test_files
+                task.save(update_fields=['test_files'])
 
-                # 5. ПРИНУДИТЕЛЬНО ПЕРЕСКАНИРуЕМ И ОБНОВЛЯЕМ КЭШ
-                get_cached_structure(force_refresh=True)
+                # 5. СОЗДАЕМ СВЯЗИ В СТРУКТУРЕ
+                # Находим или создаем узлы структуры
+                class_node, _ = ClassStructure.objects.get_or_create(
+                    name=class_name,
+                    level=0,
+                    parent=None
+                )
 
-                # # 6. Формируем URL для просмотра задачи
-                # task_view_url = f"/task/{task.id}/"
+                topic_node, _ = ClassStructure.objects.get_or_create(
+                    name=topic,
+                    level=1,
+                    parent=class_node
+                )
+
+                lesson_node, _ = ClassStructure.objects.get_or_create(
+                    name=lesson,
+                    level=2,
+                    parent=topic_node
+                )
+
+                level_node, _ = ClassStructure.objects.get_or_create(
+                    name=level,
+                    level=3,
+                    parent=lesson_node
+                )
+
+                # Создаем связь задачи с узлом уровня
+                TaskPlacement.objects.get_or_create(
+                    task=task,
+                    structure_node=level_node
+                )
 
                 return JsonResponse({
                     'success': True,
                     'message': 'Задача успешно создана!',
                     'task_id': task.id,
-                    # 'task_view_url': task_view_url,
-                    'path': relative_path,
-                    'task_title': task.title or f"Задача #{task.id}"
+                    'task_title': task.title or f"Задача #{task.id}",
+                    'path': f"tasks/{task.id}"  # Возвращаем новый путь
                 })
 
             except Exception as e:
@@ -244,46 +275,43 @@ def task_add(request):
             }, status=400)
 
     else:
+        # GET запрос - отображаем форму
         task_form = TaskAddForm()
         content_form = TaskContentForm()
 
         # Шаблон для task.md
         default_md = textwrap.dedent('''\
-            #Номер задачи
-            ## Название задачи
-            Описание задачи...
-            <table style="width: auto; margin: auto"> 
-                <tr style="text-align: center">
-                    <th><b><i>Формат ввода</i></b></th>
-                    <th><b><i>Формат вывода</i></b></th>
-                </tr>
-                <tr style="vertical-align: top">
-                    <td>Строка данных</td>
-                    <td style="vertical-align: top">Строка данных</td>
-                </tr>
-            </table> 
-                 
-            ### Пример
-            <table style="width: auto; margin: auto"> 
-                <tr style="text-align: center">
-                    <th><b><i>Ввод</i></b></th>
-                    <th><b><i>Вывод</i></b></th>
-                </tr>
-                <tr style="vertical-align: top">
-                    <td>Нечто</td>
-                    <td>Что-то</td>
-                </tr>
-            </table>
-        ''')
+                    ## Название задачи
+                    Описание задачи...
+                    <table style="width: auto; margin: auto"> 
+                        <tr style="text-align: center">
+                            <th><b><i>Формат ввода</i></b></th>
+                            <th><b><i>Формат вывода</i></b></th>
+                        </tr>
+                        <tr style="vertical-align: top">
+                            <td>Строка данных</td>
+                            <td style="vertical-align: top">Строка данных</td>
+                        </tr>
+                    </table> 
 
+                    ### Пример
+                    <table style="width: auto; margin: auto"> 
+                        <tr style="text-align: center">
+                            <th><b><i>Ввод</i></b></th>
+                            <th><b><i>Вывод</i></b></th>
+                        </tr>
+                        <tr style="vertical-align: top">
+                            <td>Нечто</td>
+                            <td>Что-то</td>
+                        </tr>
+                    </table>
+                ''')
         content_form.fields['task_md_content'].initial = default_md
 
         # Шаблон для task.py
         default_py = '''def solve():
-    """Основная функция решения"""
-    # Чтение данных
     data = input().split()
-    # Ваш код здесь
+    # Ваш код
     result = 0
     print(result)
 
@@ -292,57 +320,12 @@ if __name__ == "__main__":
         content_form.fields['task_py_content'].initial = default_py
 
         difficulty_levels = DifficultyLevel.objects.all()
-        max_id = Task.objects.aggregate(Max('id'))['id__max']
+        max_id = Task.objects.aggregate(Max('id'))['id__max'] or 0
+
         context = {
             'task_form': task_form,
             'content_form': content_form,
             'difficulty_levels': difficulty_levels,
             'task_id': max_id + 1,
         }
-
         return render(request, 'task_description_app/task_add.html', context)
-
-
-def update_structure_json(class_name, topic, lesson, level, task_folder):
-    """Обновляет structure.json, добавляя новую задачу"""
-    json_path = os.path.join(settings.BASE_DIR, 'structure.json')
-
-    # print(f"Обновление structure.json по пути: {json_path}")
-
-    try:
-        # Проверяем существование директории
-        os.makedirs(os.path.dirname(json_path), exist_ok=True)
-
-        # Читаем существующий файл или создаем новый
-        if os.path.exists(json_path):
-            with open(json_path, 'r', encoding='utf-8') as f:
-                structure = json.load(f)
-            print("Существующий structure.json загружен")
-        else:
-            structure = {}
-            print("Создан новый structure.json")
-
-        # СОЗДАЕМ структуру, если её нет
-        if class_name not in structure:
-            structure[class_name] = {}
-        if topic not in structure[class_name]:
-            structure[class_name][topic] = {}
-        if lesson not in structure[class_name][topic]:
-            structure[class_name][topic][lesson] = {}
-        if level not in structure[class_name][topic][lesson]:
-            structure[class_name][topic][lesson][level] = []
-
-        # Добавляем задачу, если её ещё нет
-        if task_folder not in structure[class_name][topic][lesson][level]:
-            structure[class_name][topic][lesson][level].append(task_folder)
-            structure[class_name][topic][lesson][level].sort()
-            print(f"Добавлена задача {task_folder} в структуру")
-
-        # Сохраняем
-        with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(structure, f, ensure_ascii=False, indent=2)
-        print("structure.json успешно сохранен")
-
-    except Exception as e:
-        print(f"Ошибка в update_structure_json: {e}")
-        raise  # Пробрасываем ошибку дальше

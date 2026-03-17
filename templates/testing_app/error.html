@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{#{% extends 'base.html' %}#}
 {% load static %}
 
 {% block extra_css %}
@@ -6,15 +6,6 @@
 {% endblock %}
 
 {% block content %}
-    <style>
-        .error-footer {
-            background: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid #dee2e6;
-            color: #6c757d;
-        }
-    </style>
 
     <div class="error-container">
         <!-- Заголовок ошибки -->
@@ -105,13 +96,7 @@
                 </div>
             {% endif %}
         </div>
-
-        <!-- Футер -->
-        <div class="error-footer">
-            <p>Система автоматического тестирования | {% now "Y" %}</p>
-            <p style="font-size: 0.9em; margin-top: 5px;">Версия 1.0</p>
-        </div>
-    </div>
+   </div>
 {% endblock %}
 
 {% block extra_js %}

@@ -1,0 +1,1 @@
+s = input()a = input()b = input()while s.find(a) != -1:    s = s.replace(a, b)print(s)

@@ -1,0 +1,1 @@
+data = input()n = int(input())print(data[-n:] + data[n:-n] + data[:n])
