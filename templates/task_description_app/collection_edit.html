@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>
+            <i class="fas fa-edit me-2"></i>
+            {{ collection.title }}
+        </h2>
+
+        <div class="row mt-4">
+            <!-- Левая колонка - доступные задачи -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">📚 Все задачи</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                        <div class="mb-3">
+                            <input type="text" id="taskSearch" class="form-control" placeholder="Поиск задач...">
+                        </div>
+                        <div id="availableTasks">
+                            {% for task in all_tasks %}
+                                <div class="task-item mb-2 p-2 border rounded task-card" data-task-id="{{ task.id }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Задача #{{ task.id }}</strong><br>
+                                            <small class="text-muted">{{ task.title|truncatechars:50 }}</small>
+                                        </div>
+                                        <button class="btn btn-sm btn-success add-task" data-task-id="{{ task.id }}">
+                                            <i class="fas fa-plus"></i> Добавить
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка - выбранные задачи -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">✅ Задачи в подборке</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" id="collectionForm">
+                            {% csrf_token %}
+                            <div id="selectedTasks">
+                                {% for item in selected_tasks %}
+                                    <div class="selected-task mb-3 p-3 border rounded" data-item-id="{{ item.id }}">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <strong>Задача #{{ item.task.id }}</strong>
+                                                <div class="mt-2">
+                                                    <label class="small">Порядок:</label>
+                                                    <input type="number" name="order_{{ item.id }}"
+                                                           value="{{ item.order }}"
+                                                           class="form-control form-control-sm d-inline-block"
+                                                           style="width: 80px;">
+                                                    <label class="small ms-2">Баллы:</label>
+                                                    <input type="number" name="max_score_{{ item.id }}"
+                                                           value="{{ item.max_score }}"
+                                                           class="form-control form-control-sm d-inline-block"
+                                                           style="width: 80px;">
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-danger remove-task"
+                                                    data-item-id="{{ item.id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-muted text-center py-4">Нет задач. Добавьте задачи слева</p>
+                                {% endfor %}
+                            </div>
+
+                            <input type="hidden" name="selected_tasks" id="selectedTasksInput">
+                            <input type="hidden" name="remove_tasks" id="removeTasksInput">
+
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Сохранить
+                                </button>
+                                <a href="{% url 'tasks:collection_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Назад
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Поиск задач
+        document.getElementById('taskSearch').addEventListener('input', function (e) {
+            const search = e.target.value.toLowerCase();
+            document.querySelectorAll('#availableTasks .task-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(search) ? '' : 'none';
+            });
+        });
+
+        // Добавление задачи
+        document.querySelectorAll('.add-task').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const taskId = this.dataset.taskId;
+                const taskCard = this.closest('.task-card');
+                const taskTitle = taskCard.querySelector('strong').textContent;
+
+                // Проверяем, не добавлена ли уже
+                if (document.querySelector(`.selected-task[data-task-id="${taskId}"]`)) {
+                    alert('Эта задача уже добавлена');
+                    return;
+                }
+
+                // Создаем элемент для выбранной задачи
+                const selectedDiv = document.createElement('div');
+                selectedDiv.className = 'selected-task mb-3 p-3 border rounded';
+                selectedDiv.setAttribute('data-task-id', taskId);
+                selectedDiv.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <strong>${taskTitle}</strong>
+                    <input type="hidden" name="selected_tasks_hidden" value="${taskId}">
+                    <div class="mt-2">
+                        <label class="small">Порядок:</label>
+                        <input type="number" class="form-control form-control-sm d-inline-block" style="width: 80px;" value="${document.querySelectorAll('.selected-task').length + 1}">
+                        <label class="small ms-2">Баллы:</label>
+                        <input type="number" class="form-control form-control-sm d-inline-block" style="width: 80px;" value="10">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger remove-task-btn">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+
+                const container = document.getElementById('selectedTasks');
+                container.appendChild(selectedDiv);
+
+                // Добавляем обработчик удаления
+                selectedDiv.querySelector('.remove-task-btn').addEventListener('click', function () {
+                    selectedDiv.remove();
+                    updateFormData();
+                });
+
+                updateFormData();
+            });
+        });
+
+        // Удаление существующих задач
+        document.querySelectorAll('.remove-task').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const itemId = this.dataset.itemId;
+                const container = document.getElementById('removeTasksInput');
+                const current = container.value ? container.value.split(',') : [];
+                current.push(itemId);
+                container.value = current.join(',');
+                this.closest('.selected-task').remove();
+            });
+        });
+
+        // Обновление данных формы
+        function updateFormData() {
+            const selectedTasks = [];
+            document.querySelectorAll('.selected-task input[name="selected_tasks_hidden"]').forEach(input => {
+                selectedTasks.push(input.value);
+            });
+            document.getElementById('selectedTasksInput').value = selectedTasks.join(',');
+        }
+
+        // Отправка формы
+        document.getElementById('collectionForm').addEventListener('submit', function (e) {
+            updateFormData();
+        });
+    </script>
+{% endblock %}

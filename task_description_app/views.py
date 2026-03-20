@@ -3,18 +3,19 @@ import os
 import re
 import textwrap
 
-from django.core.cache import cache
+
 from django.db.models import Max
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
+from django.db import models
 import markdown
 import json
 import logging
 
-from .forms import TaskAddForm, TaskContentForm
-from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement
+from .forms import TaskAddForm, TaskContentForm ,CollectionForm, CollectionItemForm
+from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem
 from .utils import get_task_files
 
 logger = logging.getLogger(__name__)
@@ -329,3 +330,153 @@ if __name__ == "__main__":
             'task_id': max_id + 1,
         }
         return render(request, 'task_description_app/task_add.html', context)
+
+# для контрольных работ и своих уроков
+def collection_list(request):
+    """Список подборок"""
+    collections = Collection.objects.filter(author=request.user) if request.user.is_authenticated else []
+
+    # Если учитель - показывает свои и публичные
+    if request.user.user_type == 'teacher':
+        collections = Collection.objects.filter(
+            models.Q(author=request.user) | models.Q(is_public=True)
+        ).distinct()
+
+    context = {
+        'collections': collections,
+        'title': 'Мои подборки',
+    }
+    return render(request, 'task_description_app/collection_list.html', context)
+
+
+def collection_create(request):
+    """Создание новой подборки"""
+    if request.user.user_type != 'teacher':
+        return redirect('student_dashboard')
+
+    if request.method == 'POST':
+        form = CollectionForm(request.POST)
+        if form.is_valid():
+            collection = form.save(commit=False)
+            collection.author = request.user
+            collection.save()
+            return redirect('collection_edit', collection_id=collection.id)
+    else:
+        form = CollectionForm()
+
+    context = {
+        'form': form,
+        'title': 'Создание подборки',
+    }
+    return render(request, 'task_description_app/collection_create.html', context)
+
+
+def collection_edit(request, collection_id):
+    """Редактирование подборки (выбор задач)"""
+    if request.user.user_type != 'teacher':
+        return redirect('student_dashboard')
+
+    collection = get_object_or_404(Collection, id=collection_id, author=request.user)
+
+    # Получаем все доступные задачи
+    all_tasks = Task.objects.all().order_by('id')
+
+    # Получаем задачи уже в подборке
+    selected_tasks = collection.collection_items.select_related('task').order_by('order')
+
+    if request.method == 'POST':
+        # Обновляем порядок и баллы
+        for item in selected_tasks:
+            order = request.POST.get(f'order_{item.id}')
+            max_score = request.POST.get(f'max_score_{item.id}')
+            if order:
+                item.order = int(order)
+            if max_score:
+                item.max_score = int(max_score)
+            item.save()
+
+        # Добавляем новые задачи
+        task_ids = request.POST.getlist('selected_tasks')
+        for i, task_id in enumerate(task_ids):
+            task = get_object_or_404(Task, id=task_id)
+            CollectionItem.objects.get_or_create(
+                collection=collection,
+                task=task,
+                defaults={'order': selected_tasks.count() + i + 1}
+            )
+
+        # Удаляем задачи, отмеченные для удаления
+        remove_ids = request.POST.getlist('remove_tasks')
+        CollectionItem.objects.filter(id__in=remove_ids).delete()
+
+        return redirect('collection_edit', collection_id=collection.id)
+
+    context = {
+        'collection': collection,
+        'all_tasks': all_tasks,
+        'selected_tasks': selected_tasks,
+        'title': f'Редактирование: {collection.title}',
+    }
+    return render(request, 'task_description_app/collection_edit.html', context)
+
+
+def collection_detail(request, collection_id):
+    """Просмотр подборки"""
+    collection = get_object_or_404(Collection, id=collection_id)
+
+    # Проверяем доступ
+    if not collection.is_public and collection.author != request.user:
+        return redirect('home')
+
+    # Получаем все задачи в подборке
+    items = collection.collection_items.select_related('task').order_by('order')
+
+    # Проверяем, есть ли попытка ученика
+    attempt = None
+    if request.user.is_authenticated and request.user.user_type == 'student':
+        attempt = CollectionAttempt.objects.filter(
+            collection=collection,
+            student=request.user
+        ).first()
+
+    context = {
+        'collection': collection,
+        'items': items,
+        'attempt': attempt,
+        'title': collection.title,
+    }
+    return render(request, 'task_description_app/collection_detail.html', context)
+
+
+def start_collection(request, collection_id):
+    """Начать выполнение подборки"""
+    if request.user.user_type != 'student':
+        return redirect('home')
+
+    collection = get_object_or_404(Collection, id=collection_id)
+
+    # Создаем новую попытку
+    attempt = CollectionAttempt.objects.create(
+        collection=collection,
+        student=request.user,
+        max_score=collection.get_total_score()
+    )
+
+    return redirect('collection_attempt', attempt_id=attempt.id)
+
+
+def collection_attempt(request, attempt_id):
+    """Выполнение подборки"""
+    attempt = get_object_or_404(CollectionAttempt, id=attempt_id, student=request.user)
+
+    if attempt.status != 'in_progress':
+        return redirect('collection_detail', collection_id=attempt.collection.id)
+
+    items = attempt.collection.collection_items.select_related('task').order_by('order')
+
+    context = {
+        'attempt': attempt,
+        'items': items,
+        'title': f'Выполнение: {attempt.collection.title}',
+    }
+    return render(request, 'task_description_app/collection_attempt.html', context)

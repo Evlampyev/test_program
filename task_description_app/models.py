@@ -213,32 +213,6 @@ class TaskPlacement(models.Model):
         return f"{self.task} -> {self.structure_node}"
 
 
-class Collection(models.Model):
-    """Подборка задач (например, контрольная работа)"""
-    title = models.CharField('Название', max_length=200)
-    description = models.TextField('Описание', blank=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='collections')
-    is_public = models.BooleanField('Публичная', default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    tasks = models.ManyToManyField(Task, through='CollectionItem')
-
-    def __str__(self):
-        return self.title
-
-
-class CollectionItem(models.Model):
-    """Задача в подборке"""
-    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    order = models.IntegerField('Порядок', default=0)
-    max_score = models.IntegerField('Макс. балл', default=10)
-
-    class Meta:
-        ordering = ['order']
-        unique_together = ['collection', 'task']
-
-
 # Модель для отслеживания попыток решения
 class TaskAttempt(models.Model):
     STATUS_CHOICES = (
@@ -303,3 +277,109 @@ class UploadedProgram(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.task.title} - {self.upload_time}"
+
+
+# Конртрольная работа или свой урок
+class Collection(models.Model):
+    """Подборка задач (контрольная работа, урок)"""
+    COLLECTION_TYPES = (
+        ('lesson', 'Урок'),
+        ('test', 'Контрольная работа'),
+        ('exam', 'Экзамен'),
+        ('homework', 'Домашнее задание'),
+    )
+
+    title = models.CharField('Название', max_length=200)
+    description = models.TextField('Описание', blank=True)
+    collection_type = models.CharField('Тип', max_length=20, choices=COLLECTION_TYPES, default='lesson')
+
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='created_collections'
+    )
+
+    # Для кого предназначена подборка
+    target_class = models.CharField('Класс', max_length=50, blank=True)
+    target_group = models.IntegerField('Группа', null=True, blank=True)
+
+    # Настройки
+    is_public = models.BooleanField('Публичная', default=True)
+    show_results = models.BooleanField('Показывать результаты', default=True)
+    time_limit = models.IntegerField('Ограничение времени (мин)', null=True, blank=True)
+
+    # Метаданные
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Задачи (ManyToMany через промежуточную модель)
+    tasks = models.ManyToManyField(Task, through='CollectionItem', related_name='collections')
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Подборка задач'
+        verbose_name_plural = 'Подборки задач'
+
+    def __str__(self):
+        return f"{self.get_collection_type_display()}: {self.title}"
+
+    def get_total_score(self):
+        """Общая сумма баллов"""
+        return sum(item.max_score for item in self.collection_items.all())
+
+    def get_task_count(self):
+        """Количество задач"""
+        return self.collection_items.count()
+
+
+class CollectionItem(models.Model):
+    """Задача в подборке"""
+    collection = models.ForeignKey(
+        Collection,
+        on_delete=models.CASCADE,
+        related_name='collection_items'
+    )
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    order = models.IntegerField('Порядок', default=0)
+    max_score = models.IntegerField('Максимальный балл', default=10)
+    required = models.BooleanField('Обязательная', default=True)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ['collection', 'task']
+
+    def __str__(self):
+        return f"{self.order}. {self.task.title} ({self.max_score} баллов)"
+
+
+class CollectionAttempt(models.Model):
+    """Попытка выполнения подборки учеником"""
+    STATUS_CHOICES = (
+        ('in_progress', 'В процессе'),
+        ('completed', 'Завершена'),
+        ('graded', 'Проверена'),
+    )
+
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='attempts')
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='collection_attempts')
+    status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='in_progress')
+
+    score = models.IntegerField('Баллы', default=0)
+    max_score = models.IntegerField('Максимум', default=0)
+
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-started_at']
+        verbose_name = 'Попытка выполнения'
+        verbose_name_plural = 'Попытки выполнения'
+
+    def __str__(self):
+        return f"{self.student} - {self.collection.title} ({self.score}/{self.max_score})"
+
+    def get_progress_percent(self):
+        """Процент выполнения"""
+        if self.max_score > 0:
+            return round((self.score / self.max_score) * 100)
+        return 0

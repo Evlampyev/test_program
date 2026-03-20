@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
+    <link rel="icon" type="image/png" href="/img/favicon.png">
 
 
     <!-- Базовые стили (всегда) -->
@@ -41,9 +42,9 @@
             {% endif %}
         </a>
 
-{#        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">#}
-{#            <span class="navbar-toggler-icon"></span>#}
-{#        </button>#}
+        {#        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">#}
+        {#            <span class="navbar-toggler-icon"></span>#}
+        {#        </button>#}
 
         <div class="collapse navbar-collapse" id="navbarNav">
             {% if user.is_authenticated %}
@@ -69,6 +70,15 @@
                                 <i class="fas fa-plus-circle"></i> Добавить задачу
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'collection_list' %}active{% endif %}"
+                               href="{% url 'tasks:collection_list' %}">
+                                <i class="fas fa-layer-group"></i> Мои подборки
+                            </a>
+                        </li>
+
+
+
                         {#                        <li class="nav-item">#}
                         {#                            <a class="nav-link {% if request.resolver_match.url_name == 'my_students' %}active{% endif %}"#}
                         {#                               href="{% url 'my_students' %}">#}

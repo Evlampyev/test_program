@@ -1,0 +1,1 @@
+def solve():    data = input()    temp = data.lower()    first = temp.find('h')    last = temp.rfind('h')    result = data[:first] + data[last + 1:]    print(result)if __name__ == "__main__":    solve()
