@@ -1,0 +1,1 @@
+def remove_indices_divisible_by_3(s: str) -> str:    """Удаляет символы, чьи индексы делятся на 3."""    return ''.join(s[i] for i in range(len(s)) if i % 3 != 0)if __name__ == "__main__":    print(remove_indices_divisible_by_3(input()))

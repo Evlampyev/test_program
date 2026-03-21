@@ -1,0 +1,1 @@
+def solve(s: str):    return s.replace('@', '')if __name__ == "__main__":    data = input()    print(solve(data))
