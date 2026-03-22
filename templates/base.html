@@ -106,6 +106,11 @@
                                 <i class="fas fa-tasks"></i> Задачи
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'tasks:my_assignments' %}">
+                                <i class="fas fa-tasks me-1"></i> Мои задания
+                            </a>
+                        </li>
                         {#                        <li class="nav-item">#}
                         {#                            <a class="nav-link {% if request.resolver_match.url_name == 'my_results' %}active{% endif %}"#}
                         {#                                                           href="{% url 'my_results' %}">#}

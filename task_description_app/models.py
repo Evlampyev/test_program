@@ -331,6 +331,44 @@ class Collection(models.Model):
         """Количество задач"""
         return self.collection_items.count()
 
+    def is_available_for_student(self, student):
+        """Проверяет, доступна ли подборка для ученика"""
+        if not self.is_public and self.author != student:
+            return False
+
+        # Проверка по классу и группе
+        if self.target_class and hasattr(student, 'student_profile'):
+            student_group = student.student_profile.group
+            if student_group and student_group.school_class:
+                # Сравниваем класс (например, "10 класс" с "10")
+                class_num = ''.join(filter(str.isdigit, self.target_class))
+                if class_num and str(student_group.school_class.number) != class_num:
+                    return False
+
+            # Проверка группы
+            if self.target_group and student_group and student_group.number != self.target_group:
+                return False
+
+        return True
+
+    def get_available_students(self):
+        """Возвращает список учеников, которым доступна подборка"""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        students = User.objects.filter(user_type='student')
+
+        if self.target_class:
+            class_num = ''.join(filter(str.isdigit, self.target_class))
+            students = students.filter(
+                student_profile__group__school_class__number=class_num
+            )
+
+        if self.target_group:
+            students = students.filter(student_profile__group__number=self.target_group)
+
+        return students
+
 
 class CollectionItem(models.Model):
     """Задача в подборке"""
@@ -383,3 +421,33 @@ class CollectionAttempt(models.Model):
         if self.max_score > 0:
             return round((self.score / self.max_score) * 100)
         return 0
+
+
+class CollectionAssignment(models.Model):
+    """Назначение контрольной работы ученику"""
+    STATUS_CHOICES = (
+        ('pending', 'Ожидает выполнения'),
+        ('in_progress', 'Выполняется'),
+        ('completed', 'Выполнено'),
+        ('expired', 'Просрочено'),
+    )
+
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE, related_name='assignments')
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                related_name='collection_assignments')
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField('Срок выполнения', null=True, blank=True)
+    status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    class Meta:
+        ordering = ['-assigned_at']
+        unique_together = ['collection', 'student']
+
+    def __str__(self):
+        return f"{self.collection.title} -> {self.student.username}"
+
+    def is_overdue(self):
+        """Проверяет, просрочено ли задание"""
+        if self.due_date and timezone.now() > self.due_date:
+            return True
+        return False

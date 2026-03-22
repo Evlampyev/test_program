@@ -11,6 +11,11 @@ class Notification(models.Model):
     """Модель уведомлений"""
     NOTIFICATION_TYPES = (
         ('task_solved', '✅ Задача решена'),
+        ('task_attempt', '📝 Попытка решения'),
+        ('student_registered', '👤 Новый ученик'),
+        ('collection_assigned', '📚 Выдана контрольная работа'),
+        ('collection_completed', '🎉 Контрольная выполнена'),
+        ('system', '🔔 Системное'),
     )
 
     recipient = models.ForeignKey(

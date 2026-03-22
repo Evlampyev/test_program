@@ -19,9 +19,4 @@ urlpatterns = [
     path('collections/<int:collection_id>/', views.collection_detail, name='collection_detail'),
     path('collections/<int:collection_id>/start/', views.start_collection, name='start_collection'),
     path('attempt/<int:attempt_id>/', views.collection_attempt, name='collection_attempt'),
-
-
-# Выдача КР
-    path('collections/<int:collection_id>/assign/', views.assign_collection, name='assign_collection'),
-    path('my-assignments/', views.my_assignments, name='my_assignments'),
 ]

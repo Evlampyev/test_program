@@ -1,5 +1,6 @@
 from .models import Notification
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 
 User = get_user_model()
@@ -66,4 +67,84 @@ def create_task_solved_notification(task_attempt):
 
     except Exception as e:
         print(f"❌ Ошибка создания уведомления: {e}")
+        return None
+
+
+def notify_student_about_assignment(student, collection):
+    """
+    Отправляет уведомление ученику о новой выданной контрольной работе
+    """
+    try:
+        # Проверяем, есть ли уже такое уведомление
+        existing = Notification.objects.filter(
+            recipient=student,
+            notification_type='collection_assigned',
+            task_id=str(collection.id)
+        ).exists()
+
+        if existing:
+            return None
+
+        # Формируем сообщение
+        title = f"📚 Новая контрольная работа: {collection.title}"
+        message = (
+            f"Вам выдана контрольная работа: {collection.title}\n\n"
+            f"📝 Задач: {collection.collection_items.count()}\n"
+            f"⭐ Максимальный балл: {collection.get_total_score()}\n"
+        )
+
+        if collection.time_limit:
+            message += f"⏱️ Время выполнения: {collection.time_limit} минут\n"
+
+        if collection.due_date:
+            message += f"📅 Срок выполнения: {collection.due_date.strftime('%d.%m.%Y %H:%M')}\n"
+
+        message += f"\nПерейдите в раздел 'Мои задания' для выполнения."
+
+        # Создаем уведомление
+        notification = Notification.objects.create(
+            recipient=student,
+            notification_type='collection_assigned',
+            title=title,
+            message=message,
+            task_id=str(collection.id)
+        )
+
+        return notification
+
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Ошибка создания уведомления о назначении КР: {e}")
+        return None
+
+
+def notify_teacher_about_completed_assignment(teacher, student, collection, attempt):
+    """
+    Уведомляет учителя о том, что ученик выполнил контрольную работу
+    """
+    try:
+        title = f"✅ Выполнена контрольная работа: {collection.title}"
+        message = (
+            f"Ученик {student.last_name} {student.first_name} "
+            f"выполнил контрольную работу '{collection.title}'.\n\n"
+            f"Результат: {attempt.score}/{attempt.max_score} баллов "
+            f"({attempt.get_progress_percent()}%)\n"
+        )
+
+        notification = Notification.objects.create(
+            recipient=teacher,
+            sender=student,
+            notification_type='collection_completed',
+            title=title,
+            message=message,
+            task_id=str(collection.id)
+        )
+
+        return notification
+
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Ошибка создания уведомления о выполнении КР: {e}")
         return None

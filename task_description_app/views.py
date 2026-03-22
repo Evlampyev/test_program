@@ -10,12 +10,14 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
 from django.db import models
+from django.contrib import messages
 import markdown
 import json
 import logging
 
 from .forms import TaskAddForm, TaskContentForm ,CollectionForm, CollectionItemForm
-from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem
+from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
+    CollectionAssignment, User
 from .utils import get_task_files
 
 logger = logging.getLogger(__name__)
@@ -482,3 +484,76 @@ def collection_attempt(request, attempt_id):
         'title': f'Выполнение: {attempt.collection.title}',
     }
     return render(request, 'task_description_app/collection_attempt.html', context)
+
+
+@login_required
+def assign_collection(request, collection_id):
+    """Выдача контрольной работы ученикам"""
+    if request.user.user_type != 'teacher':
+        return redirect('student_dashboard')
+
+    collection = get_object_or_404(Collection, id=collection_id, author=request.user)
+
+    if request.method == 'POST':
+        # Получаем выбранных учеников
+        student_ids = request.POST.getlist('students')
+        due_date = request.POST.get('due_date')
+
+        if not student_ids:
+            messages.error(request, 'Выберите хотя бы одного ученика')
+            return redirect('assign_collection', collection_id=collection.id)
+
+        # Создаем назначения
+        for student_id in student_ids:
+            student = get_object_or_404(User, id=student_id, user_type='student')
+
+            # Проверяем, не назначена ли уже
+            assignment, created = CollectionAssignment.objects.get_or_create(
+                collection=collection,
+                student=student,
+                defaults={'due_date': due_date if due_date else None}
+            )
+
+            if created:
+                # Можно добавить уведомление
+                from notifications.utils import notify_student_about_assignment
+                notify_student_about_assignment(student, collection)
+
+        messages.success(request, f'Контрольная работа выдана {len(student_ids)} ученикам')
+        return redirect('tasks:collection_detail', collection_id=collection.id)
+
+    # GET запрос - показываем форму выдачи
+    students = collection.get_available_students()
+
+    # Группируем по классам
+    students_by_class = {}
+    for student in students:
+        class_name = str(student.student_profile.group.school_class) if student.student_profile.group else "Без класса"
+        if class_name not in students_by_class:
+            students_by_class[class_name] = []
+        students_by_class[class_name].append(student)
+
+    context = {
+        'collection': collection,
+        'students_by_class': students_by_class,
+        'title': f'Выдача: {collection.title}',
+    }
+    return render(request, 'task_description_app/assign_collection.html', context)
+
+
+@login_required
+def my_assignments(request):
+    """Список назначенных КР для ученика"""
+    if request.user.user_type != 'student':
+        return redirect('teacher_dashboard')
+
+    assignments = CollectionAssignment.objects.filter(
+        student=request.user
+    ).select_related('collection').order_by('-assigned_at')
+
+    context = {
+        'assignments': assignments,
+        'title': 'Мои задания',
+    }
+    return render(request, 'task_description_app/my_assignments.html', context)
+
