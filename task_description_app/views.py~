@@ -397,7 +397,7 @@ def collection_edit(request, collection_id):
 
         # Добавляем новые задачи
         task_ids = request.POST.getlist('selected_tasks')[0].split(',')
-        # print(f"{task_ids = }")
+        print(f"{task_ids = }")
         for i, task_id in enumerate(task_ids):
             task = get_object_or_404(Task, id=int(task_id))
             CollectionItem.objects.get_or_create(
