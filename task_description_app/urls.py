@@ -24,4 +24,6 @@ urlpatterns = [
 # Выдача КР
     path('collections/<int:collection_id>/assign/', views.assign_collection, name='assign_collection'),
     path('my-assignments/', views.my_assignments, name='my_assignments'),
+    path('collection/<int:attempt_id>/complete/', views.complete_collection, name='complete_collection'),
+    path('check-solution/', views.check_solution, name='check_solution'),
 ]

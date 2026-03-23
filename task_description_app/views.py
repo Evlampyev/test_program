@@ -11,13 +11,15 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.db import models
 from django.contrib import messages
+from django.utils import timezone
 import markdown
 import json
 import logging
+from django.views.decorators.csrf import csrf_exempt
 
 from .forms import TaskAddForm, TaskContentForm ,CollectionForm, CollectionItemForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
-    CollectionAssignment, User
+    CollectionAssignment, User, TaskAttempt
 from .utils import get_task_files
 
 logger = logging.getLogger(__name__)
@@ -466,7 +468,7 @@ def start_collection(request, collection_id):
         max_score=collection.get_total_score()
     )
 
-    return redirect('collection_attempt', attempt_id=attempt.id)
+    return redirect('tasks:collection_attempt', attempt_id=attempt.id)
 
 
 def collection_attempt(request, attempt_id):
@@ -557,3 +559,209 @@ def my_assignments(request):
     }
     return render(request, 'task_description_app/my_assignments.html', context)
 
+
+@login_required
+@csrf_exempt
+def complete_collection(request, attempt_id):
+    """Завершение контрольной работы"""
+    attempt = get_object_or_404(CollectionAttempt, id=attempt_id, student=request.user)
+
+    if attempt.status != 'in_progress':
+        return JsonResponse({'error': 'Работа уже завершена'}, status=400)
+
+    data = json.loads(request.body)
+    results = data.get('results', [])
+
+    total_score = 0
+    max_score = attempt.max_score
+
+    # Обновляем результаты
+    for result in results:
+        task_id = result['task_id']
+        is_solved = result.get('is_solved', False)
+        code = result.get('code', '')
+
+        if is_solved:
+            # Находим задачу в подборке
+            item = attempt.collection.collection_items.filter(task_id=task_id).first()
+            if item:
+                total_score += item.max_score
+
+        # Сохраняем попытку
+        TaskAttempt.objects.create(
+            user=request.user,
+            task_id=task_id,
+            code=code,
+            is_solved=is_solved,
+            status='completed'
+        )
+
+    # Обновляем попытку
+    attempt.score = total_score
+    attempt.status = 'completed'
+    attempt.completed_at = timezone.now()
+    attempt.save()
+
+    # Уведомляем учителя
+    from notifications.utils import notify_teacher_about_completed_assignment
+    notify_teacher_about_completed_assignment(
+        teacher=attempt.collection.author,
+        student=request.user,
+        collection=attempt.collection,
+        attempt=attempt
+    )
+
+    return JsonResponse({
+        'success': True,
+        'score': total_score,
+        'max_score': max_score,
+        'percentage': round((total_score / max_score) * 100) if max_score > 0 else 0
+    })
+
+
+@login_required
+@csrf_exempt
+def check_solution(request):
+    """API для проверки решения задачи"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        task_id = data.get('task_id')
+        code = data.get('code')
+        language = data.get('language', 'python')
+
+        if not task_id or not code:
+            return JsonResponse({'error': 'Не указан ID задачи или код решения'}, status=400)
+
+        # Получаем задачу
+        from .models import Task
+        task = get_object_or_404(Task, id=task_id)
+
+        # Получаем файлы задачи
+        from .utils import get_task_files
+        task_files = get_task_files(task_id)
+
+        # Проверяем решение
+        if language == 'python':
+            result = run_python_tests(task_files, code)
+        else:
+            return JsonResponse({'error': f'Язык {language} не поддерживается'}, status=400)
+
+        # Сохраняем попытку
+        from .models import TaskAttempt
+        TaskAttempt.objects.create(
+            user=request.user,
+            task_id=task_id,
+            code=code,
+            is_solved=result.get('success', False),
+            status='correct' if result.get('success', False) else 'incorrect',
+            result=json.dumps(result)
+        )
+
+        return JsonResponse(result)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': str(e),
+            'error': str(e)
+        }, status=500)
+
+
+def run_python_tests(task_files, code):
+    """Запускает тесты для Python решения"""
+    import subprocess
+    import tempfile
+    import os
+
+    # Получаем список тестовых файлов
+    test_files = task_files.get('tests', [])
+    if not test_files:
+        return {'success': False, 'message': 'Тесты не найдены', 'tests_passed': 0, 'total_tests': 0}
+
+    # Группируем тесты по номерам
+    tests = {}
+    for test_file in test_files:
+        filename = os.path.basename(test_file)
+        if filename.endswith('.in'):
+            num = filename.replace('test', '').replace('.in', '')
+            if num not in tests:
+                tests[num] = {}
+            tests[num]['in'] = test_file
+        elif filename.endswith('.out'):
+            num = filename.replace('test', '').replace('.out', '')
+            if num not in tests:
+                tests[num] = {}
+            tests[num]['out'] = test_file
+
+    if not tests:
+        return {'success': False, 'message': 'Нет полных наборов тестов', 'tests_passed': 0, 'total_tests': 0}
+
+    # Создаем временный файл с кодом
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
+        f.write(code)
+        temp_file = f.name
+
+    tests_passed = 0
+    results = []
+
+    try:
+        for num, test in tests.items():
+            if 'in' not in test or 'out' not in test:
+                continue
+
+            # Читаем входные данные
+            with open(test['in'], 'r', encoding='utf-8') as f:
+                input_data = f.read()
+
+            # Читаем ожидаемый вывод
+            with open(test['out'], 'r', encoding='utf-8') as f:
+                expected_output = f.read().strip()
+
+            # Запускаем решение
+            try:
+                process = subprocess.run(
+                    ['python', temp_file],
+                    input=input_data,
+                    text=True,
+                    capture_output=True,
+                    timeout=5
+                )
+
+                actual_output = process.stdout.strip()
+
+                if actual_output == expected_output:
+                    tests_passed += 1
+                    results.append({'test': num, 'passed': True})
+                else:
+                    results.append({
+                        'test': num,
+                        'passed': False,
+                        'expected': expected_output,
+                        'got': actual_output
+                    })
+
+            except subprocess.TimeoutExpired:
+                results.append({'test': num, 'passed': False, 'error': 'Превышено время выполнения'})
+            except Exception as e:
+                results.append({'test': num, 'passed': False, 'error': str(e)})
+
+    finally:
+        # Удаляем временный файл
+        if os.path.exists(temp_file):
+            os.unlink(temp_file)
+
+    total_tests = len([t for t in tests if 'in' in t and 'out' in t])
+    success = tests_passed == total_tests
+
+    return {
+        'success': success,
+        'tests_passed': tests_passed,
+        'total_tests': total_tests,
+        'results': results,
+        'message': 'Все тесты пройдены!' if success else f'Пройдено {tests_passed} из {total_tests} тестов'
+    }

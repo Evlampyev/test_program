@@ -98,3 +98,5 @@ def mark_all_as_read(request):
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+

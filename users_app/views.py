@@ -455,7 +455,7 @@ def student_tasks(request, student_id):
             last_attempt = task_attempts.first()
 
             # Определяем уровень задачи (из вашей логики)
-            task_level = get_task_level(int(task_id))  # реализуйте эту функцию
+            task_level = get_task_level(int(task_id))
 
             tasks_data.append({
                 'id': task_id,
