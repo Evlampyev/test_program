@@ -75,7 +75,6 @@ def cleanup_old_files(days=1):
                 # print(f"   Ошибка удаления {file_path}: {e}")
                 logger.error(f"   Ошибка удаления {file_path}: {e}")
 
-
         # Удаляем пустые директории
         for dir in dirs:
             dir_path = os.path.join(root, dir)
@@ -106,6 +105,54 @@ def get_temp_upload_path(instance, filename):
     return os.path.join(temp_dir, filename)
 
 
+def result_upload(user, uploaded_file, task_id) -> JsonResponse:
+
+    print(f"{user = }, {uploaded_file = }, {task_id = }")
+    if not uploaded_file:
+        return JsonResponse({'success': False, 'message': 'Файл не найден'}, status=400)
+
+    if not task_id:
+        return JsonResponse({'success': False, 'message': 'Не указан ID задачи'}, status=400)
+
+    # Получаем задачу
+    task = get_object_or_404(Task, id=task_id)
+
+    # Проверяем расширение файла
+    if not uploaded_file.name.lower().endswith('.py'):
+        return JsonResponse({'success': False, 'message': 'Только файлы .py разрешены'}, status=400)
+
+    folder_id = generate_random_id()
+    upload_dir = os.path.join('student_programs', str(task.id), folder_id)
+    file_path = os.path.join(settings.MEDIA_ROOT, upload_dir, uploaded_file.name)
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    print(f"путь до файла из upload_app: {file_path = }")
+    with open(file_path, 'wb+') as destination:
+        for chunk in uploaded_file.chunks():
+            destination.write(chunk)
+
+    # Добавляем файл в список для очистки
+    _temp_files.append(file_path)
+
+    # Создаем запись в БД
+    program = UploadedProgram.objects.create(
+        user=user,
+        task=task,
+        program_file=file_path,  # или upload_dir для варианта Б
+        program_path=file_path,
+        status='uploaded'
+    )
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Файл успешно сохранён',
+        'program_id': program.id,
+        'task_id': task.id,
+        'full_path': file_path,
+        'is_temporary': True,  # Флаг, что файл временный
+        'redirect_url': f'/tester/run-tests/{program.id}/'
+    })
+
+
 @csrf_exempt
 def upload_python_file(request):
     """Обработчик загрузки Python файлов"""
@@ -114,51 +161,11 @@ def upload_python_file(request):
 
     try:
         uploaded_file = request.FILES.get('file')
+        print(f"Загруженные файл: {uploaded_file = }  и его тип  {type(uploaded_file) = }")
         task_id = request.POST.get('task_id')
-
-        if not uploaded_file:
-            return JsonResponse({'success': False, 'message': 'Файл не найден'}, status=400)
-
-        if not task_id:
-            return JsonResponse({'success': False, 'message': 'Не указан ID задачи'}, status=400)
-
-        # Получаем задачу
-        task = get_object_or_404(Task, id=task_id)
-
-        # Проверяем расширение файла
-        if not uploaded_file.name.lower().endswith('.py'):
-            return JsonResponse({'success': False, 'message': 'Только файлы .py разрешены'}, status=400)
-
-        folder_id = generate_random_id()
-        upload_dir = os.path.join('student_programs', str(task.id), folder_id)
-        file_path = os.path.join(settings.MEDIA_ROOT, upload_dir, uploaded_file.name)
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-        with open(file_path, 'wb+') as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
-
-        # Добавляем файл в список для очистки
-        _temp_files.append(file_path)
-
-        # Создаем запись в БД
-        program = UploadedProgram.objects.create(
-            user=request.user if request.user.is_authenticated else None,
-            task=task,
-            program_file=file_path,  # или upload_dir для варианта Б
-            program_path=file_path,
-            status='uploaded'
-        )
-
-        return JsonResponse({
-            'success': True,
-            'message': 'Файл успешно сохранён',
-            'program_id': program.id,
-            'task_id': task.id,
-            'full_path': file_path,
-            'is_temporary': True,  # Флаг, что файл временный
-            'redirect_url': f'/tester/run-tests/{program.id}/'
-        })
+        user = request.user if request.user.is_authenticated else None
+        result = result_upload(user, uploaded_file, task_id)
+        return result
 
     except Exception as e:
         return JsonResponse({

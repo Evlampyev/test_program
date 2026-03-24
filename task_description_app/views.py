@@ -2,7 +2,7 @@
 import os
 import re
 import textwrap
-
+import io
 
 from django.db.models import Max
 from django.shortcuts import render, get_object_or_404, redirect
@@ -12,12 +12,13 @@ from django.http import JsonResponse
 from django.db import models
 from django.contrib import messages
 from django.utils import timezone
+from django.core.files.uploadedfile import InMemoryUploadedFile
 import markdown
 import json
 import logging
 from django.views.decorators.csrf import csrf_exempt
 
-from .forms import TaskAddForm, TaskContentForm ,CollectionForm, CollectionItemForm
+from .forms import TaskAddForm, TaskContentForm, CollectionForm, CollectionItemForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
     CollectionAssignment, User, TaskAttempt
 from .utils import get_task_files
@@ -335,6 +336,7 @@ if __name__ == "__main__":
         }
         return render(request, 'task_description_app/task_add.html', context)
 
+
 # для контрольных работ и своих уроков
 def collection_list(request):
     """Список подборок"""
@@ -619,6 +621,38 @@ def complete_collection(request, attempt_id):
     })
 
 
+def create_uploaded_file_from_code(code):
+    """
+    Создает InMemoryUploadedFile из строки кода
+
+    Args:
+        code: строка с кодом решения
+        filename: имя файла (опционально)
+        task_id: ID задачи (для формирования имени)
+
+    Returns:
+        InMemoryUploadedFile: объект файла
+    """
+
+    # Создаем файловый объект в памяти
+    file_content = code.encode('utf-8')
+    file_io = io.BytesIO(file_content)
+
+    # Создаем InMemoryUploadedFile
+    uploaded_file = InMemoryUploadedFile(
+        file=file_io,
+        field_name='program_file',
+        name='filename.py',
+        content_type='application/octet-stream',
+        size=len(file_content),
+        charset='utf-8'
+    )
+
+    return uploaded_file
+
+
+
+
 @login_required
 @csrf_exempt
 def check_solution(request):
@@ -629,38 +663,60 @@ def check_solution(request):
     try:
         data = json.loads(request.body)
         task_id = data.get('task_id')
+        # print(f"Задача для проверки: {task_id}")
         code = data.get('code')
-        language = data.get('language', 'python')
-
+        # language = data.get('language', 'python')
         if not task_id or not code:
             return JsonResponse({'error': 'Не указан ID задачи или код решения'}, status=400)
 
+        user = request.user
+
+        file = create_uploaded_file_from_code(code)
+        # print(f"{file = }")
+        from upload_app.views import result_upload
+        student_code_file = result_upload(user, file, task_id)
+        # print(f"Файл студента {student_code_file =}")
+        # print(type(student_code_file))
+        student_code_file = json.loads(student_code_file.content)
+        # print(f"{student_code_file.get('full_path')=}")
+        # print(f"{student_code_file['full_path']=}")
+        tests_path = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
         # Получаем задачу
-        from .models import Task
-        task = get_object_or_404(Task, id=task_id)
+        # from .models import Task
+        # task = get_object_or_404(Task, id=task_id)
 
         # Получаем файлы задачи
-        from .utils import get_task_files
-        task_files = get_task_files(task_id)
+        # from .utils import get_task_files
+        # task_files = get_task_files(task_id)
 
         # Проверяем решение
-        if language == 'python':
-            result = run_python_tests(task_files, code)
-        else:
-            return JsonResponse({'error': f'Язык {language} не поддерживается'}, status=400)
+        # if language == 'python':
+        #     result = run_python_tests(task_files, code)
+        # else:
+        #     return JsonResponse({'error': f'Язык {language} не поддерживается'}, status=400)
+
+        from testing_app.tester_project.tester import PythonCodeTester
+        tester = PythonCodeTester(student_code_file.get('full_path'), tests_path)
+        result = tester.run_all_tests()
+        print(f"результаты тестов из ckeck{result = }")
+
+        total_tests = len(result)
+        passed_count = sum(1 for r in result if r.get('passed', False))
+        failed_count = total_tests - passed_count
+        # success_rate = int((passed_count / total_tests * 100)) if total_tests > 0 else 0
 
         # Сохраняем попытку
         from .models import TaskAttempt
         TaskAttempt.objects.create(
             user=request.user,
-            task_id=task_id,
+            real_task_id=task_id,
             code=code,
-            is_solved=result.get('success', False),
-            status='correct' if result.get('success', False) else 'incorrect',
+            is_solved= failed_count == 0,
+            status='correct' if failed_count==0 else 'incorrect',
             result=json.dumps(result)
         )
 
-        return JsonResponse(result)
+        return JsonResponse(result[0])
 
     except Exception as e:
         import traceback
@@ -671,7 +727,7 @@ def check_solution(request):
             'error': str(e)
         }, status=500)
 
-
+# !!!!!!!!! Для чего эта функциия и нужна ли , без неё предыдуща работает.
 def run_python_tests(task_files, code):
     """Запускает тесты для Python решения"""
     import subprocess
@@ -711,6 +767,7 @@ def run_python_tests(task_files, code):
 
     try:
         for num, test in tests.items():
+        for num, test in tests.items:
             if 'in' not in test or 'out' not in test:
                 continue
 
