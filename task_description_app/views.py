@@ -592,7 +592,7 @@ def complete_collection(request, attempt_id):
         # Сохраняем попытку
         TaskAttempt.objects.create(
             user=request.user,
-            task_id=task_id,
+            real_task_id=task_id,
             code=code,
             is_solved=is_solved,
             status='completed'
@@ -774,19 +774,15 @@ def check_solution(request):
             from testing_app.tester_project.tester import PythonCodeTester
             tester = PythonCodeTester(uploaded_program.program_file.path, tests_path)
             result_tests = tester.run_all_tests()
-            print(f"результаты тестов из check-solutions {result_tests = }")
-
-            # result = run_python_tests(task_files, code)
+            # print(f"результаты тестов из check-solutions {result_tests = }")
         else:
             return JsonResponse({'error': f'Язык {language} не поддерживается'}, status=400)
+
         # Вычисляем статистику
         total_tests = len(result_tests)
         passed_count = sum(1 for r in result_tests if r.get('passed', False))
         failed_count = total_tests - passed_count
-        success_rate = int((passed_count / total_tests * 100)) if total_tests > 0 else 0
-
         success = failed_count==0
-
 
         result = {
             'success': success,
@@ -795,7 +791,7 @@ def check_solution(request):
             'results': result_tests,
             'message': 'Все тесты пройдены!' if success else f'Пройдено {passed_count} из {total_tests} тестов'
         }
-        print(f"{result = }")
+        # print(f"{result = }")
 
         # Обновляем статус
         uploaded_program.status = 'passed' if result.get('success', False) else 'failed'

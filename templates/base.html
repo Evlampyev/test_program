@@ -29,22 +29,25 @@
     <div class="container">
         <a class="navbar-brand" href="{% url 'home' %}">
             <i class="fas {% if user.user_type == 'teacher' %}fa-chalkboard-teacher{% elif user.user_type == 'student' %}fa-user-graduate{% else %}fa-graduation-cap{% endif %} me-2"></i>
-            {% if user.is_authenticated %}
-                {% if user.user_type == 'teacher' %}
-                    Учительский портал
-                {% elif user.user_type == 'student' %}
-                    Ученический портал
+            <div class="teacher-portal">
+                {% if user.is_authenticated %}
+                    {% if user.user_type == 'teacher' %}
+                        Учительский портал
+                    {% elif user.user_type == 'student' %}
+                        Ученический портал
+                    {% else %}
+                        Учебный портал
+                    {% endif %}
                 {% else %}
                     Учебный портал
                 {% endif %}
-            {% else %}
-                Учебный портал
-            {% endif %}
+            </div>
+
         </a>
 
-        {#        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">#}
-        {#            <span class="navbar-toggler-icon"></span>#}
-        {#        </button>#}
+{#                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">#}
+{#                    <span class="navbar-toggler-icon"></span>#}
+{#                </button>#}
 
         <div class="collapse navbar-collapse" id="navbarNav">
             {% if user.is_authenticated %}
@@ -214,7 +217,7 @@
 <script src="{% static 'js/core/main.js' %}"></script>
 
 <!-- JS блок для дополнительных скриптов -->
-{% block extra_js %}{% endblock %}
+{% block extra_js %} {% endblock %}
 
 </body>
 </html>

@@ -96,6 +96,19 @@ window.App = {
 document.addEventListener('DOMContentLoaded', function () {
     App.init();
 });
+// скрытие Учительский портал при меньшем разрешении
+function handleResize() {
+    const element = document.querySelector('.teacher-portal');
+    if (window.innerWidth < 1300) {
+        element.style.display = 'none';
+    } else {
+        element.style.display = 'inline-block';
+    }
+}
+
+window.addEventListener('resize', handleResize);
+handleResize(); // Вызов при загрузке
+
 
 // для оповещений учителя
 

@@ -4,28 +4,23 @@
     box-sizing: border-box;
 }
 
-/*body {*/
-/*    font-family: -apple-system, "GOST type B", 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;*/
-/*    background: linear-gradient(135deg, #8396e8 0%, #a779d7 100%);*/
-/*    color: #2d3748;*/
-/*    line-height: 1.6;*/
-/*    min-height: 100vh;*/
-/*    padding: 30px 20px;*/
-/*}*/
+html, body {
+    min-width: 1010px;
+    width: 100%;
+    overflow-x: auto; /* Добавляет горизонтальную прокрутку при уменьшении */
+}
 
 body {
     background: #f8f9fa;
     font-family: 'GOST type B', Tahoma, Geneva, Verdana, sans-serif;
-    min-height: 100vh;
-    min-width: 1024px;
-    width: 100%;
+    min-height: 99vh;
     display: flex;
     flex-direction: column;
 }
 
 .container {
+    width: 100%;
     max-width: 1980px;
-    min-width: 1024px;
 }
 
 .navbar {
@@ -111,6 +106,10 @@ body {
         justify-content: space-between;
 
     }
+}
+
+@media (min-width: 1980px) {
+    max-width: 1900px;
 }
 
 .mb-4 {
