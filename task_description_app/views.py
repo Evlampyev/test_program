@@ -20,8 +20,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .forms import TaskAddForm, TaskContentForm, CollectionForm, CollectionItemForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
-    CollectionAssignment, User, TaskAttempt
-from .utils import get_task_files
+    CollectionAssignment, User, TaskAttempt, UploadedProgram
+from .utils import create_uploaded_file_from_code, get_task_files
 
 logger = logging.getLogger(__name__)
 
@@ -621,37 +621,114 @@ def complete_collection(request, attempt_id):
     })
 
 
-def create_uploaded_file_from_code(code):
-    """
-    Создает InMemoryUploadedFile из строки кода
+# def create_uploaded_file_from_code(code):
+#     """
+#     Создает InMemoryUploadedFile из строки кода
+#
+#     Args:
+#         code: строка с кодом решения
+#         filename: имя файла (опционально)
+#         task_id: ID задачи (для формирования имени)
+#
+#     Returns:
+#         InMemoryUploadedFile: объект файла
+#     """
+#
+#     # Создаем файловый объект в памяти
+#     file_content = code.encode('utf-8')
+#     file_io = io.BytesIO(file_content)
+#
+#     # Создаем InMemoryUploadedFile
+#     uploaded_file = InMemoryUploadedFile(
+#         file=file_io,
+#         field_name='program_file',
+#         name='filename.py',
+#         content_type='application/octet-stream',
+#         size=len(file_content),
+#         charset='utf-8'
+#     )
+#
+#     return uploaded_file
 
-    Args:
-        code: строка с кодом решения
-        filename: имя файла (опционально)
-        task_id: ID задачи (для формирования имени)
-
-    Returns:
-        InMemoryUploadedFile: объект файла
-    """
-
-    # Создаем файловый объект в памяти
-    file_content = code.encode('utf-8')
-    file_io = io.BytesIO(file_content)
-
-    # Создаем InMemoryUploadedFile
-    uploaded_file = InMemoryUploadedFile(
-        file=file_io,
-        field_name='program_file',
-        name='filename.py',
-        content_type='application/octet-stream',
-        size=len(file_content),
-        charset='utf-8'
-    )
-
-    return uploaded_file
 
 
 
+# @login_required
+# @csrf_exempt
+# def check_solution(request):
+#     """API для проверки решения задачи"""
+#     if request.method != 'POST':
+#         return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+#
+#     try:
+#         data = json.loads(request.body)
+#         task_id = data.get('task_id')
+#         # print(f"Задача для проверки: {task_id}")
+#         code = data.get('code')
+#         # language = data.get('language', 'python')
+#         if not task_id or not code:
+#             return JsonResponse({'error': 'Не указан ID задачи или код решения'}, status=400)
+#
+#         user = request.user
+#
+#         file = create_uploaded_file_from_code(code)
+#         # print(f"{file = }")
+#         from upload_app.views import result_upload
+#         student_code_file = result_upload(user, file, task_id)
+#         # print(f"Файл студента {student_code_file =}")
+#         # print(type(student_code_file))
+#         student_code_file = json.loads(student_code_file.content)
+#         # print(f"{student_code_file.get('full_path')=}")
+#         # print(f"{student_code_file['full_path']=}")
+#         tests_path = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
+#         # Получаем задачу
+#         # from .models import Task
+#         # task = get_object_or_404(Task, id=task_id)
+#
+#         # Получаем файлы задачи
+#         # from .utils import get_task_files
+#         # task_files = get_task_files(task_id)
+#
+#         # Проверяем решение
+#         # if language == 'python':
+#         #     result = run_python_tests(task_files, code)
+#         # else:
+#         #     return JsonResponse({'error': f'Язык {language} не поддерживается'}, status=400)
+#
+#         from testing_app.tester_project.tester import PythonCodeTester
+#         tester = PythonCodeTester(student_code_file.get('full_path'), tests_path)
+#         result = tester.run_all_tests()
+#         print(f"результаты тестов из ckeck{result = }")
+#
+#         total_tests = len(result)
+#         passed_count = sum(1 for r in result if r.get('passed', False))
+#         failed_count = total_tests - passed_count
+#         # success_rate = int((passed_count / total_tests * 100)) if total_tests > 0 else 0
+#
+#         # Сохраняем попытку
+#         from .models import TaskAttempt
+#         TaskAttempt.objects.create(
+#             user=request.user,
+#             real_task_id=task_id,
+#             code=code,
+#             is_solved= failed_count == 0,
+#             status='correct' if failed_count==0 else 'incorrect',
+#             result=json.dumps(result)
+#         )
+#
+#         return JsonResponse( {'success': True,
+#                               'message': "Задача решена верно!",
+#
+#                               result[0])
+#
+#     except Exception as e:
+#         import traceback
+#         traceback.print_exc()
+#         return JsonResponse({
+#             'success': False,
+#             'message': str(e),
+#             'error': str(e)
+#         }, status=500)
 
 @login_required
 @csrf_exempt
@@ -663,60 +740,98 @@ def check_solution(request):
     try:
         data = json.loads(request.body)
         task_id = data.get('task_id')
-        # print(f"Задача для проверки: {task_id}")
         code = data.get('code')
-        # language = data.get('language', 'python')
+        language = data.get('language', 'python')
+
         if not task_id or not code:
             return JsonResponse({'error': 'Не указан ID задачи или код решения'}, status=400)
 
-        user = request.user
-
-        file = create_uploaded_file_from_code(code)
-        # print(f"{file = }")
-        from upload_app.views import result_upload
-        student_code_file = result_upload(user, file, task_id)
-        # print(f"Файл студента {student_code_file =}")
-        # print(type(student_code_file))
-        student_code_file = json.loads(student_code_file.content)
-        # print(f"{student_code_file.get('full_path')=}")
-        # print(f"{student_code_file['full_path']=}")
-        tests_path = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
         # Получаем задачу
-        # from .models import Task
-        # task = get_object_or_404(Task, id=task_id)
-
-        # Получаем файлы задачи
+        task = get_object_or_404(Task, id=task_id)
+        #
+        # # Получаем файлы задачи
         # from .utils import get_task_files
         # task_files = get_task_files(task_id)
 
+        # СОЗДАЕМ ОБЪЕКТ InMemoryUploadedFile
+        uploaded_file = create_uploaded_file_from_code(
+            code=code,
+            filename=f"solution_task_{task_id}_{request.user.id}.py",
+            task_id=task_id
+        )
+
+        # Сохраняем программу в UploadedProgram
+        uploaded_program = UploadedProgram.objects.create(
+            user=request.user,
+            task=task,
+            program_file=uploaded_file,
+            status='testing'
+        )
+        tests_path = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
+
         # Проверяем решение
-        # if language == 'python':
-        #     result = run_python_tests(task_files, code)
-        # else:
-        #     return JsonResponse({'error': f'Язык {language} не поддерживается'}, status=400)
+        if language == 'python':
+            from testing_app.tester_project.tester import PythonCodeTester
+            tester = PythonCodeTester(uploaded_program.program_file.path, tests_path)
+            result_tests = tester.run_all_tests()
+            print(f"результаты тестов из check-solutions {result_tests = }")
 
-        from testing_app.tester_project.tester import PythonCodeTester
-        tester = PythonCodeTester(student_code_file.get('full_path'), tests_path)
-        result = tester.run_all_tests()
-        print(f"результаты тестов из ckeck{result = }")
-
-        total_tests = len(result)
-        passed_count = sum(1 for r in result if r.get('passed', False))
+            # result = run_python_tests(task_files, code)
+        else:
+            return JsonResponse({'error': f'Язык {language} не поддерживается'}, status=400)
+        # Вычисляем статистику
+        total_tests = len(result_tests)
+        passed_count = sum(1 for r in result_tests if r.get('passed', False))
         failed_count = total_tests - passed_count
-        # success_rate = int((passed_count / total_tests * 100)) if total_tests > 0 else 0
+        success_rate = int((passed_count / total_tests * 100)) if total_tests > 0 else 0
+
+        success = failed_count==0
+
+
+        result = {
+            'success': success,
+            'tests_passed': passed_count,
+            'total_tests': total_tests,
+            'results': result_tests,
+            'message': 'Все тесты пройдены!' if success else f'Пройдено {passed_count} из {total_tests} тестов'
+        }
+        print(f"{result = }")
+
+        # Обновляем статус
+        uploaded_program.status = 'passed' if result.get('success', False) else 'failed'
+        uploaded_program.test_results = result_tests
+        uploaded_program.save()
 
         # Сохраняем попытку
-        from .models import TaskAttempt
-        TaskAttempt.objects.create(
+        task_attempt = TaskAttempt.objects.create(
             user=request.user,
             real_task_id=task_id,
             code=code,
-            is_solved= failed_count == 0,
-            status='correct' if failed_count==0 else 'incorrect',
-            result=json.dumps(result)
+            is_solved=result.get('success', False),
+            status='correct' if result.get('success', False) else 'incorrect',
+            result=json.dumps(result_tests),
+            task_id=uploaded_program.task_id,  # связываем с программой
+            task_path=uploaded_program.program_file.path,
         )
 
-        return JsonResponse(result[0])
+        # Отправляем уведомление учителю, если задача решена
+        if result.get('success', False):
+            from notifications.utils import notify_teacher_about_task_solved
+            notify_teacher_about_task_solved(
+                student=request.user,
+                task_id=task_id,
+                task_level=task.difficulty.display_name if task.difficulty else None,
+                task_title=task.title
+            )
+
+        return JsonResponse({
+            'success': result.get('success', False),
+            'tests_passed': result.get('tests_passed', 0),
+            'total_tests': result.get('total_tests', 0),
+            'message': result.get('message', ''),
+            'attempt_id': task_attempt.id,
+            'program_id': uploaded_program.id
+        })
 
     except Exception as e:
         import traceback
@@ -727,98 +842,98 @@ def check_solution(request):
             'error': str(e)
         }, status=500)
 
+
 # !!!!!!!!! Для чего эта функциия и нужна ли , без неё предыдуща работает.
-def run_python_tests(task_files, code):
-    """Запускает тесты для Python решения"""
-    import subprocess
-    import tempfile
-    import os
-
-    # Получаем список тестовых файлов
-    test_files = task_files.get('tests', [])
-    if not test_files:
-        return {'success': False, 'message': 'Тесты не найдены', 'tests_passed': 0, 'total_tests': 0}
-
-    # Группируем тесты по номерам
-    tests = {}
-    for test_file in test_files:
-        filename = os.path.basename(test_file)
-        if filename.endswith('.in'):
-            num = filename.replace('test', '').replace('.in', '')
-            if num not in tests:
-                tests[num] = {}
-            tests[num]['in'] = test_file
-        elif filename.endswith('.out'):
-            num = filename.replace('test', '').replace('.out', '')
-            if num not in tests:
-                tests[num] = {}
-            tests[num]['out'] = test_file
-
-    if not tests:
-        return {'success': False, 'message': 'Нет полных наборов тестов', 'tests_passed': 0, 'total_tests': 0}
-
-    # Создаем временный файл с кодом
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
-        f.write(code)
-        temp_file = f.name
-
-    tests_passed = 0
-    results = []
-
-    try:
-        for num, test in tests.items():
-        for num, test in tests.items:
-            if 'in' not in test or 'out' not in test:
-                continue
-
-            # Читаем входные данные
-            with open(test['in'], 'r', encoding='utf-8') as f:
-                input_data = f.read()
-
-            # Читаем ожидаемый вывод
-            with open(test['out'], 'r', encoding='utf-8') as f:
-                expected_output = f.read().strip()
-
-            # Запускаем решение
-            try:
-                process = subprocess.run(
-                    ['python', temp_file],
-                    input=input_data,
-                    text=True,
-                    capture_output=True,
-                    timeout=5
-                )
-
-                actual_output = process.stdout.strip()
-
-                if actual_output == expected_output:
-                    tests_passed += 1
-                    results.append({'test': num, 'passed': True})
-                else:
-                    results.append({
-                        'test': num,
-                        'passed': False,
-                        'expected': expected_output,
-                        'got': actual_output
-                    })
-
-            except subprocess.TimeoutExpired:
-                results.append({'test': num, 'passed': False, 'error': 'Превышено время выполнения'})
-            except Exception as e:
-                results.append({'test': num, 'passed': False, 'error': str(e)})
-
-    finally:
-        # Удаляем временный файл
-        if os.path.exists(temp_file):
-            os.unlink(temp_file)
-
-    total_tests = len([t for t in tests if 'in' in t and 'out' in t])
-    success = tests_passed == total_tests
-
-    return {
-        'success': success,
-        'tests_passed': tests_passed,
-        'total_tests': total_tests,
-        'results': results,
-        'message': 'Все тесты пройдены!' if success else f'Пройдено {tests_passed} из {total_tests} тестов'
-    }
+# def run_python_tests(task_files, code):
+#     """Запускает тесты для Python решения"""
+#     import subprocess
+#     import tempfile
+#     import os
+#
+#     # Получаем список тестовых файлов
+#     test_files = task_files.get('tests', [])
+#     if not test_files:
+#         return {'success': False, 'message': 'Тесты не найдены', 'tests_passed': 0, 'total_tests': 0}
+#
+#     # Группируем тесты по номерам
+#     tests = {}
+#     for test_file in test_files:
+#         filename = os.path.basename(test_file)
+#         if filename.endswith('.in'):
+#             num = filename.replace('test', '').replace('.in', '')
+#             if num not in tests:
+#                 tests[num] = {}
+#             tests[num]['in'] = test_file
+#         elif filename.endswith('.out'):
+#             num = filename.replace('test', '').replace('.out', '')
+#             if num not in tests:
+#                 tests[num] = {}
+#             tests[num]['out'] = test_file
+#
+#     if not tests:
+#         return {'success': False, 'message': 'Нет полных наборов тестов', 'tests_passed': 0, 'total_tests': 0}
+#
+#     # Создаем временный файл с кодом
+#     with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
+#         f.write(code)
+#         temp_file = f.name
+#
+#     tests_passed = 0
+#     results = []
+#
+#     try:
+#         for num, test in tests.items():
+#             if 'in' not in test or 'out' not in test:
+#                 continue
+#
+#             # Читаем входные данные
+#             with open(test['in'], 'r', encoding='utf-8') as f:
+#                 input_data = f.read()
+#
+#             # Читаем ожидаемый вывод
+#             with open(test['out'], 'r', encoding='utf-8') as f:
+#                 expected_output = f.read().strip()
+#
+#             # Запускаем решение
+#             try:
+#                 process = subprocess.run(
+#                     ['python', temp_file],
+#                     input=input_data,
+#                     text=True,
+#                     capture_output=True,
+#                     timeout=5
+#                 )
+#
+#                 actual_output = process.stdout.strip()
+#
+#                 if actual_output == expected_output:
+#                     tests_passed += 1
+#                     results.append({'test': num, 'passed': True})
+#                 else:
+#                     results.append({
+#                         'test': num,
+#                         'passed': False,
+#                         'expected': expected_output,
+#                         'got': actual_output
+#                     })
+#
+#             except subprocess.TimeoutExpired:
+#                 results.append({'test': num, 'passed': False, 'error': 'Превышено время выполнения'})
+#             except Exception as e:
+#                 results.append({'test': num, 'passed': False, 'error': str(e)})
+#
+#     finally:
+#         # Удаляем временный файл
+#         if os.path.exists(temp_file):
+#             os.unlink(temp_file)
+#
+#     total_tests = len([t for t in tests if 'in' in t and 'out' in t])
+#     success = tests_passed == total_tests
+#
+#     return {
+#         'success': success,
+#         'tests_passed': tests_passed,
+#         'total_tests': total_tests,
+#         'results': results,
+#         'message': 'Все тесты пройдены!' if success else f'Пройдено {tests_passed} из {total_tests} тестов'
+#     }

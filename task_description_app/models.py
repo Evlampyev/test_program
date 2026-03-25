@@ -224,7 +224,7 @@ class TaskAttempt(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='task_attempts')
     task_path = models.CharField('Путь к задаче', max_length=500)  # путь к папке задачи
-    task_id = models.CharField('ID задачи', max_length=50)  # из task.md
+    task_id = models.CharField('ID задания', max_length=50)  # из task.md
     attempt_time = models.DateTimeField('Время попытки', default=timezone.now)
     status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='pending')
     code = models.TextField('Код решения', blank=True)

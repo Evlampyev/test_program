@@ -1,10 +1,1 @@
-def solve():
-    """Основная функция решения"""
-    # Чтение данных
-    data = input().split()
-    # Ваш код здесь
-    result = 0
-    print(result)
-
-if __name__ == "__main__":
-    solve()
+def is_prime(n: int) -> bool:    """Проверяет, является ли число простым."""    # if not isinstance(n, int) or n <= 1:    #     return False    if n == 2:        return True    if n % 2 == 0:        return False    limit = int(n ** 0.5) + 1    for i in range(3, limit, 2):        if n % i == 0:            return False    return Truecount = 0num = int(input())while num != 0:    if is_prime(num):        count += 1    num = int(input())print(count)

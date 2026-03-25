@@ -209,10 +209,10 @@ def notify_teacher_about_completed_assignment(teacher, student, collection, atte
         attempt: Объект CollectionAttempt
     """
     try:
-        title = f"✅ Выполнена контрольная работа: {collection.title}"
+        title = f"✅ Выполнена КР: {collection.title}"
         message = (
             f"Ученик {student.last_name} {student.first_name} "
-            f"выполнил контрольную работу '{collection.title}'.\n\n"
+            f"выполнил КР '{collection.title}'.\n\n"
             f"Результат: {attempt.score}/{attempt.max_score} баллов "
             f"({attempt.get_progress_percent()}%)\n"
         )

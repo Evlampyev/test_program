@@ -1,7 +1,10 @@
+import datetime
+import io
 import os
 import shutil
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 def create_task_files(task_id, md_content, py_content, tests):
@@ -61,3 +64,38 @@ def get_task_files(task_id):
                 files['tests'].append(os.path.join(task_dir, filename))
 
     return files
+
+
+def create_uploaded_file_from_code(code, filename=None, task_id=None):
+    """
+    Создает InMemoryUploadedFile из строки кода
+
+    Args:
+        code: строка с кодом решения
+        filename: имя файла (опционально)
+        task_id: ID задачи (для формирования имени)
+
+    Returns:
+        InMemoryUploadedFile: объект файла
+    """
+    if filename is None:
+        if task_id:
+            filename = f"solution_task_{task_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
+        else:
+            filename = f"solution_{datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
+
+    # Создаем файловый объект в памяти
+    file_content = code.encode('utf-8')
+    file_io = io.BytesIO(file_content)
+
+    # Создаем InMemoryUploadedFile
+    uploaded_file = InMemoryUploadedFile(
+        file=file_io,
+        field_name='program_file',
+        name=filename,
+        content_type='application/octet-stream',
+        size=len(file_content),
+        charset='utf-8'
+    )
+
+    return uploaded_file
