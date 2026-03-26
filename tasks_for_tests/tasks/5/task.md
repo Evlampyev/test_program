@@ -16,7 +16,17 @@
 
 ### Пример
 
-| Входные данные | Выходные данные |
-|----------------|-----------------|
-| 13254          | 8               |
-| 123            | 2               |
+<table style="width: auto; margin: auto">
+    <tr style="text-align: center">
+        <th><b><i>Ввод</i></b></th>
+        <th><b><i>Вывод</i></b></th>
+    </tr>
+    <tr style="vertical-align: top">
+        <td>13254</td>
+        <td>8</td>
+    </tr>
+    <tr style="vertical-align: top">
+        <td>123</td>
+        <td>2</td>
+    </tr>
+</table>

@@ -16,8 +16,8 @@
 
 ### Пример
 
-<table> 
-    <tr>
+<table  style="width: auto; margin: auto"> 
+    <tr  style="text-align: center">
         <th><b><i>Входные данные</i></b></th>
         <th><b><i>Выходные данные</i></b></th>
     </tr>

@@ -3,168 +3,7 @@
 {% block title %}Добавление новой задачи{% endblock %}
 
 {% block extra_css %}
-    <style>
-        .page-header {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .section-title i {
-            color: #667eea;
-            margin-right: 10px;
-        }
-
-        .path-preview {
-            background: #f0f4fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 10px;
-            font-family: monospace;
-            font-size: 14px;
-        }
-
-        .path-preview .path-label {
-            color: #666;
-            margin-bottom: 5px;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .path-preview .path-value {
-            color: #333;
-            word-break: break-all;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 15px 30px;
-            font-weight: 600;
-            width: 100%;
-            transition: transform 0.3s;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-
-        .form-label {
-            font-weight: 500;
-            color: #495057;
-        }
-
-        .form-label i {
-            color: #667eea;
-            margin-right: 8px;
-        }
-
-        .test-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-        }
-
-        .test-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .test-number {
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .remove-test {
-            color: #dc3545;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-
-        .remove-test:hover {
-            color: #bd2130;
-        }
-
-        .btn-add-test {
-            background: white;
-            border: 2px dashed #667eea;
-            color: #667eea;
-            padding: 15px;
-            border-radius: 10px;
-            width: 100%;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .btn-add-test:hover {
-            background: #f0f4fa;
-            border-color: #5a67d8;
-        }
-
-        .info-note {
-            background: #e7f3ff;
-            border-radius: 8px;
-            padding: 10px 15px;
-            color: #004085;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        .info-note i {
-            margin-right: 8px;
-        }
-
-        .tab-pane {
-            padding: 20px 0;
-        }
-
-        .nav-tabs .nav-link {
-            color: #495057;
-        }
-
-        .nav-tabs .nav-link.active {
-            color: #667eea;
-            font-weight: 500;
-        }
-
-        .nav-link-dark {
-            color: #672ddc;
-            padding: 1px 10px;
-        }
-
-        .nav-link-dark.active {
-            background-color: #503c83;
-            color: white;
-        }
-
-    </style>
+    <link rel="stylesheet" href="/task_description_app/static/task_description_app/css/task_description.css">
 {% endblock %}
 
 {% block content %}
@@ -270,10 +109,10 @@
                             </div>
                         </div>
 
-{#                        <div class="info-note col-xl-5">#}
-{#                            <i class="fas fa-info-circle"></i>#}
-{#                            Если какой-то папки в пути не существует, она будет создана автоматически.#}
-{#                        </div>#}
+                        {#                        <div class="info-note col-xl-5">#}
+                        {#                            <i class="fas fa-info-circle"></i>#}
+                        {#                            Если какой-то папки в пути не существует, она будет создана автоматически.#}
+                        {#                        </div>#}
                     </div>
                 </div>
             </div>
@@ -351,7 +190,7 @@
                         <!-- Тесты будут добавляться сюда динамически -->
                     </div>
 
-                    <button type="button" class="btn-add-test" id="addTestBtn">
+                    <button type="button" class="btn btn-add-test" id="addTestBtn">
                         <i class="fas fa-plus-circle me-2"></i>
                         Добавить тест
                     </button>
@@ -367,7 +206,7 @@
         </div>
 
         <!-- Кнопка отправки -->
-        <button type="submit" class="btn-submit" id="submitBtn">
+        <button type="submit" class="btn btn-primary" id="submitBtn">
             <i class="fas fa-plus-circle me-2"></i>
             Создать новую задачу
         </button>
@@ -466,6 +305,7 @@
 
 {% block extra_js %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/task_description_app/static/task_description_app/js/task_detail.js"></script>
     <script>
         // Обновление предпросмотра пути
         function updatePathPreview() {
@@ -510,23 +350,23 @@
             testDiv.id = `test_${testCount}`;
 
             testDiv.innerHTML = `
-            <div class="test-header">
-                <span class="test-number">Тест #${testCount}</span>
-                <span class="remove-test" onclick="removeTest(${testCount})">
-                    <i class="fas fa-trash-alt"></i> Удалить
-                </span>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <label class="form-label">Входные данные (test${testCount}.in)</label>
-                    <textarea name="test_${testCount}_input" class="form-control test-input" rows="3" placeholder="Введите входные данные"></textarea>
+                <div class="test-header">
+                    <span class="test-number">Тест #${testCount}</span>
+                    <span class="remove-test" onclick="removeTest(${testCount})">
+                        <i class="fas fa-trash-alt"></i> Удалить
+                    </span>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Выходные данные (test${testCount}.out)</label>
-                    <textarea name="test_${testCount}_output" class="form-control test-output" rows="3" placeholder="Введите ожидаемый результат"></textarea>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Входные данные (test${testCount}.in)</label>
+                        <textarea name="test_${testCount}_input" class="form-control test-input" rows="3" placeholder="Введите входные данные"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Выходные данные (test${testCount}.out)</label>
+                        <textarea name="test_${testCount}_output" class="form-control test-output" rows="3" placeholder="Введите ожидаемый результат"></textarea>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
 
             testsContainer.appendChild(testDiv);
             testCountInput.value = testCount;

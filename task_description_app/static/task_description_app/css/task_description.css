@@ -40,6 +40,88 @@
     font-size: 0.9em;
 }
 
+/* Стили для дерева */
+.tree, .tree ul {
+    list-style: none;
+    padding-left: 20px;
+}
+
+.tree {
+    padding-left: 0;
+}
+
+.tree li {
+    margin: 2px 0;
+}
+
+.node {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.node:hover {
+    background: #e9ecef;
+}
+
+.node.selected {
+    background: #e3f2fd;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+.arrow {
+    display: inline-block;
+    width: 20px;
+    text-align: center;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.icon {
+    margin-right: 8px;
+    width: 20px;
+    text-align: center;
+}
+
+.name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.count {
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    margin-left: 8px;
+}
+
+.tree ul {
+    display: none;
+}
+
+.tree li.expanded > ul {
+    display: block;
+}
+
+.task-container {
+    margin-top: 20px;
+}
+
+/*.markdown-content {*/
+/*    padding: 20px;*/
+/*    background: white;*/
+/*    border-radius: 8px;*/
+/*    border: 1px solid #e0e0e0;*/
+/*}*/
+
+
 /* Для файла task_detail.html */
 
 /* Основной контейнер – две колонки ровно посередине экрана */
@@ -505,6 +587,136 @@
     border: 1px solid #ffcdd2;
 }
 
-
-
 /* Конец для файла task_list*/
+
+/*для файла task_add.html*/
+.page-header {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.form-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.section-title i {
+    color: #667eea;
+    margin-right: 10px;
+}
+
+.path-preview {
+    background: #f0f4fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.path-preview .path-label {
+    color: #666;
+    margin-bottom: 5px;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.path-preview .path-value {
+    color: #333;
+    word-break: break-all;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-label i {
+    color: #667eea;
+    margin-right: 8px;
+}
+
+.test-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.test-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.test-number {
+    font-weight: 600;
+    color: #495057;
+}
+
+.remove-test {
+    color: #dc3545;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.remove-test:hover {
+    color: #bd2130;
+}
+
+
+.info-note {
+    background: #e7f3ff;
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: #004085;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.info-note i {
+    margin-right: 8px;
+}
+
+.tab-pane {
+    padding: 20px 0;
+}
+
+.nav-tabs .nav-link {
+    color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+    color: #667eea;
+    font-weight: 500;
+}
+
+.nav-link-dark {
+    color: #672ddc;
+    padding: 1px 10px;
+}
+
+.nav-link-dark.active {
+    background-color: #503c83;
+    color: white;
+}
+
+
+/*Конец для файла task_add.html*/

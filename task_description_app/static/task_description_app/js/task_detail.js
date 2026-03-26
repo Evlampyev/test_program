@@ -140,7 +140,7 @@ app.get('/api/structure', async (req, res) => {
         const structure = await getFolderStructure(TASKS_ROOT);
         res.json(structure);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({error: error.message});
     }
 });
 
@@ -149,9 +149,9 @@ app.get('/api/task/*', async (req, res) => {
     try {
         const filePath = path.join(TASKS_ROOT, req.params[0], 'task.md');
         const content = await fs.readFile(filePath, 'utf-8');
-        res.json({ content });
+        res.json({content});
     } catch (error) {
-        res.status(404).json({ error: 'task.md not found' });
+        res.status(404).json({error: 'task.md not found'});
     }
 });
 
@@ -160,9 +160,9 @@ app.get('/api/task-files/*', async (req, res) => {
     try {
         const taskPath = path.join(TASKS_ROOT, req.params[0]);
         const files = await fs.readdir(taskPath);
-        res.json({ files });
+        res.json({files});
     } catch (error) {
-        res.status(404).json({ error: 'Task folder not found' });
+        res.status(404).json({error: 'Task folder not found'});
     }
 });
 
@@ -234,8 +234,30 @@ app.listen(PORT, () => {
 
 // Для файла task_detail.html
 
+// После вставки Markdown контента
+function displayTask(content) {
+    document.getElementById('taskContent').innerHTML = marked.parse(content);
 
+    // Удалить все пустые блоки <pre><code>
+    document.querySelectorAll('pre code').forEach(el => {
+        if (el.innerHTML.trim() === '') {
+            el.closest('pre').remove();
+        }
+    });
+}
 
 // Конец для файла task_detail.html
 
 
+// Для файла task_list.html
+
+// не переносится по хорошему
+
+// Конец Для файла task_list.html
+
+
+// для файла task_add.html
+
+// не переносится по хорошему
+
+// конец для файла task_add.html

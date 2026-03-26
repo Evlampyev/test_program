@@ -1,0 +1,1 @@
+def solve():    data = int(input())    num = int(input())    res = 0    count = 0    while data > 0:        n = data % 10        if n != num:                res = res + n * 10 ** count                count = count + 1        data //= 10    if res is not None:        print(res)if __name__ == "__main__":    solve()

@@ -107,7 +107,7 @@ def get_temp_upload_path(instance, filename):
 
 def result_upload(user, uploaded_file, task_id) -> JsonResponse:
 
-    print(f"{user = }, {uploaded_file = }, {task_id = }")
+    # print(f"{user = }, {uploaded_file = }, {task_id = }")
     if not uploaded_file:
         return JsonResponse({'success': False, 'message': 'Файл не найден'}, status=400)
 
@@ -125,7 +125,7 @@ def result_upload(user, uploaded_file, task_id) -> JsonResponse:
     upload_dir = os.path.join('student_programs', str(task.id), folder_id)
     file_path = os.path.join(settings.MEDIA_ROOT, upload_dir, uploaded_file.name)
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    print(f"путь до файла из upload_app: {file_path = }")
+    # print(f"путь до файла из upload_app: {file_path = }")
     with open(file_path, 'wb+') as destination:
         for chunk in uploaded_file.chunks():
             destination.write(chunk)
@@ -161,7 +161,7 @@ def upload_python_file(request):
 
     try:
         uploaded_file = request.FILES.get('file')
-        print(f"Загруженные файл: {uploaded_file = }  и его тип  {type(uploaded_file) = }")
+        # print(f"Загруженные файл: {uploaded_file = }  и его тип  {type(uploaded_file) = }")
         task_id = request.POST.get('task_id')
         user = request.user if request.user.is_authenticated else None
         result = result_upload(user, uploaded_file, task_id)

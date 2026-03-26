@@ -1,9 +1,9 @@
+summ = 0
 
-summ =0
-for n in range(1, 10001):
+for n in range(1, int(input()) + 1):
     for i in range(1, n):
         if n % i == 0:
-            summ +=i
+            summ += i
     if summ == n:
-        print(f"{n} - perfect!")
-    summ=0
+        print(n, end=" ")
+    summ = 0

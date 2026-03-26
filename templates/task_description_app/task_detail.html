@@ -98,19 +98,5 @@
 {% block extra_js %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-
     <script src="{% static 'task_description_app/js/task_detail.js' %}"></script>
-    <script>
-        // После вставки Markdown контента
-        function displayTask(content) {
-            document.getElementById('taskContent').innerHTML = marked.parse(content);
-
-            // Удалить все пустые блоки <pre><code>
-            document.querySelectorAll('pre code').forEach(el => {
-                if (el.innerHTML.trim() === '') {
-                    el.closest('pre').remove();
-                }
-            });
-        }
-    </script>
 {% endblock %}

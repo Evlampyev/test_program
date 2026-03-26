@@ -1,0 +1,1 @@
+a, b = map(int, input().split())print(a, '+', b, '=', a + b)print(a, '-', b, '=', a - b)print(a, '*', b, '=', a * b)res = round(a / b, 3)print(a, '/', b, '=', res)
