@@ -2,13 +2,14 @@
 import os
 import re
 import textwrap
+import mimetypes
 import io
 
 from django.db.models import Max
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.db import models
 from django.contrib import messages
 from django.utils import timezone
@@ -92,10 +93,49 @@ def task_list(request):
     return render(request, 'task_description_app/task_list.html', context)
 
 
-def render_markdown_without_empty_blocks(md_content):
+def render_markdown_with_images(md_content, task_id):
+    """
+    Простой поиск и замена строк
+    """
+    lines = md_content.split('\n')
+    new_lines = []
+
+    for line in lines:
+        # Проверяем, содержит ли строка изображение
+        if "img.png" in line:
+            # print(f"Найдена строка: {line}")
+
+            # Находим позиции
+            start_alt = line.find('="') + 2
+            end_alt = line.find('" src=', start_alt)
+            alt = line[start_alt:end_alt]
+
+            start_src = line.rfind('="', end_alt) + 2
+            end_src = line.find('"', start_src)
+            src = line[start_src:end_src].strip()
+
+            # print(f"  alt='{alt}', src='{src}'")
+
+            # Создаем HTML тег
+            new_line = f'<img class="img-right" src="/tasks/task/{task_id}/image/{src}" alt="{alt}">'
+            new_lines.append(new_line)
+        else:
+            new_lines.append(line)
+
+    # Объединяем строки
+    modified_md = '\n'.join(new_lines)
+
+    # Конвертируем Markdown в HTML
+    html_content = markdown.markdown(modified_md, extensions=['extra'])
+
+    return html_content
+
+
+def render_markdown_without_empty_blocks(md_content, task_id):
     """Конвертирует Markdown в HTML и удаляет пустые блоки кода"""
     html_content = markdown.markdown(md_content, extensions=['extra'])
     html_content = re.sub(r'<pre><code[^>]*>\s*</code></pre>\n?', '', html_content)
+    html_content = render_markdown_with_images(html_content, task_id)
     return html_content
 
 
@@ -112,7 +152,7 @@ def task_detail(request, task_id):
         with open(task_files['md'], 'r', encoding='utf-8') as f:
             md_content = f.read()
 
-    html_content = render_markdown_without_empty_blocks(md_content)
+    html_content = render_markdown_without_empty_blocks(md_content, task.id)
 
     # Получаем загруженную программу
     from task_description_app.models import UploadedProgram
@@ -142,6 +182,10 @@ def get_task_info(request, task_id):
     if os.path.exists(task_files['md']):
         with open(task_files['md'], 'r', encoding='utf-8') as f:
             md_content = f.read()
+
+    md_content = render_markdown_with_images(md_content, task_id)
+
+    # !!!!!!!! Надо попробовать одинаково получать данные для обоих случаев
 
     return JsonResponse({
         'id': task.id,
@@ -335,6 +379,29 @@ if __name__ == "__main__":
             'task_id': max_id + 1,
         }
         return render(request, 'task_description_app/task_add.html', context)
+
+
+def serve_task_image(request, task_id, filename):
+    """
+    Отдает изображение из папки задачи
+    """
+    from .models import Task
+    from django.conf import settings
+
+    task = get_object_or_404(Task, id=task_id)
+    task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
+    file_path = os.path.join(task_dir, filename)
+
+    if not os.path.exists(file_path):
+        raise Http404("Файл не найден")
+
+    # Определяем тип содержимого
+    content_type, _ = mimetypes.guess_type(file_path)
+    if not content_type:
+        content_type = 'application/octet-stream'
+
+    with open(file_path, 'rb') as f:
+        return HttpResponse(f.read(), content_type=content_type)
 
 
 # для контрольных работ и своих уроков
@@ -651,8 +718,6 @@ def complete_collection(request, attempt_id):
 #     return uploaded_file
 
 
-
-
 # @login_required
 # @csrf_exempt
 # def check_solution(request):
@@ -782,7 +847,7 @@ def check_solution(request):
         total_tests = len(result_tests)
         passed_count = sum(1 for r in result_tests if r.get('passed', False))
         failed_count = total_tests - passed_count
-        success = failed_count==0
+        success = failed_count == 0
 
         result = {
             'success': success,
@@ -837,7 +902,6 @@ def check_solution(request):
             'message': str(e),
             'error': str(e)
         }, status=500)
-
 
 # !!!!!!!!! Для чего эта функциия и нужна ли , без неё предыдуща работает.
 # def run_python_tests(task_files, code):

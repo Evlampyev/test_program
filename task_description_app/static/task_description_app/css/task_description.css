@@ -586,6 +586,11 @@
     border-radius: 8px;
     border: 1px solid #ffcdd2;
 }
+.img-right {
+    float: right;
+    margin-left: 5px;
+    width: 35%;
+}
 
 /* Конец для файла task_list*/
 
