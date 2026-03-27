@@ -18,7 +18,7 @@
         <th><b><i>Вывод</i></b></th>
     </tr>
     <tr style="vertical-align: top">
-        <td>В это предложении пять слов</td>
+        <td>В этом предложении пять слов</td>
         <td>5</td>
     </tr>
 </table>
