@@ -18,7 +18,7 @@ from users_app.views import get_task_level
 def run_tests(request, program_id):
     """Запуск тестов для загруженной программы"""
     program = get_object_or_404(UploadedProgram, id=program_id)
-    logger.info(f"Выбрана задача №{program_id = }")
+    logger.info(f"Выбрана задача №{program.task_id = }")
 
     # Обновляем статус
     program.status = 'testing'
@@ -85,8 +85,6 @@ def run_tests(request, program_id):
         attempt.is_solved = True if attempt.status == 'correct' else False
         attempt.save()
         # print("_______________________")
-
-
 
 
     except subprocess.TimeoutExpired:

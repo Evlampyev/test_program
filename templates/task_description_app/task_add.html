@@ -1,9 +1,156 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Добавление новой задачи{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="/task_description_app/static/task_description_app/css/task_description.css">
+    <link rel="stylesheet" href="{% static 'task_description_app/css/task_description.css' %}">
+    <style>
+        .image-preview {
+            margin-top: 10px;
+            max-width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background: #f8f9fa;
+            display: none;
+        }
+        .image-preview img {
+            max-width: 100%;
+            height: auto;
+        }
+        .btn-remove-image {
+            margin-top: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-remove-image:hover {
+            background: #c82333;
+        }
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .section-title i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+        .info-note {
+            background: #e7f3ff;
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: #004085;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .info-note i {
+            margin-right: 8px;
+        }
+        .test-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .test-number {
+            font-weight: 600;
+            color: #495057;
+        }
+        .remove-test {
+            color: #dc3545;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .remove-test:hover {
+            color: #bd2130;
+        }
+        .btn-add-test {
+            background: white;
+            border: 2px dashed #667eea;
+            color: #667eea;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-add-test:hover {
+            background: #f0f4fa;
+            border-color: #5a67d8;
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.3s;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        .path-preview {
+            background: #f0f4fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .path-label {
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .path-value {
+            color: #333;
+            word-break: break-all;
+        }
+        .nav-tabs .nav-link-dark {
+            color: #495057;
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+        }
+        .nav-tabs .nav-link-dark.active {
+            color: #667eea;
+            font-weight: 500;
+            border-bottom: 2px solid #667eea;
+        }
+        .tab-pane {
+            padding: 20px 0;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -19,15 +166,14 @@
     </div>
 
     <!-- Форма -->
-    <form id="taskAddForm" method="post">
+    <form id="taskAddForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         <!-- Вкладки -->
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link-dark active" id="path-tab" data-bs-toggle="tab" data-bs-target="#path"
-                        type="button"
-                        role="tab">
+                        type="button" role="tab">
                     <i class="fas fa-folder-tree me-2"></i>Путь
                 </button>
             </li>
@@ -99,25 +245,19 @@
                             <small class="text-muted">Например: task_001</small>
                         </div>
                     </div>
-                    <div>
-                        <div class="path-preview">
-                            <div class="path-label">
-                                <i class="fas fa-link"></i> Будет создан путь:
-                            </div>
-                            <div class="path-value" id="pathPreview">
-                                /tasks_for_tests/...
-                            </div>
-                        </div>
 
-                        {#                        <div class="info-note col-xl-5">#}
-                        {#                            <i class="fas fa-info-circle"></i>#}
-                        {#                            Если какой-то папки в пути не существует, она будет создана автоматически.#}
-                        {#                        </div>#}
+                    <div class="path-preview">
+                        <div class="path-label">
+                            <i class="fas fa-link"></i> Будет создан путь:
+                        </div>
+                        <div class="path-value" id="pathPreview">
+                            /tasks_for_tests/...
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Вкладка 2: Описание задачи (task.md) -->
+            <!-- Вкладка 2: Описание задачи (task.md) - с двумя колонками -->
             <div class="tab-pane fade" id="content" role="tabpanel">
                 <div class="form-card">
                     <div class="section-title">
@@ -125,35 +265,63 @@
                         Описание задачи #{{ task_id }} (task.md)
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-heading"></i> Название задачи
-                        </label>
-                        {{ task_form.title }}
-                    </div>
+                    <div class="row">
+                        <!-- Левая колонка -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-heading"></i> Название задачи
+                                </label>
+                                {{ task_form.title }}
+                            </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-signal"></i> Уровень сложности
-                        </label>
-                        {{ task_form.difficulty }}
-                    </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-signal"></i> Уровень сложности
+                                </label>
+                                {{ task_form.difficulty }}
+                            </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-align-left"></i> Краткое описание (для списка)
-                        </label>
-                        {{ task_form.description }}
-                    </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-align-left"></i> Краткое описание (для списка)
+                                </label>
+                                {{ task_form.description }}
+                            </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-markdown"></i> Полное описание задачи (Markdown)
-                        </label>
-                        {{ content_form.task_md_content }}
-                        <small class="text-muted">
-                            Поддерживается Markdown: # Заголовок, ## Подзаголовок, **жирный**, *курсив*, `код`
-                        </small>
+                            <!-- Загрузка изображения -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-image"></i> Изображение к задаче
+                                </label>
+                                <input type="file" name="task_image" id="taskImage" class="form-control" accept="image/png,image/jpeg,image/jpg,image/gif">
+                                <small class="text-muted">Изображение будет сохранено как img.png (перезапишет существующее)</small>
+
+                                <div id="imagePreview" class="image-preview">
+                                    <img id="previewImg" src="#" alt="Предпросмотр">
+                                    <button type="button" class="btn-remove-image" onclick="removeImage()">
+                                        <i class="fas fa-trash-alt me-1"></i>Удалить изображение
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Правая колонка -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-markdown"></i> Полное описание задачи (Markdown)
+                                </label>
+                                {{ content_form.task_md_content }}
+                                <small class="text-muted">
+                                    Поддерживается Markdown: # Заголовок, ## Подзаголовок, **жирный**, *курсив*, `код`
+                                </small>
+                                <div class="info-note mt-2">
+                                    <i class="fas fa-info-circle"></i>
+                                    Для вставки изображения используйте: <code>![Описание](img.png)</code> после 'Описание задачи...'
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -190,7 +358,7 @@
                         <!-- Тесты будут добавляться сюда динамически -->
                     </div>
 
-                    <button type="button" class="btn btn-add-test" id="addTestBtn">
+                    <button type="button" class="btn-add-test" id="addTestBtn">
                         <i class="fas fa-plus-circle me-2"></i>
                         Добавить тест
                     </button>
@@ -206,7 +374,7 @@
         </div>
 
         <!-- Кнопка отправки -->
-        <button type="submit" class="btn btn-primary" id="submitBtn">
+        <button type="submit" class="btn-submit" id="submitBtn">
             <i class="fas fa-plus-circle me-2"></i>
             Создать новую задачу
         </button>
@@ -227,14 +395,11 @@
                     <div class="text-center mb-4">
                         <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
                     </div>
-
                     <p id="successMessage" class="text-center">Задача успешно создана!</p>
-
                     <div class="alert alert-info">
                         <strong>Путь к задаче:</strong><br>
                         <code id="successPath" class="small"></code>
                     </div>
-
                     <div class="alert alert-light border">
                         <strong>ID задачи:</strong> <span id="successTaskId"></span>
                     </div>
@@ -253,38 +418,6 @@
             </div>
         </div>
     </div>
-
-    {#    <div class="modal fade" id="successModal" tabindex="-1">#}
-    {#        <div class="modal-dialog">#}
-    {#            <div class="modal-content">#}
-    {#                <div class="modal-header bg-success text-white">#}
-    {#                    <h5 class="modal-title">#}
-    {#                        <i class="fas fa-check-circle me-2"></i>#}
-    {#                        Успешно!#}
-    {#                    </h5>#}
-    {#                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>#}
-    {#                </div>#}
-    {#                <div class="modal-body">#}
-    {#                    <p id="successMessage">Задача успешно создана!</p>#}
-    {#                    <div class="alert alert-info mt-3">#}
-    {#                        <strong>Путь к задаче:</strong><br>#}
-    {#                        <code id="successPath"></code>#}
-    {#                    </div>#}
-    {#                </div>#}
-    {#                <div class="modal-footer">#}
-    {#                    <a href="{% url 'tasks:task_add' %}" class="btn btn-primary">#}
-    {#                        <i class="fas fa-plus me-2"></i>Создать ещё#}
-    {#                    </a>#}
-    {#                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary">#}
-    {#                        <i class="fas fa-home me-2"></i>На главную#}
-    {#                    </a>#}
-    {#                    <a href="{% url 'tasks:task_detail' %}" class="btn btn-outline-sms">#}
-    {#                        <i class="fas fa-home me-2"></i>Проверить задачу#}
-    {#                    </a>#}
-    {#                </div>#}
-    {#            </div>#}
-    {#        </div>#}
-    {#    </div>#}
 
     <div class="modal fade" id="errorModal" tabindex="-1">
         <div class="modal-dialog">
@@ -305,8 +438,28 @@
 
 {% block extra_js %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/task_description_app/static/task_description_app/js/task_detail.js"></script>
     <script>
+        // Предпросмотр изображения
+        document.getElementById('taskImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('imagePreview');
+                    const img = document.getElementById('previewImg');
+                    img.src = event.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function removeImage() {
+            document.getElementById('taskImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImg').src = '#';
+        }
+
         // Обновление предпросмотра пути
         function updatePathPreview() {
             const classVal = document.getElementById('id_class_name').value;
@@ -322,21 +475,22 @@
             if (levelVal) parts.push(levelVal);
             if (taskFolder) parts.push(taskFolder);
 
-            // Показываем путь в старой структуре (для информации)
             document.getElementById('pathPreview').textContent =
                 parts.length > 0 ? '/tasks_for_tests/' + parts.join('/') : '/tasks_for_tests/...';
-
-            // Добавляем информацию о новом месте хранения
-            const newTaskId = document.getElementById('id_task_id')?.value || 'новый ID';
-            console.log(`Файлы будут сохранены в: /tasks_for_tests/tasks/${newTaskId}/`);
         }
 
         // Слушатели для обновления пути
-        document.getElementById('id_class_name').addEventListener('input', updatePathPreview);
-        document.getElementById('id_topic').addEventListener('input', updatePathPreview);
-        document.getElementById('id_lesson').addEventListener('input', updatePathPreview);
-        document.getElementById('id_level').addEventListener('change', updatePathPreview);
-        document.getElementById('id_task_folder').addEventListener('input', updatePathPreview);
+        const classInput = document.getElementById('id_class_name');
+        const topicInput = document.getElementById('id_topic');
+        const lessonInput = document.getElementById('id_lesson');
+        const levelSelect = document.getElementById('id_level');
+        const taskFolderInput = document.getElementById('id_task_folder');
+
+        if (classInput) classInput.addEventListener('input', updatePathPreview);
+        if (topicInput) topicInput.addEventListener('input', updatePathPreview);
+        if (lessonInput) lessonInput.addEventListener('input', updatePathPreview);
+        if (levelSelect) levelSelect.addEventListener('change', updatePathPreview);
+        if (taskFolderInput) taskFolderInput.addEventListener('input', updatePathPreview);
 
         // Управление тестами
         let testCount = 0;
@@ -376,54 +530,52 @@
             const testDiv = document.getElementById(`test_${id}`);
             if (testDiv) {
                 testDiv.remove();
-                // Перенумеровываем оставшиеся тесты
                 const remainingTests = document.querySelectorAll('.test-card');
                 remainingTests.forEach((test, index) => {
                     const newNum = index + 1;
                     test.id = `test_${newNum}`;
                     test.querySelector('.test-number').textContent = `Тест #${newNum}`;
-
                     const input = test.querySelector('.test-input');
                     const output = test.querySelector('.test-output');
-
-                    input.name = `test_${newNum}_input`;
-                    output.name = `test_${newNum}_output`;
+                    if (input) input.name = `test_${newNum}_input`;
+                    if (output) output.name = `test_${newNum}_output`;
                 });
                 testCount = remainingTests.length;
                 testCountInput.value = testCount;
             }
         };
 
-        document.getElementById('addTestBtn').addEventListener('click', addTest);
+        const addTestBtn = document.getElementById('addTestBtn');
+        if (addTestBtn) addTestBtn.addEventListener('click', addTest);
 
-        // Добавляем первый тест автоматически
         window.addEventListener('load', function () {
             addTest();
         });
 
         // Отправка формы
-        document.getElementById('taskAddForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+        const taskForm = document.getElementById('taskAddForm');
+        if (taskForm) {
+            taskForm.addEventListener('submit', function (e) {
+                e.preventDefault();
 
-            const formData = new FormData(this);
-            const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.innerHTML;
+                const formData = new FormData(this);
+                const submitBtn = document.getElementById('submitBtn');
+                const originalText = submitBtn.innerHTML;
 
-            // Нормализуем переносы строк во всех textarea
-            document.querySelectorAll('textarea').forEach(textarea => {
-                textarea.value = textarea.value.replace(/\r\n/g, '\n');
-            });
+                document.querySelectorAll('textarea').forEach(textarea => {
+                    textarea.value = textarea.value.replace(/\r\n/g, '\n');
+                });
 
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Создание задачи...';
-            submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Создание задачи...';
+                submitBtn.disabled = true;
 
-            fetch('', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
+                fetch('', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -431,13 +583,11 @@
                         document.getElementById('successPath').textContent = data.path;
                         document.getElementById('successTaskId').textContent = data.task_id;
 
-                        // Обновляем кнопку просмотра задачи
                         const viewBtn = document.querySelector('#successModal .btn-success');
                         if (viewBtn) {
                             viewBtn.href = `/tasks/task/${data.task_id}/`;
                         }
 
-                        // Показываем модальное окно
                         new bootstrap.Modal(document.getElementById('successModal')).show();
                     } else {
                         let errorHtml = '<ul class="mb-0">';
@@ -458,6 +608,7 @@
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
                 });
-        });
+            });
+        }
     </script>
 {% endblock %}

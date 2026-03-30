@@ -130,6 +130,7 @@ def notify_teacher_about_task_solved(student, task_id, task_level=None, task_tit
         if task_title:
             message += f"\n\n📌 Задача: {task_title}"
 
+        # print(f"!!!!!!! from notifications {student=}, and {student.id =} !!!!!!!!!!!")
         # Создаем уведомление
         notification = Notification.objects.create(
             recipient=teacher,
@@ -139,7 +140,7 @@ def notify_teacher_about_task_solved(student, task_id, task_level=None, task_tit
             message=message,
             task_id=str(task_id),
             task_level=task_level,
-            student_id=student.id
+            # student_id=student.id
         )
 
         logger.info(f"Уведомление создано для учителя {teacher.username} о задаче #{task_id}")
@@ -188,7 +189,7 @@ def notify_teacher_about_task_attempt(student, task_id, attempt_count, is_solved
             title=title,
             message=message,
             task_id=str(task_id),
-            student_id=student.id
+            # student_id=student.id
         )
 
         return notification
@@ -344,7 +345,7 @@ def notify_new_student_registration(teacher, student):
             notification_type='student_registered',
             title=title,
             message=message,
-            student_id=student.id
+            # student_id=student.id
         )
 
         return notification

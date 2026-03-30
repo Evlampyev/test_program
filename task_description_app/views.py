@@ -183,9 +183,7 @@ def get_task_info(request, task_id):
         with open(task_files['md'], 'r', encoding='utf-8') as f:
             md_content = f.read()
 
-    md_content = render_markdown_with_images(md_content, task_id)
-
-    # !!!!!!!! Надо попробовать одинаково получать данные для обоих случаев
+    md_content = render_markdown_without_empty_blocks(md_content, task_id)
 
     return JsonResponse({
         'id': task.id,
@@ -268,7 +266,17 @@ def task_add(request):
                 task.test_files = test_files
                 task.save(update_fields=['test_files'])
 
-                # 5. СОЗДАЕМ СВЯЗИ В СТРУКТУРЕ
+                # 5. Сохраняем изображение(если загружено)
+                if request.FILES.get('task_image'):
+                    image_file = request.FILES['task_image']
+                    image_path = os.path.join(task_dir, 'img.png')
+
+                    # Сохраняем как img.png (перезаписываем, если существует)
+                    with open(image_path, 'wb+') as destination:
+                        for chunk in image_file.chunks():
+                            destination.write(chunk)
+
+                # 6. СОЗДАЕМ СВЯЗИ В СТРУКТУРЕ
                 # Находим или создаем узлы структуры
                 class_node, _ = ClassStructure.objects.get_or_create(
                     name=class_name,

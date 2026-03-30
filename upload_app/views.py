@@ -106,7 +106,6 @@ def get_temp_upload_path(instance, filename):
 
 
 def result_upload(user, uploaded_file, task_id) -> JsonResponse:
-
     # print(f"{user = }, {uploaded_file = }, {task_id = }")
     if not uploaded_file:
         return JsonResponse({'success': False, 'message': 'Файл не найден'}, status=400)
@@ -121,7 +120,8 @@ def result_upload(user, uploaded_file, task_id) -> JsonResponse:
     if not uploaded_file.name.lower().endswith('.py'):
         return JsonResponse({'success': False, 'message': 'Только файлы .py разрешены'}, status=400)
 
-    folder_id = generate_random_id()
+    print(user)
+    folder_id = str(user.id) + "_" + f"{user}" + "_" + generate_random_id()
     upload_dir = os.path.join('student_programs', str(task.id), folder_id)
     file_path = os.path.join(settings.MEDIA_ROOT, upload_dir, uploaded_file.name)
     os.makedirs(os.path.dirname(file_path), exist_ok=True)

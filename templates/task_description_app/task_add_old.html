@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+
+{% block title %}Добавление новой задачи{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="/task_description_app/static/task_description_app/css/task_description.css">
+{% endblock %}
+
+{% block content %}
+    <!-- Заголовок -->
+    <div class="page-header">
+        <h2 class="mb-2">
+            <i class="fas fa-plus-circle me-2" style="color: #667eea;"></i>
+            Добавление новой задачи
+        </h2>
+        <p class="text-muted mb-0">
+            Заполните все поля. Если указанного пути не существует - он будет создан автоматически.
+        </p>
+    </div>
+
+    <!-- Форма -->
+    <form id="taskAddForm" method="post">
+        {% csrf_token %}
+
+        <!-- Вкладки -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link-dark active" id="path-tab" data-bs-toggle="tab" data-bs-target="#path"
+                        type="button"
+                        role="tab">
+                    <i class="fas fa-folder-tree me-2"></i>Путь
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link-dark" id="content-tab" data-bs-toggle="tab" data-bs-target="#content"
+                        type="button" role="tab">
+                    <i class="fas fa-file-alt me-2"></i>Описание
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link-dark" id="solution-tab" data-bs-toggle="tab" data-bs-target="#solution"
+                        type="button" role="tab">
+                    <i class="fab fa-python me-2"></i>Решение
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link-dark" id="tests-tab" data-bs-toggle="tab" data-bs-target="#tests" type="button"
+                        role="tab">
+                    <i class="fas fa-vial me-2"></i>Тесты
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            <!-- Вкладка 1: Путь -->
+            <div class="tab-pane fade show active" id="path" role="tabpanel">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fas fa-map-signs"></i>
+                        Расположение задачи (будет создано при необходимости)
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-school"></i> Класс
+                            </label>
+                            {{ task_form.class_name }}
+                            <small class="text-muted">Например: 8 класс, 10 класс</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-book"></i> Тема
+                            </label>
+                            {{ task_form.topic }}
+                            <small class="text-muted">Например: Тема №1. Введение</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-alt"></i> Урок
+                            </label>
+                            {{ task_form.lesson }}
+                            <small class="text-muted">Например: Урок 27, Урок 84(38)</small>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-layer-group"></i> Уровень
+                            </label>
+                            {{ task_form.level }}
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-folder"></i> Папка задачи
+                            </label>
+                            {{ task_form.task_folder }}
+                            <small class="text-muted">Например: task_001</small>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="path-preview">
+                            <div class="path-label">
+                                <i class="fas fa-link"></i> Будет создан путь:
+                            </div>
+                            <div class="path-value" id="pathPreview">
+                                /tasks_for_tests/...
+                            </div>
+                        </div>
+
+                        {#                        <div class="info-note col-xl-5">#}
+                        {#                            <i class="fas fa-info-circle"></i>#}
+                        {#                            Если какой-то папки в пути не существует, она будет создана автоматически.#}
+                        {#                        </div>#}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка 2: Описание задачи (task.md) -->
+            <div class="tab-pane fade" id="content" role="tabpanel">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fas fa-file-alt"></i>
+                        Описание задачи #{{ task_id }} (task.md)
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-heading"></i> Название задачи
+                        </label>
+                        {{ task_form.title }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-signal"></i> Уровень сложности
+                        </label>
+                        {{ task_form.difficulty }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-align-left"></i> Краткое описание (для списка)
+                        </label>
+                        {{ task_form.description }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-markdown"></i> Полное описание задачи (Markdown)
+                        </label>
+                        {{ content_form.task_md_content }}
+                        <small class="text-muted">
+                            Поддерживается Markdown: # Заголовок, ## Подзаголовок, **жирный**, *курсив*, `код`
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка 3: Решение учителя (task.py) -->
+            <div class="tab-pane fade" id="solution" role="tabpanel">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fab fa-python"></i>
+                        Решение учителя (task.py)
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-code"></i> Код решения
+                        </label>
+                        {{ content_form.task_py_content }}
+                        <small class="text-muted">
+                            Это эталонное решение задачи. Будет сохранено в файл task.py
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка 4: Тесты -->
+            <div class="tab-pane fade" id="tests" role="tabpanel">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fas fa-vial"></i>
+                        Тесты для проверки
+                    </div>
+
+                    <div id="testsContainer">
+                        <!-- Тесты будут добавляться сюда динамически -->
+                    </div>
+
+                    <button type="button" class="btn btn-add-test" id="addTestBtn">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Добавить тест
+                    </button>
+
+                    <input type="hidden" name="test_count" id="testCount" value="0">
+
+                    <div class="info-note mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        Для каждого теста будут созданы файлы test1.in, test1.out, test2.in, test2.out и т.д.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка отправки -->
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class="fas fa-plus-circle me-2"></i>
+            Создать новую задачу
+        </button>
+    </form>
+
+    <!-- Модальные окна -->
+    <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Задача создана!
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+
+                    <p id="successMessage" class="text-center">Задача успешно создана!</p>
+
+                    <div class="alert alert-info">
+                        <strong>Путь к задаче:</strong><br>
+                        <code id="successPath" class="small"></code>
+                    </div>
+
+                    <div class="alert alert-light border">
+                        <strong>ID задачи:</strong> <span id="successTaskId"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'tasks:task_add' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Создать ещё
+                    </a>
+                    <a href="{% url 'tasks:task_list' %}" class="btn btn-success">
+                        <i class="fas fa-eye me-2"></i>Посмотреть задачу
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Закрыть
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {#    <div class="modal fade" id="successModal" tabindex="-1">#}
+    {#        <div class="modal-dialog">#}
+    {#            <div class="modal-content">#}
+    {#                <div class="modal-header bg-success text-white">#}
+    {#                    <h5 class="modal-title">#}
+    {#                        <i class="fas fa-check-circle me-2"></i>#}
+    {#                        Успешно!#}
+    {#                    </h5>#}
+    {#                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>#}
+    {#                </div>#}
+    {#                <div class="modal-body">#}
+    {#                    <p id="successMessage">Задача успешно создана!</p>#}
+    {#                    <div class="alert alert-info mt-3">#}
+    {#                        <strong>Путь к задаче:</strong><br>#}
+    {#                        <code id="successPath"></code>#}
+    {#                    </div>#}
+    {#                </div>#}
+    {#                <div class="modal-footer">#}
+    {#                    <a href="{% url 'tasks:task_add' %}" class="btn btn-primary">#}
+    {#                        <i class="fas fa-plus me-2"></i>Создать ещё#}
+    {#                    </a>#}
+    {#                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary">#}
+    {#                        <i class="fas fa-home me-2"></i>На главную#}
+    {#                    </a>#}
+    {#                    <a href="{% url 'tasks:task_detail' %}" class="btn btn-outline-sms">#}
+    {#                        <i class="fas fa-home me-2"></i>Проверить задачу#}
+    {#                    </a>#}
+    {#                </div>#}
+    {#            </div>#}
+    {#        </div>#}
+    {#    </div>#}
+
+    <div class="modal fade" id="errorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Ошибка!
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="errorMessage">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/task_description_app/static/task_description_app/js/task_detail.js"></script>
+    <script>
+        // Обновление предпросмотра пути
+        function updatePathPreview() {
+            const classVal = document.getElementById('id_class_name').value;
+            const topicVal = document.getElementById('id_topic').value;
+            const lessonVal = document.getElementById('id_lesson').value;
+            const levelVal = document.getElementById('id_level').value;
+            const taskFolder = document.getElementById('id_task_folder').value;
+
+            const parts = [];
+            if (classVal) parts.push(classVal);
+            if (topicVal) parts.push(topicVal);
+            if (lessonVal) parts.push(lessonVal);
+            if (levelVal) parts.push(levelVal);
+            if (taskFolder) parts.push(taskFolder);
+
+            // Показываем путь в старой структуре (для информации)
+            document.getElementById('pathPreview').textContent =
+                parts.length > 0 ? '/tasks_for_tests/' + parts.join('/') : '/tasks_for_tests/...';
+
+            // Добавляем информацию о новом месте хранения
+            const newTaskId = document.getElementById('id_task_id')?.value || 'новый ID';
+            console.log(`Файлы будут сохранены в: /tasks_for_tests/tasks/${newTaskId}/`);
+        }
+
+        // Слушатели для обновления пути
+        document.getElementById('id_class_name').addEventListener('input', updatePathPreview);
+        document.getElementById('id_topic').addEventListener('input', updatePathPreview);
+        document.getElementById('id_lesson').addEventListener('input', updatePathPreview);
+        document.getElementById('id_level').addEventListener('change', updatePathPreview);
+        document.getElementById('id_task_folder').addEventListener('input', updatePathPreview);
+
+        // Управление тестами
+        let testCount = 0;
+        const testsContainer = document.getElementById('testsContainer');
+        const testCountInput = document.getElementById('testCount');
+
+        function addTest() {
+            testCount++;
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test-card';
+            testDiv.id = `test_${testCount}`;
+
+            testDiv.innerHTML = `
+                <div class="test-header">
+                    <span class="test-number">Тест #${testCount}</span>
+                    <span class="remove-test" onclick="removeTest(${testCount})">
+                        <i class="fas fa-trash-alt"></i> Удалить
+                    </span>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Входные данные (test${testCount}.in)</label>
+                        <textarea name="test_${testCount}_input" class="form-control test-input" rows="3" placeholder="Введите входные данные"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Выходные данные (test${testCount}.out)</label>
+                        <textarea name="test_${testCount}_output" class="form-control test-output" rows="3" placeholder="Введите ожидаемый результат"></textarea>
+                    </div>
+                </div>
+            `;
+
+            testsContainer.appendChild(testDiv);
+            testCountInput.value = testCount;
+        }
+
+        window.removeTest = function (id) {
+            const testDiv = document.getElementById(`test_${id}`);
+            if (testDiv) {
+                testDiv.remove();
+                // Перенумеровываем оставшиеся тесты
+                const remainingTests = document.querySelectorAll('.test-card');
+                remainingTests.forEach((test, index) => {
+                    const newNum = index + 1;
+                    test.id = `test_${newNum}`;
+                    test.querySelector('.test-number').textContent = `Тест #${newNum}`;
+
+                    const input = test.querySelector('.test-input');
+                    const output = test.querySelector('.test-output');
+
+                    input.name = `test_${newNum}_input`;
+                    output.name = `test_${newNum}_output`;
+                });
+                testCount = remainingTests.length;
+                testCountInput.value = testCount;
+            }
+        };
+
+        document.getElementById('addTestBtn').addEventListener('click', addTest);
+
+        // Добавляем первый тест автоматически
+        window.addEventListener('load', function () {
+            addTest();
+        });
+
+        // Отправка формы
+        document.getElementById('taskAddForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+
+            // Нормализуем переносы строк во всех textarea
+            document.querySelectorAll('textarea').forEach(textarea => {
+                textarea.value = textarea.value.replace(/\r\n/g, '\n');
+            });
+
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Создание задачи...';
+            submitBtn.disabled = true;
+
+            fetch('', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('successMessage').textContent = data.message;
+                        document.getElementById('successPath').textContent = data.path;
+                        document.getElementById('successTaskId').textContent = data.task_id;
+
+                        // Обновляем кнопку просмотра задачи
+                        const viewBtn = document.querySelector('#successModal .btn-success');
+                        if (viewBtn) {
+                            viewBtn.href = `/tasks/task/${data.task_id}/`;
+                        }
+
+                        // Показываем модальное окно
+                        new bootstrap.Modal(document.getElementById('successModal')).show();
+                    } else {
+                        let errorHtml = '<ul class="mb-0">';
+                        for (let field in data.errors) {
+                            errorHtml += `<li><strong>${field}:</strong> ${data.errors[field]}</li>`;
+                        }
+                        errorHtml += '</ul>';
+                        document.getElementById('errorMessage').innerHTML = errorHtml;
+                        new bootstrap.Modal(document.getElementById('errorModal')).show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('errorMessage').innerHTML = 'Произошла ошибка при отправке формы: ' + error.message;
+                    new bootstrap.Modal(document.getElementById('errorModal')).show();
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+        });
+    </script>
+{% endblock %}
