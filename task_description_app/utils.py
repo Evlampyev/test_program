@@ -2,9 +2,12 @@ import datetime
 import io
 import os
 import shutil
+
+import pytz
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.utils import timezone
+
 
 
 def create_task_files(task_id, md_content, py_content, tests):
@@ -78,6 +81,7 @@ def create_uploaded_file_from_code(code, filename=None, task_id=None):
     Returns:
         InMemoryUploadedFile: объект файла
     """
+    timezone.activate(pytz.timezone(settings.TIME_ZONE))
     if filename is None:
         if task_id:
             filename = f"solution_task_{task_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.py"

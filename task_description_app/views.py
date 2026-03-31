@@ -13,18 +13,15 @@ from django.http import JsonResponse, HttpResponse, Http404
 from django.db import models
 from django.contrib import messages
 from django.utils import timezone
-from django.core.files.uploadedfile import InMemoryUploadedFile
 import markdown
 import json
-import logging
 from django.views.decorators.csrf import csrf_exempt
 
-from .forms import TaskAddForm, TaskContentForm, CollectionForm, CollectionItemForm
+from .forms import TaskAddForm, TaskContentForm, CollectionForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
     CollectionAssignment, User, TaskAttempt, UploadedProgram
 from .utils import create_uploaded_file_from_code, get_task_files
 
-logger = logging.getLogger(__name__)
 
 
 def build_tree_structure():
@@ -240,7 +237,7 @@ def task_add(request):
                     f.write(md_content)
 
                 # 2. Сохраняем task.py
-                py_content = content_form.cleaned_data['task_py_content']
+                py_content = clean_text(content_form.cleaned_data['task_py_content'])
                 with open(os.path.join(task_dir, 'task.py'), 'w', encoding='utf-8') as f:
                     f.write(py_content)
 
@@ -375,7 +372,7 @@ def task_add(request):
 
 if __name__ == "__main__":
     solve()'''
-        content_form.fields['task_py_content'].initial = default_py
+        content_form.fields['task_py_content'].initial = clean_text(default_py)
 
         difficulty_levels = DifficultyLevel.objects.all()
         max_id = Task.objects.aggregate(Max('id'))['id__max'] or 0

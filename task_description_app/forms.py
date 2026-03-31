@@ -52,11 +52,11 @@ class TaskAddForm(forms.ModelForm):
     level = forms.ChoiceField(
         label='Уровень',
         choices=[
-            ('level_A', 'level_A'),
-            ('level_B', 'level_B'),
-            ('level_C', 'level_C'),
-            ('level_D', 'level_D'),
-            ('level_E', 'level_E'),
+            ('level_A', 'Уровень А'),
+            ('level_B', 'Уровень B'),
+            ('level_C', 'Уровень C'),
+            ('level_D', 'Уровень D'),
+            ('level_E', 'Уровень E'),
         ],
         widget=forms.Select(attrs={'class': 'form-select'})
     )

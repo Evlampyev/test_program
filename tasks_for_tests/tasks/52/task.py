@@ -1,10 +1,1 @@
-def solve():
-    """Основная функция решения"""
-    # Чтение данных
-    data = input().split()
-    # Ваш код здесь
-    result = 0
-    print(result)
-
-if __name__ == "__main__":
-    solve()
+data = input()count = 0for char in data:    if char.isdigit():        count += 1print(count)

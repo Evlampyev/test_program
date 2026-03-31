@@ -4,16 +4,14 @@ import json
 
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
-
-from notifications.utils import notify_teacher_about_task_solved
-from task_description_app.models import UploadedProgram, Task, TaskAttempt
 import subprocess
 
+from notifications.utils import notify_teacher_about_task_attempt
+from task_description_app.models import UploadedProgram, Task, TaskAttempt
 from testing_app.tester_project.tester import PythonCodeTester
 from manage import logger
-
-
 from users_app.views import get_task_level
+
 
 def run_tests(request, program_id):
     """Запуск тестов для загруженной программы"""
@@ -34,12 +32,6 @@ def run_tests(request, program_id):
         status='pending'
     )
 
-    notify_teacher_about_task_solved(
-        student=request.user,
-        task_id=attempt.real_task_id,
-        task_level=get_task_level(attempt.real_task_id),
-        task_title="task.title"
-    )
     # Получаем путь к тестам из задачи
     task = program.task
     task_id = program.task_id
@@ -72,19 +64,33 @@ def run_tests(request, program_id):
         # program = get_object_or_404(UploadedProgram, id=program_id)
         # print(f"{program = }")
         program.test_results = results
-        program.status = 'passed' if failed_count==0 else 'failed'
+        program.status = 'passed' if failed_count == 0 else 'failed'
         program.save()
         # print("++++++++++++++++++++++")
         # print(f"{program.status = }")
 
         attempt.status = 'correct' if program.status == 'passed' else 'incorrect'
 
-
         # print(f"{attempt.status = }")
         attempt.result = json.dumps(results, ensure_ascii=False)
         attempt.is_solved = True if attempt.status == 'correct' else False
         attempt.save()
         # print("_______________________")
+
+        # if attempt.is_solved:
+        #     notify_teacher_about_task_solved(
+        #         student=request.user,
+        #         task_id=attempt.real_task_id,
+        #         task_level = get_task_level(attempt.real_task_id),
+        #         task_title=Task.objects.get(id=attempt.real_task_id).title,
+        #     )
+        if not attempt.is_solved:
+            notify_teacher_about_task_attempt(
+                student=request.user,
+                task_id=attempt.real_task_id,
+                attempt_count=TaskAttempt.objects.filter(real_task_id=attempt.real_task_id, user=request.user).count(),
+                task_level=get_task_level(attempt.real_task_id),
+            )
 
 
     except subprocess.TimeoutExpired:
@@ -117,10 +123,6 @@ def run_tests(request, program_id):
         print(f"Тестирование: {user}\n       результат {success_rate}%\n       задача {task.title}")
     except Exception as e:
         logger.error(f"Пользователь не найден. Ошибка {e}")
-
-
-
-
 
     # print(f"{user = }")
     # print(f"{task_id = }")

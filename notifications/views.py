@@ -25,7 +25,7 @@ def get_notifications(request):
         # Получаем последние 50 уведомлений
         notifications = Notification.objects.filter(
             recipient=request.user
-        ).select_related('sender')[:50]
+        ).select_related('sender')[:15]
 
         # Считаем непрочитанные
         unread_count = Notification.objects.filter(

@@ -1,0 +1,1 @@
+data = list(map(int, input().split()))count = 0for i in range(len(data) - 1):    if data[i] == data[i + 1]:        count += 1        print(data[i], end=" ")if count == 0:    print("НЕТ")

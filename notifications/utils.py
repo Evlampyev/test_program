@@ -1,3 +1,4 @@
+from task_description_app.models import Task
 from .models import Notification
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -11,6 +12,7 @@ def create_task_solved_notification(task_attempt):
     """
     Создает уведомление для учителя о решенной задаче
     """
+
     try:
         student = task_attempt.user
 
@@ -48,7 +50,7 @@ def create_task_solved_notification(task_attempt):
         title = f"✅ Задача решена: {student.last_name} {student.first_name}"
         message = (
             # f"Ученик {student.last_name} {student.first_name} "
-            f"Класс {class_info}, группа {student_group.number}. "
+            f"{class_info} (группа {student_group.number}). "
             f"Задача #{task_attempt.real_task_id} '{get_task_title(task_attempt.real_task_id)}'"
         )
 
@@ -118,17 +120,19 @@ def notify_teacher_about_task_solved(student, task_id, task_level=None, task_tit
         # Формируем заголовок и сообщение
         title = f"✅ Задача решена: {student.last_name} {student.first_name}"
 
+        task = Task.objects.filter(task_id=str(task_id)).first()
+
         message = (
             f"Ученик {student.last_name} {student.first_name} "
-            f"({class_info}, группа {student_group.number}) "
+            f"{class_info} ({student_group.number}) "
             f"успешно решил задачу #{task_id}"
         )
 
         if task_level:
             message += f" (уровень {task_level})"
 
-        if task_title:
-            message += f"\n\n📌 Задача: {task_title}"
+        if task.title:
+            message += f"\n\n📌 Задача: {task.title}"
 
         # print(f"!!!!!!! from notifications {student=}, and {student.id =} !!!!!!!!!!!")
         # Создаем уведомление
@@ -153,7 +157,7 @@ def notify_teacher_about_task_solved(student, task_id, task_level=None, task_tit
         return None
 
 
-def notify_teacher_about_task_attempt(student, task_id, attempt_count, is_solved=False):
+def notify_teacher_about_task_attempt(student, task_id, attempt_count, task_level):
     """
     Отправляет уведомление учителю о попытке решения задачи
 
@@ -161,7 +165,7 @@ def notify_teacher_about_task_attempt(student, task_id, attempt_count, is_solved
         student: Объект User ученика
         task_id: ID задачи
         attempt_count: Номер попытки
-        is_solved: Решена ли задача
+        task_level: Уровень сложности
     """
     try:
         if not hasattr(student, 'student_profile'):
@@ -172,15 +176,16 @@ def notify_teacher_about_task_attempt(student, task_id, attempt_count, is_solved
             return None
 
         teacher = student_group.teacher
-
-        status = "✅ успешно" if is_solved else "📝 попытку"
-        title = f"{status} задачи: {student.last_name} {student.first_name}"
-
+        from users_app.views import get_task_title
         message = (
-            f"Ученик {student.last_name} {student.first_name} "
-            f"({student_group.school_class}, группа {student_group.number}) "
-            f"сделал {attempt_count}-ю попытку решения задачи #{task_id}"
+            f"{student_group.school_class} (группа {student_group.number}). "
+            
+            f"Задача #{task_id} '{get_task_title(task_id)}'"
+            f" Попытка {attempt_count}-я."
         )
+
+        status = "📝 попытка решения"
+        title = f"{status} задачи: {student.last_name} {student.first_name}"
 
         notification = Notification.objects.create(
             recipient=teacher,
@@ -189,7 +194,6 @@ def notify_teacher_about_task_attempt(student, task_id, attempt_count, is_solved
             title=title,
             message=message,
             task_id=str(task_id),
-            # student_id=student.id
         )
 
         return notification
