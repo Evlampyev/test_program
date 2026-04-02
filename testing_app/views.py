@@ -22,13 +22,20 @@ def run_tests(request, program_id):
     program.status = 'testing'
     program.save()
 
+    # Если program_file - это FileField
+    if program.program_file:
+        # Открываем файл через Django
+        with program.program_file.open('r') as f:
+            code = f.read()
+    # print(f"---------------new_code = \n{code}\n---------------------")
+
     # Создаем запись о попытке
     attempt = TaskAttempt.objects.create(
         user=request.user,
         task_path=program.program_path,
         task_id=program_id,
         real_task_id=program.task_id,
-        # code=code,
+        code=code,
         status='pending'
     )
 

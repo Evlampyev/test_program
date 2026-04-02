@@ -42,11 +42,9 @@
                         <h3>Последняя попытка:</h3>
                         <p>Загружено: {{ uploaded_program.upload_time }}</p>
                         <p>Статус: {{ uploaded_program.get_status_display }}</p>
-                        {% if uploaded_program.test_results %}
-                            <button class="btn btn-secondary" onclick="showResults({{ uploaded_program.id }})">
-                                Показать результаты
-                            </button>
-                        {% endif %}
+                        <button class="btn btn-secondary" onclick="showAttemptResults({{ last_attempt.id }})">
+                            Показать результаты
+                        </button>
                     </div>
                 {% endif %}
 
@@ -70,28 +68,24 @@
                         <span id="programFileName" style="color: #9cdcfe;">Файл не выбран</span>
                     </div>
                     <pre id="programContent" style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">// Программа будет отображена после загрузки</pre>
-
                 </div>
             </div>
         </div>
-        <!-- Правая часть - результаты тестирования (занимает всю правую сторону) -->
+        <!-- Правая часть - результаты тестирования -->
         <div class="upload-section" style="display: flex; flex-direction: column; height: 100%;">
             <h2>Результаты тестирования</h2>
 
             <!-- Результаты тестирования занимают всю правую часть -->
             <div id="testResults" style="flex-grow: 1; display: none; overflow-y: auto;">
-                <h3>Результаты тестирования</h3>
                 <div id="testResultsContent"></div>
             </div>
 
             <!-- Заглушка, когда результаты еще не загружены -->
             <div id="testResultsPlaceholder"
-                 style="flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #f5f5f5; border-radius: 8px; padding: 20px; text-align: center;">
+                 style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f5f5f5; border-radius: 8px; padding: 20px; text-align: center;">
                 <p style="color: #666;">Результаты тестирования появятся здесь после загрузки и проверки программы</p>
             </div>
         </div>
-
-
     </div>
 {% endblock %}
 
@@ -99,4 +93,309 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
     <script src="{% static 'task_description_app/js/task_detail.js' %}"></script>
+
+    <script>
+        // Показать результаты предыдущей попытки
+        async function showAttemptResults(attemptId) {
+            console.log('Показ результатов для attemptId:', attemptId);
+
+            if (!attemptId || isNaN(attemptId)) {
+                console.error('Некорректный ID попытки:', attemptId);
+                alert('Ошибка: ID попытки не определен');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('testResults');
+            const resultsContent = document.getElementById('testResultsContent');
+            const placeholder = document.getElementById('testResultsPlaceholder');
+
+            if (!resultsDiv || !resultsContent) {
+                console.error('Элементы для отображения результатов не найдены');
+                return;
+            }
+
+            resultsDiv.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
+
+            resultsContent.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p>Загрузка результатов...</p></div>';
+
+            try {
+                const url = `/tasks/attempt/${attemptId}/results/`;
+                console.log('Запрос к URL:', url);
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                console.log('Статус ответа:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Полученные данные:', data);
+
+                if (data.success) {
+                    let html = `
+                <div class="attempt-results">
+                    <div class="attempt-header">
+                        <h3>📝 Результаты попытки</h3>
+                        <p class="text-muted">Время: ${data.attempt_time || 'не указано'}</p>
+                        <p class="text-muted">ID задачи: ${data.task_display_id || data.real_task_id || data.task_id || 'не указан'}</p>
+                        <div class="status-badge ${data.is_solved ? 'solved' : 'failed'}">
+                            ${data.is_solved ? '✅ Задача решена' : '❌ Задача не решена'}
+                        </div>
+                        <div class="status-detail">
+                            <strong>Статус:</strong> ${data.status || 'не указан'}
+                        </div>
+                    </div>
+
+                    <div class="attempt-code">
+                        <h4>📄 Код решения:</h4>
+                        <pre><code class="language-python">${escapeHtml(data.code || '# Код не найден')}</code></pre>
+                    </div>
+
+                    <div class="attempt-tests">
+                        <h4>🧪 Результаты тестов:</h4>
+                        ${formatTestResults(data.result)}
+                    </div>
+                </div>
+            `;
+
+                    resultsContent.innerHTML = html;
+
+                    // Подсветка кода
+                    if (typeof hljs !== 'undefined') {
+                        resultsContent.querySelectorAll('pre code').forEach(block => {
+                            hljs.highlightElement(block);
+                        });
+                    }
+                } else {
+                    resultsContent.innerHTML = `<div class="alert alert-danger">Ошибка: ${data.error || 'Неизвестная ошибка'}</div>`;
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке результатов:', error);
+                resultsContent.innerHTML = `<div class="alert alert-danger">Ошибка при загрузке результатов: ${error.message}</div>`;
+            }
+        }
+
+        // Форматирование результатов тестов в красивом виде
+        function formatTestResults(result) {
+            if (!result) return '<p class="text-muted">Нет данных о тестах</p>';
+
+            // Если результат - строка, пытаемся распарсить как JSON
+            if (typeof result === 'string') {
+                try {
+                    result = JSON.parse(result);
+                } catch (e) {
+                    return `<div class="alert alert-info">${escapeHtml(result)}</div>`;
+                }
+            }
+
+            // Если есть статистика тестов
+            if (result.results && Array.isArray(result.results)) {
+                const testsPassed = result.results.filter(t => t.passed === true).length;
+                const totalTests = result.results.length;
+                const percentage = totalTests > 0 ? Math.round((testsPassed / totalTests) * 100) : 0;
+
+                let html = `
+            <div class="test-summary-card">
+                <div class="test-summary-header">
+                    <h4>📊 Результаты тестирования</h4>
+                </div>
+                <div class="test-summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">${totalTests}</div>
+                        <div class="stat-label">Всего тестов</div>
+                    </div>
+                    <div class="stat-item success">
+                        <div class="stat-value">${testsPassed}</div>
+                        <div class="stat-label">Пройдено</div>
+                    </div>
+                    <div class="stat-item ${percentage >= 80 ? 'success' : (percentage >= 50 ? 'warning' : 'danger')}">
+                        <div class="stat-value">${percentage}%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: ${percentage}%; background: ${percentage >= 80 ? '#28a745' : (percentage >= 50 ? '#ffc107' : '#dc3545')};">
+                        <span>${percentage}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+                // Детали тестов
+                html += '<div class="test-details-list"><h5>🔍 Детали тестов:</h5>';
+
+                result.results.forEach((test, index) => {
+                    const testNum = test.test || (index + 1);
+                    const passed = test.passed === true;
+                    const statusClass = passed ? 'passed' : 'failed';
+                    const statusIcon = passed ? '✅' : '❌';
+                    const statusText = passed ? 'Пройден' : 'Не пройден';
+
+                    html += `
+                <div class="test-detail-item ${statusClass}">
+                    <div class="test-detail-header" onclick="toggleTestDetails(this)">
+                        <div class="test-detail-title">
+                            <span class="test-icon">${statusIcon}</span>
+                            <strong>Тест #${testNum}</strong>
+                            <span class="test-status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="test-detail-body" style="display: none;">
+            `;
+
+                    if (!passed) {
+                        // Ожидаемый результат
+                        if (test.expected !== undefined && test.expected !== null) {
+                            html += `
+                        <div class="test-diff">
+                            <div class="diff-section expected">
+                                <div class="diff-title">📋 Ожидаемый результат:</div>
+                                <pre class="diff-content">${escapeHtml(String(test.expected))}</pre>
+                            </div>
+                    `;
+                        }
+
+                        // Полученный результат
+                        if (test.got !== undefined && test.got !== null) {
+                            html += `
+                            <div class="diff-section got">
+                                <div class="diff-title">📝 Полученный результат:</div>
+                                <pre class="diff-content">${escapeHtml(String(test.got))}</pre>
+                            </div>
+                    `;
+                        }
+
+                        if (test.expected !== undefined || test.got !== undefined) {
+                            html += `</div>`;
+                        }
+
+                        // Входные данные
+                        if (test.input !== undefined && test.input !== null) {
+                            html += `
+                        <div class="test-input">
+                            <div class="diff-title">📥 Входные данные:</div>
+                            <pre class="diff-content">${escapeHtml(String(test.input))}</pre>
+                        </div>
+                    `;
+                        }
+                    } else {
+                        html += `<div class="test-success-message">✅ Тест пройден успешно!</div>`;
+                    }
+
+                    // Ошибка выполнения
+                    if (test.error) {
+                        html += `
+                    <div class="test-error">
+                        <div class="error-title">⚠️ Ошибка выполнения:</div>
+                        <pre class="error-content">${escapeHtml(String(test.error))}</pre>
+                    </div>
+                `;
+                    }
+
+                    html += `
+                    </div>
+                </div>
+            `;
+                });
+
+                html += '</div>';
+
+                // Общее сообщение, если есть
+                if (result.message) {
+                    html += `<div class="test-message">${escapeHtml(result.message)}</div>`;
+                }
+
+                return html;
+            }
+
+            // Если есть tests_passed и total_tests (упрощенный формат)
+            if (result.tests_passed !== undefined || result.total_tests !== undefined) {
+                const testsPassed = result.tests_passed || 0;
+                const totalTests = result.total_tests || 0;
+                const percentage = totalTests > 0 ? Math.round((testsPassed / totalTests) * 100) : 0;
+
+                let html = `
+            <div class="test-summary-card">
+                <div class="test-summary-header">
+                    <h4>📊 Результаты тестирования</h4>
+                </div>
+                <div class="test-summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">${totalTests}</div>
+                        <div class="stat-label">Всего тестов</div>
+                    </div>
+                    <div class="stat-item success">
+                        <div class="stat-value">${testsPassed}</div>
+                        <div class="stat-label">Пройдено</div>
+                    </div>
+                    <div class="stat-item ${percentage >= 80 ? 'success' : (percentage >= 50 ? 'warning' : 'danger')}">
+                        <div class="stat-value">${percentage}%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: ${percentage}%; background: ${percentage >= 80 ? '#28a745' : (percentage >= 50 ? '#ffc107' : '#dc3545')};">
+                        <span>${percentage}%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+                if (result.message) {
+                    html += `<div class="test-message">${escapeHtml(result.message)}</div>`;
+                }
+
+                return html;
+            }
+
+            // Если есть просто сообщение
+            if (result.message) {
+                return `<div class="alert alert-info">${escapeHtml(result.message)}</div>`;
+            }
+
+            // Если ничего не подошло, показываем JSON (но более читаемо)
+            try {
+                const prettyJson = JSON.stringify(result, null, 2);
+                return `
+            <div class="test-json">
+                <h5>📋 Данные в формате JSON:</h5>
+                <pre class="json-view">${escapeHtml(prettyJson)}</pre>
+            </div>
+        `;
+            } catch {
+                return '<p class="text-muted">Некорректный формат результатов</p>';
+            }
+        }
+
+        // Функция для сворачивания/разворачивания деталей теста
+        function toggleTestDetails(element) {
+            const body = element.nextElementSibling;
+            const icon = element.querySelector('.toggle-icon');
+
+            if (body.style.display === 'none' || !body.style.display) {
+                body.style.display = 'block';
+                icon.textContent = '▲';
+            } else {
+                body.style.display = 'none';
+                icon.textContent = '▼';
+            }
+        }
+
+        // Экранирование HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+    </script>
 {% endblock %}

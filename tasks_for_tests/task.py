@@ -1,11 +1,19 @@
-from random import randint
+data = "оооооо"
+count = 4
+char = 'о'
+i = count - 2
+res = 0
+while res < count:
+    i += 1
+    res = data.count(char, 0, i)
+print(data[i:])
 
-my_list = [randint(100, 999) for x in range(10)]
-big_list = [el for el in my_list if el < 500]
-litle_list = [el for el in my_list if el >= 500]
-print(sum(big_list) / len(big_list))
-print(sum(litle_list) / len(litle_list))
-
-str_data = "Hello, world!"
-new_data = str_data.replace('l', '*', 2)
-print(new_data)
+data = "оооооо"
+count = 4
+char = 'о'
+i = 0
+while count != 0:
+    if data[i] == char:
+        count -= 1
+    i = i + 1
+print(data[i:])

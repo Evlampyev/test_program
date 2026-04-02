@@ -3,7 +3,6 @@ import os
 import re
 import textwrap
 import mimetypes
-import io
 
 from django.db.models import Max
 from django.shortcuts import render, get_object_or_404, redirect
@@ -21,7 +20,7 @@ from .forms import TaskAddForm, TaskContentForm, CollectionForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
     CollectionAssignment, User, TaskAttempt, UploadedProgram
 from .utils import create_uploaded_file_from_code, get_task_files
-
+from manage import logger
 
 
 def build_tree_structure():
@@ -151,22 +150,101 @@ def task_detail(request, task_id):
 
     html_content = render_markdown_without_empty_blocks(md_content, task.id)
 
-    # Получаем загруженную программу
-    from task_description_app.models import UploadedProgram
+    # # Получаем загруженную программу
+    # from task_description_app.models import UploadedProgram
+    # uploaded_program = None
+    # if request.user.is_authenticated:
+    #     uploaded_program = UploadedProgram.objects.filter(
+    #         task=task,
+    #         user=request.user
+    #     ).order_by('-upload_time').first()
+    #
+    # context = {
+    #     'task': task,
+    #     'md_html': html_content,
+    #     'uploaded_program': uploaded_program,
+    #     'title': task.title
+    # }
+    # Получаем загруженную программу и попытки
     uploaded_program = None
+    last_attempt = None
+
     if request.user.is_authenticated:
+        # Последняя программа
         uploaded_program = UploadedProgram.objects.filter(
             task=task,
             user=request.user
         ).order_by('-upload_time').first()
 
+        # ВАЖНО: ищем попытку по реальному ID задачи (real_task_id)
+        # Преобразуем task.id в строку для сравнения
+        task_id_str = str(task.id)
+
+        last_attempt = TaskAttempt.objects.filter(
+            user=request.user,
+            real_task_id=task_id_str  # используем real_task_id вместо task_id
+        ).order_by('-attempt_time').first()
+
+        # Для отладки
+        print(f"Task ID: {task.id}")
+        print(f"Task ID str: {task_id_str}")
+        print(f"Last attempt found: {last_attempt.id if last_attempt else 'None'}")
+        if last_attempt:
+            print(f"Last attempt real_task_id: {last_attempt.real_task_id}")
+
     context = {
         'task': task,
         'md_html': html_content,
         'uploaded_program': uploaded_program,
+        'last_attempt': last_attempt,
         'title': task.title
     }
     return render(request, 'task_description_app/task_detail.html', context)
+
+
+@login_required
+def get_attempt_results(request, attempt_id):
+    """API для получения результатов попытки"""
+    try:
+        attempt = get_object_or_404(TaskAttempt, id=attempt_id, user=request.user)
+
+        # Парсим результаты, если они в JSON
+        results_data = {}
+        if attempt.result:
+            try:
+                results_data = json.loads(attempt.result)
+            except json.JSONDecodeError:
+                results_data = {'message': attempt.result}
+
+        # ВАЖНО: используем правильное поле для ID задачи
+        # Если есть real_task_id, используем его, иначе task_id
+        task_display_id = attempt.real_task_id if attempt.real_task_id else attempt.task_id
+
+        response_data = {
+            'success': True,
+            'code': attempt.code or '',
+            'status': attempt.status,
+            'is_solved': attempt.is_solved,
+            'attempt_time': attempt.attempt_time.strftime('%d.%m.%Y %H:%M:%S'),
+            'real_task_id': attempt.real_task_id,  # реальный ID задачи
+            'task_id': attempt.task_id,  # ID задания (может быть другим)
+            'task_display_id': task_display_id,  # для отображения
+            'result': results_data
+        }
+
+        return JsonResponse(response_data)
+
+    except TaskAttempt.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Попытка не найдена'
+        }, status=404)
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 
 def get_task_info(request, task_id):
@@ -274,7 +352,7 @@ def task_add(request):
                             destination.write(chunk)
 
                 # 6. СОЗДАЕМ СВЯЗИ В СТРУКТУРЕ
-                # Находим или создаем узлы структуры
+                # находим или создаем узлы структуры
                 class_node, _ = ClassStructure.objects.get_or_create(
                     name=class_name,
                     level=0,
