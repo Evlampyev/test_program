@@ -466,6 +466,7 @@ def student_tasks(request, student_id):
                 'is_solved': is_solved,
                 'first_attempt': first_attempt.get_local_time() if first_attempt else None,
                 'last_attempt': last_attempt.get_local_time() if last_attempt else None,
+                'last_attempt_id': last_attempt.id if last_attempt else None,  # Добавляем ID попытк
                 'status_class': 'success' if is_solved else 'warning',
                 'status_text': 'Решена' if is_solved else 'В процессе',
                 'success_rate': round((successful_attempts / total_attempts * 100)) if total_attempts > 0 else 0,

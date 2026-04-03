@@ -186,11 +186,11 @@ def task_detail(request, task_id):
         ).order_by('-attempt_time').first()
 
         # Для отладки
-        print(f"Task ID: {task.id}")
-        print(f"Task ID str: {task_id_str}")
-        print(f"Last attempt found: {last_attempt.id if last_attempt else 'None'}")
-        if last_attempt:
-            print(f"Last attempt real_task_id: {last_attempt.real_task_id}")
+        # print(f"Task ID: {task.id}")
+        # print(f"Task ID str: {task_id_str}")
+        # print(f"Last attempt found: {last_attempt.id if last_attempt else 'None'}")
+        # if last_attempt:
+        #     print(f"Last attempt real_task_id: {last_attempt.real_task_id}")
 
     context = {
         'task': task,
@@ -204,11 +204,32 @@ def task_detail(request, task_id):
 
 @login_required
 def get_attempt_results(request, attempt_id):
-    """API для получения результатов попытки"""
+    """API для получения результатов попытки (для ученика и учителя)"""
     try:
-        attempt = get_object_or_404(TaskAttempt, id=attempt_id, user=request.user)
+        attempt = get_object_or_404(TaskAttempt, id=attempt_id)
 
-        # Парсим результаты, если они в JSON
+        # Отладка
+        # print(f"=== get_attempt_results ===")
+        # print(f"Attempt ID: {attempt_id}")
+        # print(f"Request user: {request.user} (type: {request.user.user_type})")
+        # print(f"Attempt user: {attempt.user} (type: {attempt.user.user_type})")
+        # print(f"Attempt code length: {len(attempt.code) if attempt.code else 0}")
+        # print(f"Attempt code preview: {attempt.code[:200] if attempt.code else 'EMPTY'}")
+        # print(f"is_teacher: {request.user.user_type == 'teacher'}")
+        # print(f"is_owner: {attempt.user == request.user}")
+
+        # Проверяем права доступа
+        is_teacher = request.user.user_type == 'teacher'
+        is_owner = attempt.user == request.user
+
+        # Если не учитель и не владелец - доступ запрещен
+        if not (is_teacher or is_owner):
+            return JsonResponse({
+                'success': False,
+                'error': 'Доступ запрещен'
+            }, status=403)
+
+        # Парсим результаты
         results_data = {}
         if attempt.result:
             try:
@@ -216,20 +237,39 @@ def get_attempt_results(request, attempt_id):
             except json.JSONDecodeError:
                 results_data = {'message': attempt.result}
 
-        # ВАЖНО: используем правильное поле для ID задачи
-        # Если есть real_task_id, используем его, иначе task_id
-        task_display_id = attempt.real_task_id if attempt.real_task_id else attempt.task_id
+        # Получаем код программы
+        code = attempt.code or ''
 
+        # print(f"Returning code length: {len(code)}")
+
+        # Если код пустой, пробуем получить из UploadedProgram
+        if not code and is_teacher:
+            # Для учителя - показываем код из последней программы ученика
+            from .models import UploadedProgram
+            program = UploadedProgram.objects.filter(
+                user=attempt.user,
+                task__id=attempt.real_task_id
+            ).order_by('-upload_time').first()
+
+            if program and program.program_file:
+                try:
+                    program.program_file.open('r')
+                    code = program.program_file.read()
+                    program.program_file.close()
+                except Exception as e:
+                    print(f"Ошибка чтения файла: {e}")
+
+        # Формируем ответ
         response_data = {
             'success': True,
-            'code': attempt.code or '',
+            'code': code,
             'status': attempt.status,
             'is_solved': attempt.is_solved,
             'attempt_time': attempt.attempt_time.strftime('%d.%m.%Y %H:%M:%S'),
-            'real_task_id': attempt.real_task_id,  # реальный ID задачи
-            'task_id': attempt.task_id,  # ID задания (может быть другим)
-            'task_display_id': task_display_id,  # для отображения
-            'result': results_data
+            'real_task_id': attempt.real_task_id,
+            'task_id': attempt.task_id,
+            'result': results_data,
+            'student_name': f"{attempt.user.last_name} {attempt.user.first_name}" if is_teacher else None
         }
 
         return JsonResponse(response_data)
