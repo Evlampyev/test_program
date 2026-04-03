@@ -183,11 +183,11 @@
             }
         }
 
-        // Форматирование результатов тестов в красивом виде
+        // Форматирование результатов тестов для формата из tester.py
         function formatTestResults(result) {
             if (!result) return '<p class="text-muted">Нет данных о тестах</p>';
 
-            // Если результат - строка, пытаемся распарсить как JSON
+            // Если result - строка, пробуем распарсить как JSON
             if (typeof result === 'string') {
                 try {
                     result = JSON.parse(result);
@@ -196,10 +196,10 @@
                 }
             }
 
-            // Если есть статистика тестов
-            if (result.results && Array.isArray(result.results)) {
-                const testsPassed = result.results.filter(t => t.passed === true).length;
-                const totalTests = result.results.length;
+            // Если result - массив тестов (формат из tester.py)
+            if (Array.isArray(result) && result.length > 0) {
+                const testsPassed = result.filter(t => t.passed === true).length;
+                const totalTests = result.length;
                 const percentage = totalTests > 0 ? Math.round((testsPassed / totalTests) * 100) : 0;
 
                 let html = `
@@ -232,19 +232,22 @@
                 // Детали тестов
                 html += '<div class="test-details-list"><h5>🔍 Детали тестов:</h5>';
 
-                result.results.forEach((test, index) => {
-                    const testNum = test.test || (index + 1);
+                result.forEach((test, index) => {
+                    const testNum = index + 1;
                     const passed = test.passed === true;
                     const statusClass = passed ? 'passed' : 'failed';
                     const statusIcon = passed ? '✅' : '❌';
                     const statusText = passed ? 'Пройден' : 'Не пройден';
+
+                    // Получаем имя теста (из test_name или формируем)
+                    const testName = test.test_name || `Тест #${testNum}`;
 
                     html += `
                 <div class="test-detail-item ${statusClass}">
                     <div class="test-detail-header" onclick="toggleTestDetails(this)">
                         <div class="test-detail-title">
                             <span class="test-icon">${statusIcon}</span>
-                            <strong>Тест #${testNum}</strong>
+                            <strong>${escapeHtml(testName)}</strong>
                             <span class="test-status-badge ${statusClass}">${statusText}</span>
                         </div>
                         <span class="toggle-icon">▼</span>
@@ -253,33 +256,18 @@
             `;
 
                     if (!passed) {
-                        // Ожидаемый результат
-                        if (test.expected !== undefined && test.expected !== null) {
+                        // Показываем ошибку
+                        if (test.error) {
                             html += `
-                        <div class="test-diff">
-                            <div class="diff-section expected">
-                                <div class="diff-title">📋 Ожидаемый результат:</div>
-                                <pre class="diff-content">${escapeHtml(String(test.expected))}</pre>
-                            </div>
+                        <div class="test-error-message">
+                            <div class="error-title">⚠️ Ошибка:</div>
+                            <div class="error-content">${escapeHtml(test.error)}</div>
+                        </div>
                     `;
-                        }
-
-                        // Полученный результат
-                        if (test.got !== undefined && test.got !== null) {
-                            html += `
-                            <div class="diff-section got">
-                                <div class="diff-title">📝 Полученный результат:</div>
-                                <pre class="diff-content">${escapeHtml(String(test.got))}</pre>
-                            </div>
-                    `;
-                        }
-
-                        if (test.expected !== undefined || test.got !== undefined) {
-                            html += `</div>`;
                         }
 
                         // Входные данные
-                        if (test.input !== undefined && test.input !== null) {
+                        if (test.input !== undefined && test.input !== null && test.input !== '') {
                             html += `
                         <div class="test-input">
                             <div class="diff-title">📥 Входные данные:</div>
@@ -287,18 +275,54 @@
                         </div>
                     `;
                         }
-                    } else {
-                        html += `<div class="test-success-message">✅ Тест пройден успешно!</div>`;
-                    }
 
-                    // Ошибка выполнения
-                    if (test.error) {
+                        // Ожидаемый вывод
+                        if (test.expected !== undefined && test.expected !== null && test.expected !== '') {
+                            html += `
+                        <div class="expected-output">
+                            <div class="diff-title">📋 Ожидаемый вывод:</div>
+                            <pre class="diff-content">${escapeHtml(String(test.expected))}</pre>
+                        </div>
+                    `;
+                        }
+
+                        // Фактический вывод
+                        if (test.actual !== undefined && test.actual !== null) {
+                            html += `
+                        <div class="actual-output">
+                            <div class="diff-title">📝 Полученный вывод:</div>
+                            <pre class="diff-content">${escapeHtml(String(test.actual))}</pre>
+                        </div>
+                    `;
+                        }
+
+                        // Код возврата
+                        if (test.return_code !== undefined && test.return_code !== 0) {
+                            html += `
+                        <div class="return-code">
+                            <div class="diff-title">🔢 Код возврата:</div>
+                            <div class="code-content">${test.return_code}</div>
+                        </div>
+                    `;
+                        }
+                    } else {
+                        // Для пройденного теста показываем краткую информацию
                         html += `
-                    <div class="test-error">
-                        <div class="error-title">⚠️ Ошибка выполнения:</div>
-                        <pre class="error-content">${escapeHtml(String(test.error))}</pre>
+                    <div class="test-success-message">
+                        <div class="success-icon">✅</div>
+                        <div class="success-text">Тест пройден успешно!</div>
                     </div>
                 `;
+
+                        // Если есть входные данные, показываем их (опционально)
+                        if (test.input !== undefined && test.input !== null && test.input !== '') {
+                            html += `
+                        <details class="test-input-details">
+                            <summary>📥 Показать входные данные</summary>
+                            <pre class="diff-content">${escapeHtml(String(test.input))}</pre>
+                        </details>
+                    `;
+                        }
                     }
 
                     html += `
@@ -309,71 +333,38 @@
 
                 html += '</div>';
 
-                // Общее сообщение, если есть
-                if (result.message) {
-                    html += `<div class="test-message">${escapeHtml(result.message)}</div>`;
+                // Итоговое сообщение
+                if (testsPassed === totalTests) {
+                    html += '<div class="test-all-passed">🎉 Поздравляем! Все тесты пройдены успешно! 🎉</div>';
+                } else if (testsPassed === 0) {
+                    html += '<div class="test-none-passed">💥 Ни один тест не пройден. Проверьте код и попробуйте снова.</div>';
+                } else {
+                    html += `<div class="test-partial-passed">📈 Пройдено ${testsPassed} из ${totalTests} тестов (${percentage}%)</div>`;
                 }
 
                 return html;
             }
 
-            // Если есть tests_passed и total_tests (упрощенный формат)
+            // Если result - объект со статистикой
             if (result.tests_passed !== undefined || result.total_tests !== undefined) {
-                const testsPassed = result.tests_passed || 0;
-                const totalTests = result.total_tests || 0;
-                const percentage = totalTests > 0 ? Math.round((testsPassed / totalTests) * 100) : 0;
-
-                let html = `
-            <div class="test-summary-card">
-                <div class="test-summary-header">
-                    <h4>📊 Результаты тестирования</h4>
-                </div>
-                <div class="test-summary-stats">
-                    <div class="stat-item">
-                        <div class="stat-value">${totalTests}</div>
-                        <div class="stat-label">Всего тестов</div>
-                    </div>
-                    <div class="stat-item success">
-                        <div class="stat-value">${testsPassed}</div>
-                        <div class="stat-label">Пройдено</div>
-                    </div>
-                    <div class="stat-item ${percentage >= 80 ? 'success' : (percentage >= 50 ? 'warning' : 'danger')}">
-                        <div class="stat-value">${percentage}%</div>
-                        <div class="stat-label">Успешность</div>
-                    </div>
-                </div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" style="width: ${percentage}%; background: ${percentage >= 80 ? '#28a745' : (percentage >= 50 ? '#ffc107' : '#dc3545')};">
-                        <span>${percentage}%</span>
-                    </div>
-                </div>
-            </div>
-        `;
-
-                if (result.message) {
-                    html += `<div class="test-message">${escapeHtml(result.message)}</div>`;
-                }
-
-                return html;
+                return renderStatistics(result);
             }
 
-            // Если есть просто сообщение
+            // Если есть message
             if (result.message) {
                 return `<div class="alert alert-info">${escapeHtml(result.message)}</div>`;
             }
 
-            // Если ничего не подошло, показываем JSON (но более читаемо)
-            try {
-                const prettyJson = JSON.stringify(result, null, 2);
-                return `
-            <div class="test-json">
-                <h5>📋 Данные в формате JSON:</h5>
-                <pre class="json-view">${escapeHtml(prettyJson)}</pre>
-            </div>
-        `;
-            } catch {
-                return '<p class="text-muted">Некорректный формат результатов</p>';
-            }
+            // Если ничего не подошло
+            return `
+        <div class="test-debug">
+            <h5>🔍 Отладочная информация</h5>
+            <details>
+                <summary>Показать структуру данных</summary>
+                <pre class="debug-json">${escapeHtml(JSON.stringify(result, null, 2))}</pre>
+            </details>
+        </div>
+    `;
         }
 
         // Функция для сворачивания/разворачивания деталей теста
@@ -381,18 +372,58 @@
             const body = element.nextElementSibling;
             const icon = element.querySelector('.toggle-icon');
 
-            if (body.style.display === 'none' || !body.style.display) {
+            if (body && (body.style.display === 'none' || !body.style.display)) {
                 body.style.display = 'block';
-                icon.textContent = '▲';
-            } else {
+                if (icon) icon.textContent = '▲';
+            } else if (body) {
                 body.style.display = 'none';
-                icon.textContent = '▼';
+                if (icon) icon.textContent = '▼';
             }
+        }
+
+        // Рендер статистики
+        function renderStatistics(data) {
+            const testsPassed = data.tests_passed || 0;
+            const totalTests = data.total_tests || 0;
+            const percentage = totalTests > 0 ? Math.round((testsPassed / totalTests) * 100) : 0;
+
+            let html = `
+        <div class="test-summary-card">
+            <div class="test-summary-header">
+                <h4>📊 Результаты тестирования</h4>
+            </div>
+            <div class="test-summary-stats">
+                <div class="stat-item">
+                    <div class="stat-value">${totalTests}</div>
+                    <div class="stat-label">Всего тестов</div>
+                </div>
+                <div class="stat-item success">
+                    <div class="stat-value">${testsPassed}</div>
+                    <div class="stat-label">Пройдено</div>
+                </div>
+                <div class="stat-item ${percentage >= 80 ? 'success' : (percentage >= 50 ? 'warning' : 'danger')}">
+                    <div class="stat-value">${percentage}%</div>
+                    <div class="stat-label">Успешность</div>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: ${percentage}%;">
+                    <span>${percentage}%</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+            if (data.message) {
+                html += `<div class="test-message">${escapeHtml(data.message)}</div>`;
+            }
+
+            return html;
         }
 
         // Экранирование HTML
         function escapeHtml(text) {
-            if (!text) return '';
+            if (text === undefined || text === null) return '';
             const div = document.createElement('div');
             div.textContent = String(text);
             return div.innerHTML;
