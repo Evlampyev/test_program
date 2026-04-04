@@ -64,10 +64,10 @@ def build_tree_structure():
     return tree_data
 
 
-def get_structure(request):
-    """API для получения структуры дерева"""
-    structure = build_tree_structure()
-    return JsonResponse({'structure': structure})
+# def get_structure(request):
+#     """API для получения структуры дерева"""
+#     structure = build_tree_structure()
+#     return JsonResponse({'structure': structure})
 
 
 def task_list(request):
@@ -208,16 +208,6 @@ def get_attempt_results(request, attempt_id):
     try:
         attempt = get_object_or_404(TaskAttempt, id=attempt_id)
 
-        # Отладка
-        # print(f"=== get_attempt_results ===")
-        # print(f"Attempt ID: {attempt_id}")
-        # print(f"Request user: {request.user} (type: {request.user.user_type})")
-        # print(f"Attempt user: {attempt.user} (type: {attempt.user.user_type})")
-        # print(f"Attempt code length: {len(attempt.code) if attempt.code else 0}")
-        # print(f"Attempt code preview: {attempt.code[:200] if attempt.code else 'EMPTY'}")
-        # print(f"is_teacher: {request.user.user_type == 'teacher'}")
-        # print(f"is_owner: {attempt.user == request.user}")
-
         # Проверяем права доступа
         is_teacher = request.user.user_type == 'teacher'
         is_owner = attempt.user == request.user
@@ -239,8 +229,6 @@ def get_attempt_results(request, attempt_id):
 
         # Получаем код программы
         code = attempt.code or ''
-
-        # print(f"Returning code length: {len(code)}")
 
         # Если код пустой, пробуем получить из UploadedProgram
         if not code and is_teacher:

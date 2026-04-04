@@ -1,9 +1,8 @@
-data = "Молоко_-_это_очень_вкусно_и_полезно"
-count = 4
-char = 'о'
-temp = 0
+from random import randint
 
-for i in range(count):
-    temp = data.find(char, temp + 1, len(data) - 1)
+data = [randint(0, 9) for i in range(10)]
+print("1)", data)
 
-print(data[temp + 1:])
+data.pop(3)
+print("1)", data)
+
