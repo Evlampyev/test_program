@@ -1,8 +1,5 @@
-from random import randint
+text = "РоссияРРРРР"
+print(text.center(10, '.'))
+print(text.center(10, ))
 
-data = [randint(0, 9) for i in range(10)]
-print("1)", data)
-
-data.pop(3)
-print("1)", data)
-
+print(text.strip('Р'))

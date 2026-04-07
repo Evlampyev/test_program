@@ -77,6 +77,37 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
+
+        /* Стили для таблиц в модальном окне */
+        .modal-content table {
+            width: 100%;
+            margin: 15px 0;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+
+        .modal-content th,
+        .modal-content td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .modal-content th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .modal-content table table {
+            margin: 0;
+            width: auto;
+        }
+
+        /* Для таблиц с атрибутом style="width: auto" */
+        .modal-content table[style*="width: auto"] {
+            width: auto;
+            min-width: 200px;
+        }
     </style>
 {% endblock %}
 
@@ -339,6 +370,7 @@
         async function showTaskCondition(taskId) {
             console.log('Загрузка условия задачи для taskId:', taskId);
 
+
             if (!taskId) {
                 console.error('Некорректный taskId!');
                 alert('Ошибка: ID задачи не определен');
@@ -371,7 +403,6 @@
 
             const modal = new bootstrap.Modal(modalElement);
 
-            // Показываем модальное окно
             modal.show();
 
             const modalBody = document.getElementById('taskConditionModalBody');
@@ -396,6 +427,9 @@
                 }
 
                 const data = await response.json();
+                console.log('Полученные данные:', data);
+                console.log('md_content:', data.md_content);
+
 
                 if (data.md_content) {
                     // Добавляем заголовок и сложность к md_content
@@ -406,7 +440,7 @@
                     }
 
                     if (data.difficulty) {
-                        htmlContent += `<div class="mb-3"><span class="badge bg-secondary"><i class="fas fa-signal me-1"></i>Уровень сложности: ${escapeHtml(data.difficulty)}</span></div>`;
+                        htmlContent += `<div class="mb-3"><span class="badge bg-secondary"><i class="fas fa-signal me-1"></i>Сложность: ${escapeHtml(data.difficulty)}</span></div>`;
                     }
 
                     htmlContent += `<div class="task-md-content">${data.md_content}</div>`;

@@ -20,7 +20,7 @@ from .forms import TaskAddForm, TaskContentForm, CollectionForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
     CollectionAssignment, User, TaskAttempt, UploadedProgram
 from .utils import create_uploaded_file_from_code, get_task_files
-from manage import logger
+
 
 
 def build_tree_structure():
@@ -64,12 +64,6 @@ def build_tree_structure():
     return tree_data
 
 
-# def get_structure(request):
-#     """API для получения структуры дерева"""
-#     structure = build_tree_structure()
-#     return JsonResponse({'structure': structure})
-
-
 def task_list(request):
     """Страница со списком всех задач"""
     tasks = Task.objects.all()
@@ -89,50 +83,216 @@ def task_list(request):
     return render(request, 'task_description_app/task_list.html', context)
 
 
-def render_markdown_with_images(md_content, task_id):
+def render_markdown_without_empty_blocks(md_content, task_id):
+    """Конвертирует Markdown в HTML и удаляет пустые блоки кода"""
+    # Сначала обрабатываем изображения в Markdown
+    md_content_with_images = process_markdown_images(md_content, task_id)
+
+    # Затем конвертируем в HTML
+    html_content = markdown.markdown(md_content_with_images, extensions=['extra'])
+
+    # Удаляем пустые блоки кода
+    html_content = re.sub(r'<pre><code[^>]*>\s*</code></pre>\n?', '', html_content)
+
+    return html_content
+
+
+def process_markdown_images(md_content, task_id):
     """
-    Простой поиск и замена строк
+    Обрабатывает изображения в Markdown, заменяя пути на правильные URL
     """
     lines = md_content.split('\n')
     new_lines = []
 
     for line in lines:
-        # Проверяем, содержит ли строка изображение
-        if "img.png" in line:
-            # print(f"Найдена строка: {line}")
+        # Ищем изображения в формате ![alt](img.png)
+        img_pattern = r'!\[([^\]]*)\]\(([^)]+)\)'
 
-            # Находим позиции
-            start_alt = line.find('="') + 2
-            end_alt = line.find('" src=', start_alt)
-            alt = line[start_alt:end_alt]
+        def replace_img(match):
+            alt = match.group(1)
+            src = match.group(2)
 
-            start_src = line.rfind('="', end_alt) + 2
-            end_src = line.find('"', start_src)
-            src = line[start_src:end_src].strip()
+            # Если это наше изображение img.png
+            if src == 'img.png' or src.endswith('.png') or src.endswith('.jpg'):
+                return f'<img class="img-right" src="/tasks/task/{task_id}/image/{src}" alt="{alt}">'
+            return match.group(0)
 
-            # print(f"  alt='{alt}', src='{src}'")
+        new_line = re.sub(img_pattern, replace_img, line)
+        new_lines.append(new_line)
 
-            # Создаем HTML тег
-            new_line = f'<img class="img-right" src="/tasks/task/{task_id}/image/{src}" alt="{alt}">'
-            new_lines.append(new_line)
-        else:
-            new_lines.append(line)
+    return '\n'.join(new_lines)
 
-    # Объединяем строки
-    modified_md = '\n'.join(new_lines)
+
+def render_markdown_with_images(md_content, task_id):
+    """Устаревшая функция, оставлена для совместимости"""
+    return process_markdown_images(md_content, task_id)
+
+
+def get_task_info(request, task_id):
+    """API для получения информации о задаче"""
+    task = get_object_or_404(Task, id=task_id)
+    task_files = get_task_files(task_id)
+
+    # Читаем содержимое task.md
+    md_content = ""
+    if os.path.exists(task_files['md']):
+        with open(task_files['md'], 'r', encoding='utf-8') as f:
+            md_content = f.read()
 
     # Конвертируем Markdown в HTML
-    html_content = markdown.markdown(modified_md, extensions=['extra'])
+    html_content = render_markdown_for_modal(md_content, task_id)
 
-    return html_content
+    # # ОТЛАДКА: проверяем, есть ли таблицы в HTML
+    # if '<table' in html_content:
+    #     print("✓ Таблицы найдены в HTML")
+    #     # Выводим первые 500 символов для проверки
+    #     print(html_content[:700])
+    # else:
+    #     print("✗ Таблицы НЕ найдены в HTML")
+    #     print("Исходный MD:")
+    #     print(md_content[:700])
+
+    dif_level = get_object_or_404(DifficultyLevel, id=task.difficulty_id)
+
+    return JsonResponse({
+        'id': task.id,
+        'title': task.title,
+        'description': task.description,
+        'difficulty': dif_level.display_name,
+        'md_content': html_content,  # Возвращаем HTML, а не Markdown
+        'test_files': task.test_files,
+    }, json_dumps_params={'ensure_ascii': False})
 
 
-def render_markdown_without_empty_blocks(md_content, task_id):
-    """Конвертирует Markdown в HTML и удаляет пустые блоки кода"""
-    html_content = markdown.markdown(md_content, extensions=['extra'])
+def render_markdown_for_modal(md_content, task_id):
+    """
+    Конвертирует Markdown в HTML для отображения в модальном окне
+    """
+
+    # 1. Сначала обрабатываем изображения в Markdown
+    # Заменяем ![alt](img.png) на HTML теги
+    def replace_images(match):
+        alt = match.group(1)
+        src = match.group(2)
+        if src in ['img.png', 'image.png', 'picture.png'] or src.endswith(('.png', '.jpg', '.jpeg')):
+            return f'<img class="img-right" src="/tasks/task/{task_id}/image/{src}" alt="{alt}">'
+        return match.group(0)
+
+    md_content = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', replace_images, md_content)
+
+    # 2. Конвертируем Markdown в HTML
+    html_content = markdown.markdown(md_content, extensions=['extra', 'tables'])
+
+    # 3. Удаляем пустые блоки кода
     html_content = re.sub(r'<pre><code[^>]*>\s*</code></pre>\n?', '', html_content)
-    html_content = render_markdown_with_images(html_content, task_id)
+
+    # 4. Убеждаемся, что таблицы не экранированы
+    # HTML таблицы должны остаться как есть
+
     return html_content
+
+
+# def render_markdown_without_empty_blocks(md_content, task_id):
+#     """Конвертирует Markdown в HTML и удаляет пустые блоки кода"""
+#     # Сначала обрабатываем изображения в Markdown
+#     md_content = render_markdown_images_in_markdown(md_content, task_id)
+#
+#     # Конвертируем Markdown в HTML
+#     html_content = markdown.markdown(md_content, extensions=['extra'])
+#
+#     # Удаляем пустые блоки кода
+#     html_content = re.sub(r'<pre><code[^>]*>\s*</code></pre>\n?', '', html_content)
+#
+#     return html_content
+
+
+# def render_markdown_images_in_markdown(md_content, task_id):
+#     """
+#     Обрабатывает изображения на уровне Markdown (ДО конвертации в HTML)
+#     """
+#     lines = md_content.split('\n')
+#     new_lines = []
+#
+#     for line in lines:
+#         # Ищем Markdown изображения: ![alt](img.png)
+#         img_matches = re.findall(r'!\[([^\]]*)\]\(([^)]+)\)', line)
+#
+#         for alt, src in img_matches:
+#             # Проверяем, является ли это изображением
+#             if src.endswith(('.png', '.jpg', '.jpeg', '.gif')):
+#                 # Создаем HTML тег вместо Markdown
+#                 html_img = f'<img class="img-right" src="/tasks/task/{task_id}/image/{src}" alt="{alt}">'
+#                 line = line.replace(f'![{alt}]({src})', html_img)
+#
+#         new_lines.append(line)
+#
+#     return '\n'.join(new_lines)
+#
+#
+# # Старая функция - переименуем и оставим для обратной совместимости
+# def render_markdown_with_images(html_content, task_id):
+#     """
+#     Обрабатывает изображения в HTML (устаревшая версия)
+#     """
+#     # Ищем img теги с src="img.png"
+#     pattern = r'<img[^>]+src="([^"]+)"[^>]*>'
+#
+#     def replace_img(match):
+#         src = match.group(1)
+#         if src == 'img.png' or src.endswith('.png'):
+#             # Находим alt текст
+#             alt_match = re.search(r'alt="([^"]+)"', match.group(0))
+#             alt = alt_match.group(1) if alt_match else ""
+#             return f'<img class="img-right" src="/tasks/task/{task_id}/image/{src}" alt="{alt}">'
+#         return match.group(0)
+#
+#     return re.sub(pattern, replace_img, html_content)
+
+
+# def render_markdown_with_images(md_content, task_id):
+#     """
+#     Простой поиск и замена строк
+#     """
+#     lines = md_content.split('\n')
+#     new_lines = []
+#
+#     for line in lines:
+#         # Проверяем, содержит ли строка изображение
+#         if "img.png" in line:
+#             # print(f"Найдена строка: {line}")
+#
+#             # Находим позиции
+#             start_alt = line.find('="') + 2
+#             end_alt = line.find('" src=', start_alt)
+#             alt = line[start_alt:end_alt]
+#
+#             start_src = line.rfind('="', end_alt) + 2
+#             end_src = line.find('"', start_src)
+#             src = line[start_src:end_src].strip()
+#
+#             # print(f"  alt='{alt}', src='{src}'")
+#
+#             # Создаем HTML тег
+#             new_line = f'<img class="img-right" src="/tasks/task/{task_id}/image/{src}" alt="{alt}">'
+#             new_lines.append(new_line)
+#         else:
+#             new_lines.append(line)
+#
+#     # Объединяем строки
+#     modified_md = '\n'.join(new_lines)
+#
+#     # Конвертируем Markdown в HTML
+#     html_content = markdown.markdown(modified_md, extensions=['extra'])
+#
+#     return html_content
+
+
+# def render_markdown_without_empty_blocks(md_content, task_id):
+#     """Конвертирует Markdown в HTML и удаляет пустые блоки кода"""
+#     html_content = markdown.markdown(md_content, extensions=['extra'])
+#     html_content = re.sub(r'<pre><code[^>]*>\s*</code></pre>\n?', '', html_content)
+#     html_content = render_markdown_with_images(html_content, task_id)
+#     return html_content
 
 
 def task_detail(request, task_id):
@@ -275,27 +435,30 @@ def get_attempt_results(request, attempt_id):
         }, status=500)
 
 
-def get_task_info(request, task_id):
-    """API для получения информации о задаче"""
-    task = get_object_or_404(Task, id=task_id)
-    task_files = get_task_files(task_id)
-
-    # Читаем содержимое task.md
-    md_content = ""
-    if os.path.exists(task_files['md']):
-        with open(task_files['md'], 'r', encoding='utf-8') as f:
-            md_content = f.read()
-
-    md_content = render_markdown_without_empty_blocks(md_content, task_id)
-
-    return JsonResponse({
-        'id': task.id,
-        'title': task.title,
-        'description': task.description,
-        'difficulty': task.difficulty_id,
-        'md_content': md_content,
-        'test_files': task.test_files,
-    })
+# def get_task_info(request, task_id):
+#     """API для получения информации о задаче"""
+#     task = get_object_or_404(Task, id=task_id)
+#     task_files = get_task_files(task_id)
+#
+#     # Читаем содержимое task.md
+#     md_content = ""
+#     if os.path.exists(task_files['md']):
+#         with open(task_files['md'], 'r', encoding='utf-8') as f:
+#             md_content = f.read()
+#     md_content = render_markdown_without_empty_blocks(md_content, task_id)
+#
+#
+#
+#     dif_level = get_object_or_404(DifficultyLevel, id=task.difficulty_id)
+#
+#     return JsonResponse({
+#         'id': task.id,
+#         'title': task.title,
+#         'description': task.description,
+#         'difficulty': dif_level.display_name,
+#         'md_content': md_content,
+#         'test_files': task.test_files,
+#     })
 
 
 def clean_text(text):
