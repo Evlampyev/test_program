@@ -4,164 +4,179 @@
 {% block title %}Выдача: {{ collection.title }}{% endblock %}
 
 {% block extra_css %}
-<style>
-    .students-list {
-        max-height: 500px;
-        overflow-y: auto;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 15px;
-    }
 
-    .class-group {
-        margin-bottom: 20px;
-    }
-
-    .class-title {
-        background: #f8f9fa;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        margin-bottom: 10px;
-    }
-
-    .student-checkbox {
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .student-checkbox:hover {
-        background: #f8f9fa;
-    }
-
-    .select-all {
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #dee2e6;
-    }
-</style>
+    <link rel="stylesheet" href="{% static 'task_description_app/css/collections.css' %}">
+    {#<style>#}
+    {#    .students-list {#}
+    {#        max-height: 500px;#}
+    {#        overflow-y: auto;#}
+    {#        border: 1px solid #dee2e6;#}
+    {#        border-radius: 8px;#}
+    {#        padding: 15px;#}
+    {#    }#}
+    {##}
+    {#    .class-group {#}
+    {#        margin-bottom: 20px;#}
+    {#    }#}
+    {##}
+    {#    .class-title {#}
+    {#        background: #f8f9fa;#}
+    {#        padding: 8px 12px;#}
+    {#        border-radius: 6px;#}
+    {#        font-weight: 600;#}
+    {#        margin-bottom: 10px;#}
+    {#    }#}
+    {##}
+    {#    .student-checkbox {#}
+    {#        display: flex;#}
+    {#        align-items: center;#}
+    {#        padding: 8px 12px;#}
+    {#        border-bottom: 1px solid #f0f0f0;#}
+    {#    }#}
+    {##}
+    {#    .student-checkbox:hover {#}
+    {#        background: #f8f9fa;#}
+    {#    }#}
+    {##}
+    {#    .select-all {#}
+    {#        margin-bottom: 15px;#}
+    {#        padding-bottom: 10px;#}
+    {#        border-bottom: 1px solid #dee2e6;#}
+    {#    }#}
+    {#</style>#}
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <!-- Заголовок -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-paper-plane me-2"></i>
-                        Выдача контрольной работы
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <h5>{{ collection.title }}</h5>
-                    <p class="text-muted">{{ collection.description }}</p>
-
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Информация:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>📚 Задач: {{ collection.collection_items.count }}</li>
-                            <li>⭐ Макс. баллов: {{ collection.get_total_score }}</li>
-                            <li>⏱️ Время выполнения: {% if collection.time_limit %}{{ collection.time_limit }} мин{% else %}без ограничений{% endif %}</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Форма выдачи -->
-            <form method="post">
-                {% csrf_token %}
-
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-users me-2"></i>
-                            Выберите учеников
-                        </h5>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <!-- Заголовок -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            Выдача контрольной работы
+                        </h4>
                     </div>
                     <div class="card-body">
-                        <!-- Срок выполнения -->
-                        <div class="mb-4">
-                            <label class="form-label">
-                                <i class="fas fa-calendar-alt me-2"></i>
-                                Срок выполнения (необязательно)
-                            </label>
-                            <input type="datetime-local" name="due_date" class="form-control">
-                        </div>
+                        <h5>{{ collection.title }}</h5>
+                        <p class="text-muted">{{ collection.description }}</p>
 
-                        <!-- Список учеников -->
-                        <div class="students-list">
-                            <div class="select-all">
-                                <label class="d-flex align-items-center">
-                                    <input type="checkbox" id="selectAll" class="me-2">
-                                    <strong>Выбрать всех</strong>
-                                </label>
-                            </div>
-
-                            {% for class_name, students in students_by_class.items %}
-                            <div class="class-group">
-                                <div class="class-title">
-                                    <i class="fas fa-school me-2"></i>
-                                    {{ class_name }}
-                                    <span class="badge bg-secondary ms-2">{{ students|length }} уч.</span>
-                                </div>
-                                {% for student in students %}
-                                <div class="student-checkbox">
-                                    <input type="checkbox" name="students" value="{{ student.id }}" class="student-check me-2" id="student_{{ student.id }}">
-                                    <label for="student_{{ student.id }}" class="flex-grow-1 mb-0">
-                                        {{ student.last_name }} {{ student.first_name }}
-                                        {% if student.middle_name %}{{ student.middle_name }}{% endif %}
-                                    </label>
-                                    {% if student.student_profile.solved_tasks %}
-                                    <small class="text-muted">Решено: {{ student.student_profile.solved_tasks }} задач</small>
-                                    {% endif %}
-                                </div>
-                                {% endfor %}
-                            </div>
-                            {% empty %}
-                            <div class="text-center py-4">
-                                <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
-                                <p>Нет учеников, соответствующих критериям</p>
-                                <small class="text-muted">
-                                    Проверьте настройки класса и группы в подборке
-                                </small>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-2"></i>Выдать задание
-                            </button>
-                            <a href="{% url 'tasks:collection_detail' collection_id=collection.id %}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Назад
-                            </a>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Информация:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>📚 Задач: {{ collection.collection_items.count }}</li>
+                                <li>⭐ Макс. баллов: {{ collection.get_total_score }}</li>
+                                <li>⏱️ Время выполнения:
+                                    {% if collection.time_limit %}{{ collection.time_limit }} мин{% else %}без
+                                        ограничений{% endif %}</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-            </form>
+
+                <!-- Форма выдачи -->
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users me-2"></i>
+                                Выберите учеников
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Срок выполнения -->
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    Срок выполнения (необязательно)
+                                </label>
+                                <input type="datetime-local" name="due_date" class="form-control">
+                            </div>
+
+                            <!-- Список учеников -->
+                            <div class="students-list">
+                                <div class="select-all">
+                                    <label class="d-flex align-items-center">
+                                        <input type="checkbox" id="selectAll" class="me-2">
+                                        <strong>Выбрать всех</strong>
+                                    </label>
+                                </div>
+
+                                {% for class_name, students in students_by_class.items %}
+                                    <div class="class-group">
+                                        <div class="class-title">
+                                            <i class="fas fa-school me-2"></i>
+                                            {{ class_name }}
+                                            <span class="badge bg-secondary ms-2">{{ students|length }} уч.</span>
+                                        </div>
+                                        {% for student in students %}
+                                            <div class="student-checkbox">
+                                                <input type="checkbox" name="students" value="{{ student.id }}"
+                                                       class="student-check me-2" id="student_{{ student.id }}">
+                                                <label for="student_{{ student.id }}" class="flex-grow-1 mb-0">
+                                                    {{ student.last_name }} {{ student.first_name }}
+                                                    {% if student.middle_name %}{{ student.middle_name }}{% endif %}
+                                                </label>
+                                                {% if student.student_profile.solved_tasks %}
+                                                    <small class="text-muted">Решено: {{ student.student_profile.solved_tasks }}
+                                                        задач</small>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% empty %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
+                                        <p>Нет учеников, соответствующих критериям</p>
+                                        <small class="text-muted">
+                                            Проверьте настройки класса и группы в подборке
+                                        </small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Выдать задание
+                                </button>
+                                <a href="{% url 'tasks:collection_detail' collection_id=collection.id %}"
+                                   class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Назад
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Выделить всех
-    document.getElementById('selectAll').addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.student-check');
-        checkboxes.forEach(cb => cb.checked = this.checked);
-    });
-
-    // Снять выделение "Все", если снят один
-    document.querySelectorAll('.student-check').forEach(cb => {
-        cb.addEventListener('change', function() {
-            const allChecked = Array.from(document.querySelectorAll('.student-check')).every(cb => cb.checked);
-            document.getElementById('selectAll').checked = allChecked;
-        });
-    });
-</script>
 {% endblock %}
+
+{% block extra_js %}
+
+    <script src="{% static 'task_description_app/js/collections.js' %}"></script>
+
+{% endblock %}
+
+{#<script>#}
+{#    // Выделить всех#}
+{#    document.getElementById('selectAll').addEventListener('change', function() {#}
+{#        const checkboxes = document.querySelectorAll('.student-check');#}
+{#        checkboxes.forEach(cb => cb.checked = this.checked);#}
+{#    });#}
+{##}
+{#    // Снять выделение "Все", если снят один#}
+{#    document.querySelectorAll('.student-check').forEach(cb => {#}
+{#        cb.addEventListener('change', function() {#}
+{#            const allChecked = Array.from(document.querySelectorAll('.student-check')).every(cb => cb.checked);#}
+{#            document.getElementById('selectAll').checked = allChecked;#}
+{#        });#}
+{#    });#}
+{#</script>#}
+

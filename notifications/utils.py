@@ -1,3 +1,6 @@
+import pytz
+from django.conf import settings
+
 from task_description_app.models import Task
 from .models import Notification
 from django.contrib.auth import get_user_model
@@ -214,16 +217,26 @@ def notify_teacher_about_completed_assignment(teacher, student, collection, atte
         attempt: Объект CollectionAttempt
     """
     try:
+        # Активируем часовой пояс пользователя
+        if teacher.user.timezone:
+            user_timezone = pytz.timezone(teacher.user.timezone)
+            timezone.activate(user_timezone)
+        else:
+            # Если у пользователя не задан, используем часовой пояс сервера
+            timezone.activate(pytz.timezone(settings.TIME_ZONE))
+
+
+
         title = f"✅ Выполнена КР: {collection.title}"
         message = (
-            f"Ученик {student.last_name} {student.first_name} "
-            f"выполнил КР '{collection.title}'.\n\n"
+            f" {student.last_name} {student.first_name} "
+            # f"выполнил КР '{collection.title}'.\n\n"
             f"Результат: {attempt.score}/{attempt.max_score} баллов "
             f"({attempt.get_progress_percent()}%)\n"
         )
 
         if attempt.completed_at:
-            message += f"📅 Выполнено: {attempt.completed_at.strftime('%d.%m.%Y %H:%M')}\n"
+            message += f"📅 {timezone.localtime(attempt.completed_at).strftime('%d.%m.%Y %H:%M')}\n"
 
         notification = Notification.objects.create(
             recipient=teacher,
