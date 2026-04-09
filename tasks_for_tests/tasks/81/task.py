@@ -1,12 +1,15 @@
-def solve():
-    count = 0
-    for i, num in enumerate(arr):
-        # Проверяем, является ли число кратным 5
-        # Используем abs() для отрицательных чисел
-        if isinstance(num, (int, float)) and num % 5 == 0:
-            count += 1
-            if count == 2:
-                return i
-    return -1
-if __name__ == "__main__":
-    solve()
+def sum_digit(num):
+    temp = [int(i) for i in str(num)]
+    return sum(temp)
+
+
+data = [int(i) for i in input().split()]
+maks = 0
+i_maks = -1
+for i, el in enumerate(data):
+    sum_dig = sum_digit(el)
+    if sum_dig > sum_digit(maks):
+        maks = el
+        i_maks = i
+
+print(maks, i_maks)
