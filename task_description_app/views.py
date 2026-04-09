@@ -7,7 +7,7 @@ import pytz
 
 from django.db.models import Max
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, Http404
 from django.db import models
@@ -17,10 +17,14 @@ import markdown
 import json
 from django.views.decorators.csrf import csrf_exempt
 
-from .forms import TaskAddForm, TaskContentForm, CollectionForm
+from .forms import TaskAddForm, TaskContentForm, CollectionForm, TaskEditForm, TaskContentEditForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
     CollectionAssignment, User, TaskAttempt, UploadedProgram
 from .utils import create_uploaded_file_from_code, get_task_files
+
+
+def is_teacher(user):
+    return user.is_authenticated and user.user_type == 'teacher'
 
 
 def build_tree_structure():
@@ -310,21 +314,6 @@ def task_detail(request, task_id):
 
     html_content = render_markdown_without_empty_blocks(md_content, task.id)
 
-    # # Получаем загруженную программу
-    # from task_description_app.models import UploadedProgram
-    # uploaded_program = None
-    # if request.user.is_authenticated:
-    #     uploaded_program = UploadedProgram.objects.filter(
-    #         task=task,
-    #         user=request.user
-    #     ).order_by('-upload_time').first()
-    #
-    # context = {
-    #     'task': task,
-    #     'md_html': html_content,
-    #     'uploaded_program': uploaded_program,
-    #     'title': task.title
-    # }
     # Получаем загруженную программу и попытки
     uploaded_program = None
     last_attempt = None
@@ -344,13 +333,6 @@ def task_detail(request, task_id):
             user=request.user,
             real_task_id=task_id_str  # используем real_task_id вместо task_id
         ).order_by('-attempt_time').first()
-
-        # Для отладки
-        # print(f"Task ID: {task.id}")
-        # print(f"Task ID str: {task_id_str}")
-        # print(f"Last attempt found: {last_attempt.id if last_attempt else 'None'}")
-        # if last_attempt:
-        #     print(f"Last attempt real_task_id: {last_attempt.real_task_id}")
 
     context = {
         'task': task,
@@ -676,6 +658,185 @@ def serve_task_image(request, task_id, filename):
 
     with open(file_path, 'rb') as f:
         return HttpResponse(f.read(), content_type=content_type)
+
+
+@login_required
+@user_passes_test(is_teacher)
+def task_edit(request, task_id):
+    """Редактирование существующей задачи (переиспользует шаблон task_add.html)"""
+    task = get_object_or_404(Task, id=task_id)
+
+    # Получаем путь к файлам задачи
+    task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
+    task_md_path = os.path.join(task_dir, 'task.md')
+    task_py_path = os.path.join(task_dir, 'task.py')
+
+    # Читаем текущее содержимое файлов
+    current_md_content = ""
+    current_py_content = ""
+
+    if os.path.exists(task_md_path):
+        with open(task_md_path, 'r', encoding='utf-8') as f:
+            current_md_content = f.read()
+
+    if os.path.exists(task_py_path):
+        with open(task_py_path, 'r', encoding='utf-8') as f:
+            current_py_content = f.read()
+
+    # Читаем существующие тесты
+    existing_tests = []
+    test_files = sorted([f for f in os.listdir(task_dir) if f.endswith('.in')])
+    for test_file in test_files:
+        test_num = test_file.replace('test', '').replace('.in', '')
+        out_file = f'test{test_num}.out'
+
+        input_content = ""
+        output_content = ""
+
+        with open(os.path.join(task_dir, test_file), 'r', encoding='utf-8') as f:
+            input_content = f.read()
+
+        out_path = os.path.join(task_dir, out_file)
+        if os.path.exists(out_path):
+            with open(out_path, 'r', encoding='utf-8') as f:
+                output_content = f.read()
+
+        existing_tests.append({
+            'num': test_num,
+            'input': input_content,
+            'output': output_content
+        })
+
+    if request.method == 'POST':
+        task_form = TaskEditForm(request.POST, instance=task)
+        content_form = TaskContentEditForm(request.POST)
+
+        if task_form.is_valid() and content_form.is_valid():
+            # Сохраняем основную информацию о задаче
+            task = task_form.save(commit=False)
+            task.save()
+
+            # Обновляем task.md
+            new_md_content = content_form.cleaned_data['task_md_content']
+            if new_md_content != current_md_content:
+                with open(task_md_path, 'w', encoding='utf-8') as f:
+                    f.write(new_md_content)
+
+            # Обновляем task.py
+            new_py_content = content_form.cleaned_data['task_py_content']
+            if new_py_content != current_py_content:
+                with open(task_py_path, 'w', encoding='utf-8') as f:
+                    f.write(new_py_content)
+
+            # Обновляем тесты
+            test_count = int(request.POST.get('test_count', 0))
+
+            # Удаляем старые тестовые файлы
+            for old_test in test_files:
+                old_test_path = os.path.join(task_dir, old_test)
+                if os.path.exists(old_test_path):
+                    os.remove(old_test_path)
+            for old_out in [f for f in os.listdir(task_dir) if f.endswith('.out')]:
+                old_out_path = os.path.join(task_dir, old_out)
+                if os.path.exists(old_out_path):
+                    os.remove(old_out_path)
+
+            # Создаем новые тесты
+            for i in range(1, test_count + 1):
+                input_data = request.POST.get(f'test_{i}_input', '')
+                output_data = request.POST.get(f'test_{i}_output', '')
+
+                if input_data.strip() or output_data.strip():
+                    in_path = os.path.join(task_dir, f'test{i}.in')
+                    out_path = os.path.join(task_dir, f'test{i}.out')
+
+                    with open(in_path, 'w', encoding='utf-8') as f:
+                        f.write(input_data)
+                    with open(out_path, 'w', encoding='utf-8') as f:
+                        f.write(output_data)
+
+            # Обновляем JSON поле test_files в модели
+            test_files_list = [f'test{i}.in' for i in range(1, test_count + 1)]
+            task.test_files = test_files_list
+            task.save()
+
+            # Обработка изображения
+            if 'task_image' in request.FILES:
+                image_file = request.FILES['task_image']
+                img_path = os.path.join(task_dir, 'img.png')
+                with open(img_path, 'wb+') as destination:
+                    for chunk in image_file.chunks():
+                        destination.write(chunk)
+            elif request.POST.get('remove_image') == 'true':
+                img_path = os.path.join(task_dir, 'img.png')
+                if os.path.exists(img_path):
+                    os.remove(img_path)
+
+            messages.success(request, f'Задача #{task.id} успешно обновлена!')
+            return redirect('tasks:task_edit', task_id=task.id)
+    else:
+        task_form = TaskEditForm(instance=task)
+        content_form = TaskContentEditForm(initial={
+            'task_md_content': current_md_content,
+            'task_py_content': current_py_content,
+        })
+
+    context = {
+        'task_form': task_form,
+        'content_form': content_form,
+        'existing_tests': existing_tests,
+        'task_id': task.id,
+        'is_edit_mode': True,  # Флаг для шаблона
+        'task': task,
+    }
+
+    return render(request, 'task_description_app/task_edit.html', context)
+
+
+@login_required
+@user_passes_test(is_teacher)
+def task_edit_ajax(request, task_id):
+    """AJAX обработчик для редактирования задачи"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не разрешен'}, status=405)
+
+    task = get_object_or_404(Task, id=task_id)
+    task_dir = task.path
+
+    try:
+        # Обновляем task.md
+        if 'task_md_content' in request.POST:
+            md_path = os.path.join(task_dir, 'task.md')
+            with open(md_path, 'w', encoding='utf-8') as f:
+                f.write(request.POST['task_md_content'])
+
+        # Обновляем task.py
+        if 'task_py_content' in request.POST:
+            py_path = os.path.join(task_dir, 'task.py')
+            with open(py_path, 'w', encoding='utf-8') as f:
+                f.write(request.POST['task_py_content'])
+
+        return JsonResponse({'success': True, 'message': 'Задача обновлена'})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@user_passes_test(is_teacher)
+def task_delete(request, task_id):
+    """Удаление задачи"""
+    task = get_object_or_404(Task, id=task_id)
+    task_title = task.title
+
+    # Удаляем папку с файлами
+    import shutil
+    if os.path.exists(task.path):
+        shutil.rmtree(task.path)
+
+    task.delete()
+    messages.success(request, f'Задача "{task_title}" (#{task_id}) успешно удалена!')
+    return redirect('tasks:task_list')
 
 
 # для контрольных работ и своих уроков

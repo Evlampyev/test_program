@@ -240,7 +240,7 @@
                 // Добавляем кнопку "Редактировать задачу" только для учителя
                 if (isTeacher) {
                     buttonsHtml += `
-                        <a href="${editUrl}" class="btn btn-secondary">
+                        <a href="${editUrl}" class="btn btn-outline-secondary">
                             ✏️ Редактировать задачу
                         </a>
                     `;

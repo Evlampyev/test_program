@@ -61,18 +61,47 @@
                                 <i class="fas fa-home"></i> Главная
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'task_list' %}active{% endif %}"
-                               href="{% url 'tasks:task_list' %}">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'task_list' or request.resolver_match.url_name == 'task_add' or request.resolver_match.url_name == 'task_edit_list' %}active{% endif %}"
+                               href="#"
+                               id="tasksDropdown"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               data-bs-auto-close="outside"
+                               aria-expanded="false">
                                 <i class="fas fa-tasks"></i> Все задачи
                             </a>
+                            <ul class="dropdown-menu" aria-labelledby="tasksDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'tasks:task_list' %}">
+                                        <i class="fas fa-eye me-2"></i>Посмотреть
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'tasks:task_add' %}">
+                                        <i class="fas fa-plus-circle me-2"></i>Добавить задачу
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'tasks:task_edit_list' %}">
+                                        <i class="fas fa-edit me-2"></i>Редактировать задачу
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'task_add' %}active{% endif %}"
-                               href="{% url 'tasks:task_add' %}">
-                                <i class="fas fa-plus-circle"></i> Добавить задачу
-                            </a>
-                        </li>
+
+                        {#                        <li class="nav-item">#}
+                        {#                            <a class="nav-link {% if request.resolver_match.url_name == 'task_list' %}active{% endif %}"#}
+                        {#                               href="{% url 'tasks:task_list' %}">#}
+                        {#                                <i class="fas fa-tasks"></i> Все задачи#}
+                        {#                            </a>#}
+                        {#                        </li>#}
+{#                        <li class="nav-item">#}
+{#                            <a class="nav-link {% if request.resolver_match.url_name == 'task_add' %}active{% endif %}"#}
+{#                               href="{% url 'tasks:task_add' %}">#}
+{#                                <i class="fas fa-plus-circle"></i> Добавить задачу#}
+{#                            </a>#}
+{#                        </li>#}
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'collection_list' %}active{% endif %}"
                                href="{% url 'tasks:collection_list' %}">

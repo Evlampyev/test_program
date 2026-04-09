@@ -2,6 +2,7 @@
 from django.urls import path
 from . import views
 
+
 app_name = 'tasks'
 
 urlpatterns = [
@@ -13,6 +14,9 @@ urlpatterns = [
     path('task/<int:task_id>/image/<path:filename>', views.serve_task_image, name='task_image'),
     path('attempt/<int:attempt_id>/results/', views.get_attempt_results, name='attempt_results'),
 
+    path('task/<int:task_id>/edit/', views.task_edit, name='task_edit'),
+    path('task/<int:task_id>/edit/', views.task_edit, name='task_edit'),
+    path('task/<int:task_id>/delete/', views.task_delete, name='task_delete'),
 
 
     # Подборки задач

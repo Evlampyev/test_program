@@ -1,0 +1,60 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
+
+<div class="dropdown notifications-dropdown">
+    <button class="btn btn-outline-light position-relative" type="button" id="notificationsDropdown"
+            data-bs-toggle="dropdown">
+        <i class="fas fa-bell"></i>
+        <span class="position-absolute top-0 start-80 translate-middle badge rounded-pill bg-danger"
+              id="notificationBadge" style="display: none;">0</span>
+    </button>
+    <div class="dropdown-menu dropdown-menu-end p-0">
+        <div class="dropdown-header bg-light d-flex justify-content-between align-items-center py-2">
+            <span class="fw-bold"><i class="fas fa-bell me-2"></i>Уведомления</span>
+            <button class="btn btn-sm btn-link" onclick="markAllNotificationsRead(); return false;">Прочитать все
+            </button>
+        </div>
+        <div class="dropdown-divider m-0"></div>
+        <div id="notificationsList">
+            <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+                <p class="text-muted small mt-2">Загрузка...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{#<div class="dropdown notifications-dropdown">#}
+{#    <button class="btn btn-outline-light position-relative" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">#}
+{#        <i class="fas fa-bell"></i>#}
+{#        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge" style="display: none;">#}
+{#            0#}
+{#        </span>#}
+{#    </button>#}
+{#    <div class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="notificationsDropdown" style="width: 380px; max-height: 450px; overflow-y: auto;">#}
+{#        <div class="dropdown-header bg-light d-flex justify-content-between align-items-center py-2 px-3">#}
+{#            <span class="fw-bold"><i class="fas fa-bell me-2"></i>Уведомления</span>#}
+{#            <div class="d-flex gap-2">#}
+{#                <button class="btn btn-sm btn-link p-0" onclick="toggleNotificationSound()" title="Вкл/Выкл звук">#}
+{#                    <i class="fas fa-volume-up" id="soundIcon"></i>#}
+{#                </button>#}
+{#                <button class="btn btn-sm btn-link p-0" onclick="markAllNotificationsRead()">#}
+{#                    Прочитать все#}
+{#                </button>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="dropdown-divider m-0"></div>#}
+{#        <div id="notificationsList" style="min-height: 100px;">#}
+{#            <div class="text-center py-4">#}
+{#                <div class="spinner-border spinner-border-sm text-primary" role="status">#}
+{#                    <span class="visually-hidden">Загрузка...</span>#}
+{#                </div>#}
+{#                <p class="text-muted small mt-2">Загрузка уведомлений...</p>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+
+<script src="{% static 'notifications/js/notification_sound.js' %}"></script>
+
+
+<script src="{% static 'notifications/js/notifications.js' %}"></script>

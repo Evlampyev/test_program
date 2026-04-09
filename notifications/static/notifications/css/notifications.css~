@@ -1,0 +1,39 @@
+.notification-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #e3f2fd;
+}
+
+#notificationBadge {
+    font-size: 0.6rem;
+    padding: 2px 5px;
+}
+
+/*после добавки звука*/
+.notifications-dropdown .dropdown-header .btn-link {
+    color: #6c757d;
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+.notifications-dropdown .dropdown-header .btn-link:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+#soundIcon.fa-volume-up {
+    color: #28a745;
+}
+
+#soundIcon.fa-volume-mute {
+    color: #dc3545;
+}

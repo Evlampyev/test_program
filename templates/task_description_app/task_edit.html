@@ -1,0 +1,333 @@
+{% extends "task_description_app/task_add.html" %}
+{% load static %}
+
+{% block title %}Редактирование задачи #{{ task.id }} | {{ task.title }}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .edit-badge {
+            background: #ffc107;
+            color: #856404;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+            color: white;
+        }
+
+        .delete-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Заголовок с индикатором редактирования -->
+    <div class="page-header">
+        <h2 class="mb-2">
+            <i class="fas fa-edit me-2" style="color: #667eea;"></i>
+            Редактирование задачи #{{ task.id }}
+            <span class="edit-badge">
+                <i class="fas fa-pen me-1"></i>Режим редактирования
+            </span>
+        </h2>
+        <p class="text-muted mb-0">
+            Редактирование задачи: <strong>{{ task.title|default:"Без названия" }}</strong>
+        </p>
+    </div>
+
+    <!-- Форма (используем ту же, что и для добавления) -->
+    <form id="taskAddForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Вкладки (те же, что в task_add.html) -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link-dark active" id="path-tab" data-bs-toggle="tab" data-bs-target="#path"
+                        type="button" role="tab">
+                    <i class="fas fa-folder-tree me-2"></i>Путь
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link-dark" id="content-tab" data-bs-toggle="tab" data-bs-target="#content"
+                        type="button" role="tab">
+                    <i class="fas fa-file-alt me-2"></i>Описание
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link-dark" id="solution-tab" data-bs-toggle="tab" data-bs-target="#solution"
+                        type="button" role="tab">
+                    <i class="fab fa-python me-2"></i>Решение
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link-dark" id="tests-tab" data-bs-toggle="tab" data-bs-target="#tests"
+                        type="button" role="tab">
+                    <i class="fas fa-vial me-2"></i>Тесты
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            <!-- Вкладка 1: Путь (только для информации при редактировании) -->
+            <div class="tab-pane fade show active" id="path" role="tabpanel">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fas fa-map-signs"></i>
+                        Расположение задачи
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        При редактировании путь к задаче изменить нельзя.
+                        Если нужно переместить задачу - создайте новую в нужном месте.
+                    </div>
+
+                    <div class="path-preview">
+                        <div class="path-label">
+                            <i class="fas fa-link"></i> Текущий путь:
+                        </div>
+                        <div class="path-value">
+                            {{ task.path }}
+                        </div>
+                    </div>
+
+                    <!-- Скрытые поля для совместимости с формой -->
+                    <input type="hidden" name="class_name" value="{{ task_form.class_name.value|default:'' }}">
+                    <input type="hidden" name="topic" value="{{ task_form.topic.value|default:'' }}">
+                    <input type="hidden" name="lesson" value="{{ task_form.lesson.value|default:'' }}">
+                    <input type="hidden" name="level" value="{{ task_form.level.value|default:'' }}">
+                    <input type="hidden" name="task_folder" value="{{ task_form.task_folder.value|default:'' }}">
+                </div>
+            </div>
+
+            <!-- Вкладка 2: Описание задачи -->
+            <div class="tab-pane fade" id="content" role="tabpanel">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fas fa-file-alt"></i>
+                        Описание задачи #{{ task.id }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Название задачи</label>
+                                {{ task_form.title }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Уровень сложности</label>
+                                {{ task_form.difficulty }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Краткое описание (для списка)</label>
+                                {{ task_form.description }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Изображение к задаче</label>
+                                <input type="file" name="task_image" id="taskImage" class="form-control"
+                                       accept="image/*">
+                                <small class="text-muted">Новое изображение заменит существующее</small>
+
+                                {% if task.path %}
+                                    {% with img_path=task.path|add:"/img.png" %}
+                                        <!-- Проверка существования файла будет в JS или в view -->
+                                        <div id="imagePreview" class="image-preview" style="display: block;">
+                                            <img id="previewImg" src="/media/{{ task.path }}/img.png"
+                                                 alt="Текущее изображение">
+                                            <button type="button" class="btn-remove-image" onclick="removeImage()">
+                                                <i class="fas fa-trash-alt me-1"></i>Удалить изображение
+                                            </button>
+                                        </div>
+                                    {% endwith %}
+                                {% else %}
+                                    <div id="imagePreview" class="image-preview">
+                                        <img id="previewImg" src="#" alt="Предпросмотр">
+                                        <button type="button" class="btn-remove-image" onclick="removeImage()">
+                                            <i class="fas fa-trash-alt me-1"></i>Удалить изображение
+                                        </button>
+                                    </div>
+                                {% endif %}
+                                <input type="hidden" name="remove_image" id="removeImageFlag" value="false">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Полное описание задачи (Markdown)</label>
+                                {{ content_form.task_md_content }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка 3: Решение -->
+            <div class="tab-pane fade" id="solution" role="tabpanel">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fab fa-python"></i>
+                        Решение учителя (task.py)
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Код решения</label>
+                        {{ content_form.task_py_content }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка 4: Тесты -->
+            <div class="tab-pane fade" id="tests" role="tabpanel">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fas fa-vial"></i>
+                        Тесты для проверки
+                    </div>
+
+                    <div id="testsContainer">
+                        {% for test in existing_tests %}
+                            <div class="test-card" id="test_{{ test.num }}">
+                                <div class="test-header">
+                                    <span class="test-number">Тест #{{ test.num }}</span>
+                                    <span class="remove-test" onclick="removeTest({{ test.num }})">
+                                    <i class="fas fa-trash-alt"></i> Удалить
+                                </span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Входные данные (test{{ test.num }}.in)</label>
+                                        <textarea name="test_{{ test.num }}_input" class="form-control test-input"
+                                                  rows="3">{{ test.input }}</textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Выходные данные (test{{ test.num }}.out)</label>
+                                        <textarea name="test_{{ test.num }}_output" class="form-control test-output"
+                                                  rows="3">{{ test.output }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="btn-add-test" id="addTestBtn">
+                        <i class="fas fa-plus-circle me-2"></i>Добавить тест
+                    </button>
+
+                    <input type="hidden" name="test_count" id="testCount" value="{{ existing_tests|length }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопки -->
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <i class="fas fa-save me-2"></i>
+            Сохранить изменения
+        </button>
+
+        <div class="delete-section">
+            <button type="button" class="btn-delete" onclick="confirmDelete({{ task.id }})">
+                <i class="fas fa-trash-alt me-2"></i>
+                Удалить задачу
+            </button>
+        </div>
+    </form>
+
+    <!-- Модальные окна (те же, что в task_add.html) -->
+    <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Задача обновлена!
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center">Задача #{{ task.id }} успешно обновлена!</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'tasks:task_list' %}" class="btn btn-primary">
+                        <i class="fas fa-eye me-2"></i>К списку задач
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Продолжить редактирование
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Вы уверены, что хотите удалить задачу <strong>#{{ task.id }}: {{ task.title }}</strong>?</p>
+                    <p class="text-danger">Это действие необратимо. Все файлы задачи будут удалены.</p>
+                </div>
+                <div class="modal-footer">
+                    <form method="post" action="{% url 'tasks:task_delete' task.id %}">
+                        {% csrf_token %}
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-danger">Да, удалить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        function confirmDelete(taskId) {
+            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+        }
+
+        function removeImage() {
+            document.getElementById('taskImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('removeImageFlag').value = 'true';
+        }
+
+        // Обновляем предпросмотр изображения при выборе нового
+        document.getElementById('taskImage').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const preview = document.getElementById('imagePreview');
+                    const img = document.getElementById('previewImg');
+                    img.src = event.target.result;
+                    preview.style.display = 'block';
+                    document.getElementById('removeImageFlag').value = 'false';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+{% endblock %}
