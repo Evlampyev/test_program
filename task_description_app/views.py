@@ -17,7 +17,7 @@ import markdown
 import json
 from django.views.decorators.csrf import csrf_exempt
 
-from .forms import TaskAddForm, TaskContentForm, CollectionForm, TaskEditForm, TaskContentEditForm
+from .forms import TaskAddForm, TaskContentForm, CollectionForm, TaskEditForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
     CollectionAssignment, User, TaskAttempt, UploadedProgram
 from .utils import create_uploaded_file_from_code, get_task_files
@@ -660,28 +660,96 @@ def serve_task_image(request, task_id, filename):
         return HttpResponse(f.read(), content_type=content_type)
 
 
+def get_task_path_from_structure(task):
+    """Получает путь к задаче из структуры ClassStructure"""
+    placements = TaskPlacement.objects.filter(task=task).select_related('structure_node')
+    if not placements.exists():
+        return None
+
+    # Берем первый placement (или можно объединить несколько)
+    placement = placements.first()
+    node = placement.structure_node
+
+    # Собираем путь из названий узлов
+    path_parts = []
+    current = node
+    while current:
+        path_parts.insert(0, current.name)
+        current = current.parent
+
+    # Добавляем папку задачи
+    path_parts.append(f"task_{task.id}")
+
+    return os.path.join(settings.BASE_DIR, 'tasks_for_tests', *path_parts)
+
+
+def get_or_create_structure_node(class_name, topic_name, lesson_name, level_name):
+    """Получает или создает узлы структуры"""
+    # Уровень 0: Класс
+    class_node, _ = ClassStructure.objects.get_or_create(
+        name=class_name,
+        level=0,
+        parent=None
+    )
+
+    # Уровень 1: Тема
+    topic_node, _ = ClassStructure.objects.get_or_create(
+        name=topic_name,
+        level=1,
+        parent=class_node
+    )
+
+    # Уровень 2: Урок
+    lesson_node, _ = ClassStructure.objects.get_or_create(
+        name=lesson_name,
+        level=2,
+        parent=topic_node
+    )
+
+    # Уровень 3: Уровень сложности
+    level_node, _ = ClassStructure.objects.get_or_create(
+        name=level_name,
+        level=3,
+        parent=lesson_node
+    )
+
+    return level_node
+
+
 @login_required
 @user_passes_test(is_teacher)
 def task_edit(request, task_id):
-    """Редактирование существующей задачи (переиспользует шаблон task_add.html)"""
+    """Редактирование существующей задачи"""
     task = get_object_or_404(Task, id=task_id)
 
-    # Получаем путь к файлам задачи
+    # Получаем путь к папке задачи (из структуры или из settings.TASKS_ROOT)
     task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
+
+    # Создаем папку, если её нет
+    os.makedirs(task_dir, exist_ok=True)
+
+    # Пути к файлам
     task_md_path = os.path.join(task_dir, 'task.md')
     task_py_path = os.path.join(task_dir, 'task.py')
+    img_path = os.path.join(task_dir, 'img.png')
 
     # Читаем текущее содержимое файлов
     current_md_content = ""
     current_py_content = ""
+    img_exists = os.path.exists(img_path)
 
     if os.path.exists(task_md_path):
         with open(task_md_path, 'r', encoding='utf-8') as f:
             current_md_content = f.read()
+    else:
+        # Если файла нет, создаем заглушку
+        current_md_content = f"# Задача #{task.id}\n\n## Условие\n\nОпишите условие задачи..."
 
     if os.path.exists(task_py_path):
         with open(task_py_path, 'r', encoding='utf-8') as f:
             current_py_content = f.read()
+    else:
+        current_py_content = "def solve():\n    pass\n\nif __name__ == '__main__':\n    solve()"
 
     # Читаем существующие тесты
     existing_tests = []
@@ -693,8 +761,10 @@ def task_edit(request, task_id):
         input_content = ""
         output_content = ""
 
-        with open(os.path.join(task_dir, test_file), 'r', encoding='utf-8') as f:
-            input_content = f.read()
+        in_path = os.path.join(task_dir, test_file)
+        if os.path.exists(in_path):
+            with open(in_path, 'r', encoding='utf-8') as f:
+                input_content = f.read()
 
         out_path = os.path.join(task_dir, out_file)
         if os.path.exists(out_path):
@@ -708,118 +778,89 @@ def task_edit(request, task_id):
         })
 
     if request.method == 'POST':
-        task_form = TaskEditForm(request.POST, instance=task)
-        content_form = TaskContentEditForm(request.POST)
+        # Используем обычные формы, а не ModelForm для редактирования
+        # Обновляем задачу вручную
+        task.title = request.POST.get('title', '')
+        difficulty_id = request.POST.get('difficulty')
+        if difficulty_id:
+            task.difficulty_id = difficulty_id
+        task.description = request.POST.get('description', '')
+        task.save()
 
-        if task_form.is_valid() and content_form.is_valid():
-            # Сохраняем основную информацию о задаче
-            task = task_form.save(commit=False)
-            task.save()
+        # Обновляем task.md
+        new_md_content = request.POST.get('task_md_content', '')
+        if new_md_content != current_md_content:
+            with open(task_md_path, 'w', encoding='utf-8') as f:
+                f.write(new_md_content)
 
-            # Обновляем task.md
-            new_md_content = content_form.cleaned_data['task_md_content']
-            if new_md_content != current_md_content:
-                with open(task_md_path, 'w', encoding='utf-8') as f:
-                    f.write(new_md_content)
+        # Обновляем task.py
+        new_py_content = request.POST.get('task_py_content', '')
+        if new_py_content != current_py_content:
+            with open(task_py_path, 'w', encoding='utf-8') as f:
+                f.write(new_py_content)
 
-            # Обновляем task.py
-            new_py_content = content_form.cleaned_data['task_py_content']
-            if new_py_content != current_py_content:
-                with open(task_py_path, 'w', encoding='utf-8') as f:
-                    f.write(new_py_content)
+        # Обновляем тесты
+        test_count = int(request.POST.get('test_count', 0))
 
-            # Обновляем тесты
-            test_count = int(request.POST.get('test_count', 0))
+        # Удаляем старые тестовые файлы
+        for old_file in os.listdir(task_dir):
+            if old_file.startswith('test') and (old_file.endswith('.in') or old_file.endswith('.out')):
+                os.remove(os.path.join(task_dir, old_file))
 
-            # Удаляем старые тестовые файлы
-            for old_test in test_files:
-                old_test_path = os.path.join(task_dir, old_test)
-                if os.path.exists(old_test_path):
-                    os.remove(old_test_path)
-            for old_out in [f for f in os.listdir(task_dir) if f.endswith('.out')]:
-                old_out_path = os.path.join(task_dir, old_out)
-                if os.path.exists(old_out_path):
-                    os.remove(old_out_path)
+        # Создаем новые тесты
+        test_files_list = []
+        for i in range(1, test_count + 1):
+            input_data = request.POST.get(f'test_{i}_input', '')
+            output_data = request.POST.get(f'test_{i}_output', '')
 
-            # Создаем новые тесты
-            for i in range(1, test_count + 1):
-                input_data = request.POST.get(f'test_{i}_input', '')
-                output_data = request.POST.get(f'test_{i}_output', '')
+            if input_data.strip() or output_data.strip():
+                in_path = os.path.join(task_dir, f'test{i}.in')
+                out_path = os.path.join(task_dir, f'test{i}.out')
 
-                if input_data.strip() or output_data.strip():
-                    in_path = os.path.join(task_dir, f'test{i}.in')
-                    out_path = os.path.join(task_dir, f'test{i}.out')
+                with open(in_path, 'w', encoding='utf-8') as f:
+                    f.write(input_data)
+                with open(out_path, 'w', encoding='utf-8') as f:
+                    f.write(output_data)
 
-                    with open(in_path, 'w', encoding='utf-8') as f:
-                        f.write(input_data)
-                    with open(out_path, 'w', encoding='utf-8') as f:
-                        f.write(output_data)
+                test_files_list.append(f'test{i}.in')
 
-            # Обновляем JSON поле test_files в модели
-            test_files_list = [f'test{i}.in' for i in range(1, test_count + 1)]
-            task.test_files = test_files_list
-            task.save()
+        task.test_files = test_files_list
+        task.save()
 
-            # Обработка изображения
-            if 'task_image' in request.FILES:
-                image_file = request.FILES['task_image']
-                img_path = os.path.join(task_dir, 'img.png')
-                with open(img_path, 'wb+') as destination:
-                    for chunk in image_file.chunks():
-                        destination.write(chunk)
-            elif request.POST.get('remove_image') == 'true':
-                img_path = os.path.join(task_dir, 'img.png')
-                if os.path.exists(img_path):
-                    os.remove(img_path)
+        # Обработка изображения
+        if 'task_image' in request.FILES:
+            image_file = request.FILES['task_image']
+            with open(img_path, 'wb+') as destination:
+                for chunk in image_file.chunks():
+                    destination.write(chunk)
+        elif request.POST.get('remove_image') == 'true' and img_exists:
+            os.remove(img_path)
 
-            messages.success(request, f'Задача #{task.id} успешно обновлена!')
-            return redirect('tasks:task_edit', task_id=task.id)
-    else:
-        task_form = TaskEditForm(instance=task)
-        content_form = TaskContentEditForm(initial={
-            'task_md_content': current_md_content,
-            'task_py_content': current_py_content,
-        })
+        messages.success(request, f'Задача #{task.id} успешно обновлена!')
+        return redirect('tasks:task_edit', task_id=task.id)
+
+    # GET запрос - заполняем формы
+    from .forms import TaskEditForm, TaskContentForm
+    task_form = TaskEditForm(initial={
+        'title': task.title,
+        'difficulty': task.difficulty_id,
+        'description': task.description,
+    })
+    content_form = TaskContentForm(initial={
+        'task_md_content': current_md_content,
+        'task_py_content': current_py_content,
+    })
 
     context = {
         'task_form': task_form,
         'content_form': content_form,
         'existing_tests': existing_tests,
         'task_id': task.id,
-        'is_edit_mode': True,  # Флаг для шаблона
         'task': task,
+        'img_exists': img_exists,
+        'is_edit_mode': True,
     }
-
     return render(request, 'task_description_app/task_edit.html', context)
-
-
-@login_required
-@user_passes_test(is_teacher)
-def task_edit_ajax(request, task_id):
-    """AJAX обработчик для редактирования задачи"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Метод не разрешен'}, status=405)
-
-    task = get_object_or_404(Task, id=task_id)
-    task_dir = task.path
-
-    try:
-        # Обновляем task.md
-        if 'task_md_content' in request.POST:
-            md_path = os.path.join(task_dir, 'task.md')
-            with open(md_path, 'w', encoding='utf-8') as f:
-                f.write(request.POST['task_md_content'])
-
-        # Обновляем task.py
-        if 'task_py_content' in request.POST:
-            py_path = os.path.join(task_dir, 'task.py')
-            with open(py_path, 'w', encoding='utf-8') as f:
-                f.write(request.POST['task_py_content'])
-
-        return JsonResponse({'success': True, 'message': 'Задача обновлена'})
-
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @login_required
@@ -829,10 +870,15 @@ def task_delete(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     task_title = task.title
 
-    # Удаляем папку с файлами
-    import shutil
-    if os.path.exists(task.path):
-        shutil.rmtree(task.path)
+    # Получаем путь к папке задачи
+    task_dir = get_task_path_from_structure(task)
+
+    # Удаляем папку с файлами, если она существует
+    if task_dir and os.path.exists(task_dir):
+        shutil.rmtree(task_dir)
+
+    # Удаляем связи TaskPlacement
+    TaskPlacement.objects.filter(task=task).delete()
 
     task.delete()
     messages.success(request, f'Задача "{task_title}" (#{task_id}) успешно удалена!')

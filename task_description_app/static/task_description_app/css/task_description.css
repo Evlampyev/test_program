@@ -704,24 +704,5 @@
     padding: 20px 0;
 }
 
-.nav-tabs .nav-link {
-    color: #495057;
-}
-
-.nav-tabs .nav-link.active {
-    color: #667eea;
-    font-weight: 500;
-}
-
-.nav-link-dark {
-    color: #672ddc;
-    padding: 1px 10px;
-}
-
-.nav-link-dark.active {
-    background-color: #503c83;
-    color: white;
-}
-
 
 /*Конец для файла task_add.html*/

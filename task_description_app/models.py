@@ -100,10 +100,6 @@ class Task(models.Model):
     )
 
     # Файлы задачи
-    path = models.CharField(
-        verbose_name='Путь к task.md',
-        max_length=500
-    )
     test_files = models.JSONField(
         verbose_name='Файлы тестов',
         default=list
