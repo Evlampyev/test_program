@@ -21,6 +21,7 @@ from .forms import TaskAddForm, TaskContentForm, CollectionForm, TaskEditForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
     CollectionAssignment, User, TaskAttempt, UploadedProgram
 from .utils import create_uploaded_file_from_code, get_task_files
+from manage import logger
 
 
 def is_teacher(user):
@@ -146,16 +147,6 @@ def get_task_info(request, task_id):
     # Конвертируем Markdown в HTML
     html_content = render_markdown_for_modal(md_content, task_id)
 
-    # # ОТЛАДКА: проверяем, есть ли таблицы в HTML
-    # if '<table' in html_content:
-    #     print("✓ Таблицы найдены в HTML")
-    #     # Выводим первые 500 символов для проверки
-    #     print(html_content[:700])
-    # else:
-    #     print("✗ Таблицы НЕ найдены в HTML")
-    #     print("Исходный MD:")
-    #     print(md_content[:700])
-
     dif_level = get_object_or_404(DifficultyLevel, id=task.difficulty_id)
 
     return JsonResponse({
@@ -251,52 +242,6 @@ def render_markdown_for_modal(md_content, task_id):
 #         return match.group(0)
 #
 #     return re.sub(pattern, replace_img, html_content)
-
-
-# def render_markdown_with_images(md_content, task_id):
-#     """
-#     Простой поиск и замена строк
-#     """
-#     lines = md_content.split('\n')
-#     new_lines = []
-#
-#     for line in lines:
-#         # Проверяем, содержит ли строка изображение
-#         if "img.png" in line:
-#             # print(f"Найдена строка: {line}")
-#
-#             # Находим позиции
-#             start_alt = line.find('="') + 2
-#             end_alt = line.find('" src=', start_alt)
-#             alt = line[start_alt:end_alt]
-#
-#             start_src = line.rfind('="', end_alt) + 2
-#             end_src = line.find('"', start_src)
-#             src = line[start_src:end_src].strip()
-#
-#             # print(f"  alt='{alt}', src='{src}'")
-#
-#             # Создаем HTML тег
-#             new_line = f'<img class="img-right" src="/tasks/task/{task_id}/image/{src}" alt="{alt}">'
-#             new_lines.append(new_line)
-#         else:
-#             new_lines.append(line)
-#
-#     # Объединяем строки
-#     modified_md = '\n'.join(new_lines)
-#
-#     # Конвертируем Markdown в HTML
-#     html_content = markdown.markdown(modified_md, extensions=['extra'])
-#
-#     return html_content
-
-
-# def render_markdown_without_empty_blocks(md_content, task_id):
-#     """Конвертирует Markdown в HTML и удаляет пустые блоки кода"""
-#     html_content = markdown.markdown(md_content, extensions=['extra'])
-#     html_content = re.sub(r'<pre><code[^>]*>\s*</code></pre>\n?', '', html_content)
-#     html_content = render_markdown_with_images(html_content, task_id)
-#     return html_content
 
 
 def task_detail(request, task_id):
@@ -453,6 +398,36 @@ def clean_text(text):
     return '\n'.join(lines)
 
 
+def md_template():
+    temp = textwrap.dedent('''\
+                    ## Название задачи
+                    Описание задачи...
+                    <table style="width: auto; margin: auto"> 
+                        <tr style="text-align: center">
+                            <th><b><i>Формат ввода</i></b></th>
+                            <th><b><i>Формат вывода</i></b></th>
+                        </tr>
+                        <tr style="vertical-align: top">
+                            <td>Строка данных</td>
+                            <td style="vertical-align: top">Строка данных</td>
+                        </tr>
+                    </table> 
+
+                    ### Пример
+                    <table style="width: auto; margin: auto"> 
+                        <tr style="text-align: center">
+                            <th><b><i>Ввод</i></b></th>
+                            <th><b><i>Вывод</i></b></th>
+                        </tr>
+                        <tr style="vertical-align: top">
+                            <td>Нечто</td>
+                            <td>Что-то</td>
+                        </tr>
+                    </table>
+                ''')
+    return temp
+
+
 @login_required
 def task_add(request):
     """Страница добавления новой задачи"""
@@ -586,32 +561,7 @@ def task_add(request):
         content_form = TaskContentForm()
 
         # Шаблон для task.md
-        default_md = textwrap.dedent('''\
-                    ## Название задачи
-                    Описание задачи...
-                    <table style="width: auto; margin: auto"> 
-                        <tr style="text-align: center">
-                            <th><b><i>Формат ввода</i></b></th>
-                            <th><b><i>Формат вывода</i></b></th>
-                        </tr>
-                        <tr style="vertical-align: top">
-                            <td>Строка данных</td>
-                            <td style="vertical-align: top">Строка данных</td>
-                        </tr>
-                    </table> 
-
-                    ### Пример
-                    <table style="width: auto; margin: auto"> 
-                        <tr style="text-align: center">
-                            <th><b><i>Ввод</i></b></th>
-                            <th><b><i>Вывод</i></b></th>
-                        </tr>
-                        <tr style="vertical-align: top">
-                            <td>Нечто</td>
-                            <td>Что-то</td>
-                        </tr>
-                    </table>
-                ''')
+        default_md = md_template()
         content_form.fields['task_md_content'].initial = default_md
 
         # Шаблон для task.py
@@ -643,21 +593,34 @@ def serve_task_image(request, task_id, filename):
     """
     from .models import Task
     from django.conf import settings
+    import os
 
-    task = get_object_or_404(Task, id=task_id)
-    task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
-    file_path = os.path.join(task_dir, filename)
+    try:
+        task = get_object_or_404(Task, id=task_id)
 
-    if not os.path.exists(file_path):
-        raise Http404("Файл не найден")
+        # Путь к папке задачи
+        task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
+        file_path = os.path.join(task_dir, filename)
 
-    # Определяем тип содержимого
-    content_type, _ = mimetypes.guess_type(file_path)
-    if not content_type:
-        content_type = 'application/octet-stream'
+        # Выводим список файлов в директории
+        if os.path.exists(task_dir):
+            files = os.listdir(task_dir)
+        else:
+            print(f"Директория не существует: {task_dir}")
 
-    with open(file_path, 'rb') as f:
-        return HttpResponse(f.read(), content_type=content_type)
+        if not os.path.exists(file_path):
+            raise Http404(f"Файл не найден: {file_path}")
+
+        content_type, _ = mimetypes.guess_type(file_path)
+        if not content_type:
+            content_type = 'application/octet-stream'
+
+        with open(file_path, 'rb') as f:
+            return HttpResponse(f.read(), content_type=content_type)
+
+    except Exception as e:
+        logger.info (f"Ошибка в serve_task_image: {e}")
+        raise
 
 
 def get_task_path_from_structure(task):
@@ -743,7 +706,7 @@ def task_edit(request, task_id):
             current_md_content = f.read()
     else:
         # Если файла нет, создаем заглушку
-        current_md_content = f"# Задача #{task.id}\n\n## Условие\n\nОпишите условие задачи..."
+        current_md_content = str(md_template())
 
     if os.path.exists(task_py_path):
         with open(task_py_path, 'r', encoding='utf-8') as f:
@@ -789,15 +752,19 @@ def task_edit(request, task_id):
 
         # Обновляем task.md
         new_md_content = request.POST.get('task_md_content', '')
-        if new_md_content != current_md_content:
+        # Применяем clean_text для удаления лишних переносов
+        cleaned_md_content = clean_text(new_md_content)
+
+        if cleaned_md_content != current_md_content:
             with open(task_md_path, 'w', encoding='utf-8') as f:
-                f.write(new_md_content)
+                f.write(cleaned_md_content)
 
         # Обновляем task.py
         new_py_content = request.POST.get('task_py_content', '')
-        if new_py_content != current_py_content:
+        cleaned_py_content = clean_text(new_py_content)
+        if cleaned_py_content != current_py_content:
             with open(task_py_path, 'w', encoding='utf-8') as f:
-                f.write(new_py_content)
+                f.write(cleaned_py_content)
 
         # Обновляем тесты
         test_count = int(request.POST.get('test_count', 0))
@@ -817,10 +784,14 @@ def task_edit(request, task_id):
                 in_path = os.path.join(task_dir, f'test{i}.in')
                 out_path = os.path.join(task_dir, f'test{i}.out')
 
+                # Очищаем данные тестов от лишних переносов
+                cleaned_input = clean_text(input_data)
+                cleaned_output = clean_text(output_data)
+
                 with open(in_path, 'w', encoding='utf-8') as f:
-                    f.write(input_data)
+                    f.write(cleaned_input)
                 with open(out_path, 'w', encoding='utf-8') as f:
-                    f.write(output_data)
+                    f.write(cleaned_output)
 
                 test_files_list.append(f'test{i}.in')
 
@@ -951,7 +922,6 @@ def collection_edit(request, collection_id):
 
         # Добавляем новые задачи
         task_ids = request.POST.getlist('selected_tasks')[0].split(',')
-        # print(f"{task_ids = }")
         for i, task_id in enumerate(task_ids):
             task = get_object_or_404(Task, id=int(task_id))
             CollectionItem.objects.get_or_create(
@@ -1169,113 +1139,6 @@ def complete_collection(request, attempt_id):
     })
 
 
-# def create_uploaded_file_from_code(code):
-#     """
-#     Создает InMemoryUploadedFile из строки кода
-#
-#     Args:
-#         code: строка с кодом решения
-#         filename: имя файла (опционально)
-#         task_id: ID задачи (для формирования имени)
-#
-#     Returns:
-#         InMemoryUploadedFile: объект файла
-#     """
-#
-#     # Создаем файловый объект в памяти
-#     file_content = code.encode('utf-8')
-#     file_io = io.BytesIO(file_content)
-#
-#     # Создаем InMemoryUploadedFile
-#     uploaded_file = InMemoryUploadedFile(
-#         file=file_io,
-#         field_name='program_file',
-#         name='filename.py',
-#         content_type='application/octet-stream',
-#         size=len(file_content),
-#         charset='utf-8'
-#     )
-#
-#     return uploaded_file
-
-
-# @login_required
-# @csrf_exempt
-# def check_solution(request):
-#     """API для проверки решения задачи"""
-#     if request.method != 'POST':
-#         return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
-#
-#     try:
-#         data = json.loads(request.body)
-#         task_id = data.get('task_id')
-#         # print(f"Задача для проверки: {task_id}")
-#         code = data.get('code')
-#         # language = data.get('language', 'python')
-#         if not task_id or not code:
-#             return JsonResponse({'error': 'Не указан ID задачи или код решения'}, status=400)
-#
-#         user = request.user
-#
-#         file = create_uploaded_file_from_code(code)
-#         # print(f"{file = }")
-#         from upload_app.views import result_upload
-#         student_code_file = result_upload(user, file, task_id)
-#         # print(f"Файл студента {student_code_file =}")
-#         # print(type(student_code_file))
-#         student_code_file = json.loads(student_code_file.content)
-#         # print(f"{student_code_file.get('full_path')=}")
-#         # print(f"{student_code_file['full_path']=}")
-#         tests_path = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
-#         # Получаем задачу
-#         # from .models import Task
-#         # task = get_object_or_404(Task, id=task_id)
-#
-#         # Получаем файлы задачи
-#         # from .utils import get_task_files
-#         # task_files = get_task_files(task_id)
-#
-#         # Проверяем решение
-#         # if language == 'python':
-#         #     result = run_python_tests(task_files, code)
-#         # else:
-#         #     return JsonResponse({'error': f'Язык {language} не поддерживается'}, status=400)
-#
-#         from testing_app.tester_project.tester import PythonCodeTester
-#         tester = PythonCodeTester(student_code_file.get('full_path'), tests_path)
-#         result = tester.run_all_tests()
-#         print(f"результаты тестов из ckeck{result = }")
-#
-#         total_tests = len(result)
-#         passed_count = sum(1 for r in result if r.get('passed', False))
-#         failed_count = total_tests - passed_count
-#         # success_rate = int((passed_count / total_tests * 100)) if total_tests > 0 else 0
-#
-#         # Сохраняем попытку
-#         from .models import TaskAttempt
-#         TaskAttempt.objects.create(
-#             user=request.user,
-#             real_task_id=task_id,
-#             code=code,
-#             is_solved= failed_count == 0,
-#             status='correct' if failed_count==0 else 'incorrect',
-#             result=json.dumps(result)
-#         )
-#
-#         return JsonResponse( {'success': True,
-#                               'message': "Задача решена верно!",
-#
-#                               result[0])
-#
-#     except Exception as e:
-#         import traceback
-#         traceback.print_exc()
-#         return JsonResponse({
-#             'success': False,
-#             'message': str(e),
-#             'error': str(e)
-#         }, status=500)
-
 @login_required
 @csrf_exempt
 def check_solution(request):
@@ -1294,10 +1157,6 @@ def check_solution(request):
 
         # Получаем задачу
         task = get_object_or_404(Task, id=task_id)
-        #
-        # # Получаем файлы задачи
-        # from .utils import get_task_files
-        # task_files = get_task_files(task_id)
 
         # СОЗДАЕМ ОБЪЕКТ InMemoryUploadedFile
         uploaded_file = create_uploaded_file_from_code(
@@ -1320,7 +1179,6 @@ def check_solution(request):
             from testing_app.tester_project.tester import PythonCodeTester
             tester = PythonCodeTester(uploaded_program.program_file.path, tests_path)
             result_tests = tester.run_all_tests()
-            # print(f"результаты тестов из check-solutions {result_tests = }")
         else:
             return JsonResponse({'error': f'Язык {language} не поддерживается'}, status=400)
 
@@ -1337,7 +1195,6 @@ def check_solution(request):
             'results': result_tests,
             'message': 'Все тесты пройдены!' if success else f'Пройдено {passed_count} из {total_tests} тестов'
         }
-        # print(f"{result = }")
 
         # Обновляем статус
         uploaded_program.status = 'passed' if result.get('success', False) else 'failed'
@@ -1383,98 +1240,3 @@ def check_solution(request):
             'message': str(e),
             'error': str(e)
         }, status=500)
-
-# !!!!!!!!! Для чего эта функциия и нужна ли , без неё предыдуща работает.
-# def run_python_tests(task_files, code):
-#     """Запускает тесты для Python решения"""
-#     import subprocess
-#     import tempfile
-#     import os
-#
-#     # Получаем список тестовых файлов
-#     test_files = task_files.get('tests', [])
-#     if not test_files:
-#         return {'success': False, 'message': 'Тесты не найдены', 'tests_passed': 0, 'total_tests': 0}
-#
-#     # Группируем тесты по номерам
-#     tests = {}
-#     for test_file in test_files:
-#         filename = os.path.basename(test_file)
-#         if filename.endswith('.in'):
-#             num = filename.replace('test', '').replace('.in', '')
-#             if num not in tests:
-#                 tests[num] = {}
-#             tests[num]['in'] = test_file
-#         elif filename.endswith('.out'):
-#             num = filename.replace('test', '').replace('.out', '')
-#             if num not in tests:
-#                 tests[num] = {}
-#             tests[num]['out'] = test_file
-#
-#     if not tests:
-#         return {'success': False, 'message': 'Нет полных наборов тестов', 'tests_passed': 0, 'total_tests': 0}
-#
-#     # Создаем временный файл с кодом
-#     with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
-#         f.write(code)
-#         temp_file = f.name
-#
-#     tests_passed = 0
-#     results = []
-#
-#     try:
-#         for num, test in tests.items():
-#             if 'in' not in test or 'out' not in test:
-#                 continue
-#
-#             # Читаем входные данные
-#             with open(test['in'], 'r', encoding='utf-8') as f:
-#                 input_data = f.read()
-#
-#             # Читаем ожидаемый вывод
-#             with open(test['out'], 'r', encoding='utf-8') as f:
-#                 expected_output = f.read().strip()
-#
-#             # Запускаем решение
-#             try:
-#                 process = subprocess.run(
-#                     ['python', temp_file],
-#                     input=input_data,
-#                     text=True,
-#                     capture_output=True,
-#                     timeout=5
-#                 )
-#
-#                 actual_output = process.stdout.strip()
-#
-#                 if actual_output == expected_output:
-#                     tests_passed += 1
-#                     results.append({'test': num, 'passed': True})
-#                 else:
-#                     results.append({
-#                         'test': num,
-#                         'passed': False,
-#                         'expected': expected_output,
-#                         'got': actual_output
-#                     })
-#
-#             except subprocess.TimeoutExpired:
-#                 results.append({'test': num, 'passed': False, 'error': 'Превышено время выполнения'})
-#             except Exception as e:
-#                 results.append({'test': num, 'passed': False, 'error': str(e)})
-#
-#     finally:
-#         # Удаляем временный файл
-#         if os.path.exists(temp_file):
-#             os.unlink(temp_file)
-#
-#     total_tests = len([t for t in tests if 'in' in t and 'out' in t])
-#     success = tests_passed == total_tests
-#
-#     return {
-#         'success': success,
-#         'tests_passed': tests_passed,
-#         'total_tests': total_tests,
-#         'results': results,
-#         'message': 'Все тесты пройдены!' if success else f'Пройдено {tests_passed} из {total_tests} тестов'
-#     }

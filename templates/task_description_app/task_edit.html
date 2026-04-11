@@ -17,9 +17,11 @@
         }
 
         .delete-section {
-            margin-top: 30px;
-            padding-top: 20px;
+            {#margin-top: 30px;#}
+            padding: 20px 2rem 0 2rem ;
             border-top: 2px solid #e0e0e0;
+            display: flex;
+            gap: 2rem;
         }
 
         .current-path-info {
@@ -36,7 +38,7 @@
             border-radius: 5px;
             padding: 10px;
             background: #f8f9fa;
-            display: none;
+
         }
 
         .image-preview img {
@@ -128,19 +130,22 @@
         <!-- Вкладки - используем стандартные Bootstrap классы -->
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link-dark active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button"
+                <button class="nav-link-dark active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info"
+                        type="button"
                         role="tab" aria-controls="info" aria-selected="true">
                     <i class="fas fa-info-circle me-2"></i>Информация
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link-dark" id="content-tab" data-bs-toggle="tab" data-bs-target="#content" type="button"
+                <button class="nav-link-dark" id="content-tab" data-bs-toggle="tab" data-bs-target="#content"
+                        type="button"
                         role="tab" aria-controls="content" aria-selected="false">
                     <i class="fas fa-file-alt me-2"></i>Описание
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link-dark" id="solution-tab" data-bs-toggle="tab" data-bs-target="#solution" type="button"
+                <button class="nav-link-dark" id="solution-tab" data-bs-toggle="tab" data-bs-target="#solution"
+                        type="button"
                         role="tab" aria-controls="solution" aria-selected="false">
                     <i class="fab fa-python me-2"></i>Решение
                 </button>
@@ -179,14 +184,30 @@
                     <div class="mb-3">
                         <label class="form-label">Изображение к задаче</label>
                         <input type="file" name="task_image" id="taskImage" class="form-control" accept="image/*">
+
+                        <!-- Блок для отображения текущего изображения -->
                         <div id="imagePreview" class="image-preview"
                              {% if not img_exists %}style="display: none;"{% endif %}>
-                            <img id="previewImg" src="/tasks/task/{{ task.id }}/image/img.png" alt="Текущее изображение"
-                                 onerror="this.parentElement.style.display='none'">
-                            <button type="button" class="btn-remove-image" onclick="removeImage()">Удалить изображение
+                            <img id="previewImg" src="/tasks/task/{{ task_id }}/image/img.png"
+                                 alt="Текущее изображение"
+                                 style="max-width: 100%; height: auto;"
+                                 onerror="handleImageError(this)">
+                            <button type="button" class="btn-remove-image" onclick="removeImage()">
+                                <i class="fas fa-trash-alt me-1"></i>Удалить изображение
                             </button>
                         </div>
+
+                        <!-- Блок для предпросмотра нового изображения -->
+                        <div id="newImagePreview" class="image-preview" style="display: none;">
+                            <img id="newPreviewImg" src="#" alt="Предпросмотр"
+                                 style="max-width: 100%; height: auto;">
+                            <button type="button" class="btn-remove-image" onclick="removeNewImage()">
+                                <i class="fas fa-trash-alt me-1"></i>Отменить выбор
+                            </button>
+                        </div>
+
                         <input type="hidden" name="remove_image" id="removeImageFlag" value="false">
+                        <small class="text-muted">Поддерживаются форматы: PNG, JPG, JPEG, GIF</small>
                     </div>
                 </div>
             </div>
@@ -253,13 +274,13 @@
             </div>
         </div>
 
-        <button type="submit" class="btn-submit" id="submitBtn">
-            <i class="fas fa-save me-2"></i> Сохранить изменения
-        </button>
-
-        <div class="delete-section">
-            <button type="button" class="btn-delete" onclick="confirmDelete()">
+        <div class="delete-section row ">
+            <button type="button" class="btn btn-delete col mr-2" onclick="confirmDelete()">
                 <i class="fas fa-trash-alt me-2"></i> Удалить задачу
+            </button>
+
+            <button type="submit" class="btn btn-submit col" id="submitBtn">
+                <i class="fas fa-save me-2"></i> Сохранить изменения
             </button>
         </div>
     </form>
@@ -290,7 +311,6 @@
 {% block extra_js %}
     <!-- Bootstrap JS (обязательно для работы вкладок) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
         // Игнорируем ошибки расширений браузера
         window.addEventListener('error', function (e) {
@@ -311,6 +331,7 @@
             }
         });
 
+        // Управление тестами
         let testCount = {{ existing_tests|length }};
         const testsContainer = document.getElementById('testsContainer');
         const testCountInput = document.getElementById('testCount');
@@ -365,26 +386,103 @@
             addTestBtn.addEventListener('click', addTest);
         }
 
-        function removeImage() {
-            document.getElementById('taskImage').value = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            document.getElementById('removeImageFlag').value = 'true';
+        // Функции для работы с изображениями
+        function handleImageError(img) {
+            console.log('Ошибка загрузки изображения');
+            const parent = img.parentElement;
+            if (parent) {
+                parent.style.display = 'none';
+            }
         }
 
-        const taskImageInput = document.getElementById('taskImage');
-        if (taskImageInput) {
-            taskImageInput.addEventListener('change', function (e) {
+        function removeImage() {
+            const imagePreview = document.getElementById('imagePreview');
+            const removeFlag = document.getElementById('removeImageFlag');
+
+            if (imagePreview) {
+                imagePreview.style.display = 'none';
+            }
+            if (removeFlag) {
+                removeFlag.value = 'true';
+            }
+
+            const img = document.getElementById('previewImg');
+            if (img) img.src = '';
+
+            console.log('Изображение будет удалено при сохранении');
+        }
+
+        function removeNewImage() {
+            const newImagePreview = document.getElementById('newImagePreview');
+            const taskImageInputEl = document.getElementById('taskImage');
+
+            if (newImagePreview) {
+                newImagePreview.style.display = 'none';
+            }
+            if (taskImageInputEl) {
+                taskImageInputEl.value = '';
+            }
+
+            const newImg = document.getElementById('newPreviewImg');
+            if (newImg) newImg.src = '';
+
+            const imagePreview = document.getElementById('imagePreview');
+            if (imagePreview && imagePreview.style.display === 'none') {
+                const removeFlag = document.getElementById('removeImageFlag');
+                if (removeFlag && removeFlag.value !== 'true') {
+                    imagePreview.style.display = 'block';
+                }
+            }
+        }
+
+        // Обработчик выбора нового файла (объявляем один раз)
+        const taskImageInputElement = document.getElementById('taskImage');
+        if (taskImageInputElement) {
+            taskImageInputElement.addEventListener('change', function (e) {
                 const file = e.target.files[0];
+                const newImagePreview = document.getElementById('newImagePreview');
+                const newPreviewImg = document.getElementById('newPreviewImg');
+                const removeImageFlag = document.getElementById('removeImageFlag');
+
                 if (file) {
+                    if (!file.type.match('image.*')) {
+                        alert('Пожалуйста, выберите файл изображения (PNG, JPG, JPEG, GIF)');
+                        this.value = '';
+                        return;
+                    }
+
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Размер изображения не должен превышать 5MB');
+                        this.value = '';
+                        return;
+                    }
+
                     const reader = new FileReader();
                     reader.onload = function (event) {
-                        const preview = document.getElementById('imagePreview');
-                        const img = document.getElementById('previewImg');
-                        img.src = event.target.result;
-                        preview.style.display = 'block';
-                        document.getElementById('removeImageFlag').value = 'false';
+                        if (newPreviewImg) {
+                            newPreviewImg.src = event.target.result;
+                        }
+                        if (newImagePreview) {
+                            newImagePreview.style.display = 'block';
+                        }
+
+                        const oldImagePreview = document.getElementById('imagePreview');
+                        if (oldImagePreview) {
+                            oldImagePreview.style.display = 'none';
+                        }
+
+                        if (removeImageFlag) {
+                            removeImageFlag.value = 'false';
+                        }
                     };
                     reader.readAsDataURL(file);
+                } else {
+                    if (newImagePreview) {
+                        newImagePreview.style.display = 'none';
+                    }
+                    if (newPreviewImg) {
+                        newPreviewImg.src = '';
+                    }
                 }
             });
         }
@@ -403,7 +501,7 @@
             });
         }
 
-        // Альтернативная ручная инициализация вкладок (на случай, если Bootstrap не сработал)
+        // Альтернативная ручная инициализация вкладок
         document.addEventListener('DOMContentLoaded', function () {
             const triggerTabList = document.querySelectorAll('#myTab button');
             triggerTabList.forEach(triggerEl => {
@@ -413,6 +511,19 @@
                     tabTrigger.show();
                 });
             });
+
+            // Проверяем загрузку текущего изображения
+            const previewImg = document.getElementById('previewImg');
+            if (previewImg) {
+                previewImg.onerror = function () {
+                    console.log('Текущее изображение не найдено');
+                    const imagePreview = document.getElementById('imagePreview');
+                    if (imagePreview) {
+                        imagePreview.style.display = 'none';
+                    }
+                };
+            }
         });
+
     </script>
 {% endblock %}

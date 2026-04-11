@@ -149,12 +149,12 @@
     padding: 15px 30px;
     font-weight: 600;
     width: 100%;
-    margin-top: 20px;
 }
 
 .btn-delete:hover {
-    background: #c82333;
-    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(234, 102, 102, 0.4);
+
 }
 
 .btn-submit {
@@ -171,7 +171,7 @@
 .btn-submit:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-    color: white;
+
 }
 
 .btn-remove-image {
