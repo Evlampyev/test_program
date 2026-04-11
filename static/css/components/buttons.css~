@@ -38,16 +38,16 @@
 }
 
 .btn-secondary {
-    background: #53565b;
-    /*background: linear-gradient(208deg, #8586c0 0%, #a19a88 50%, #87597b 100%);*/
+    /*background: #53565b;*/
+    background: linear-gradient(208deg, #8586c0 0%, #a19a88 50%, #87597b 100%);
     color: white;
 }
 
 .btn-success {
-    background: #235b3f;
+    /*background: #235b3f;*/
     color: white;
     /*background: linear-gradient(315deg, #C8FC5E, #99FCA5);*/
-    /*background: linear-gradient(350deg, #a168ea 0%, #3aa425 100%)*/
+    background: linear-gradient(350deg, #a168ea 0%, #3aa425 100%)
 
 }
 

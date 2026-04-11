@@ -46,7 +46,16 @@
             height: auto;
         }
 
-
+        .btn-remove-image {
+            margin-top: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
 
         .form-card {
             background: white;
