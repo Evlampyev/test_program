@@ -38,16 +38,16 @@
 }
 
 .btn-secondary {
-    /*background: #53565b;*/
-    background: linear-gradient(208deg, #8586c0 0%, #a19a88 50%, #87597b 100%);
+    background: #53565b;
+    /*background: linear-gradient(208deg, #8586c0 0%, #a19a88 50%, #87597b 100%);*/
     color: white;
 }
 
 .btn-success {
-    /*background: #235b3f;*/
+    background: #398f65;
     color: white;
     /*background: linear-gradient(315deg, #C8FC5E, #99FCA5);*/
-    background: linear-gradient(350deg, #a168ea 0%, #3aa425 100%)
+    /*background: linear-gradient(350deg, #a168ea 0%, #3aa425 100%)*/
 
 }
 
@@ -73,12 +73,18 @@
     background: transparent;
     color: #13a4b2;
     border: 2px solid #13a4b2;
-    box-shadow: #6a737d 0px 2px 6px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .btn-outline-sms:hover {
     background: #13a4b2;
     color: white;
+}
+
+.btn-outline-primary {
+    background: transparent;
+    border: 2px solid #135db2;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .logout-btn {

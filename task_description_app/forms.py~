@@ -2,6 +2,99 @@ from django import forms
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, Collection
 
 
+# class TaskAddForm(forms.ModelForm):
+#     class Meta:
+#         model = Task
+#         fields = ['title', 'difficulty', 'description']
+#         widgets = {
+#             'title': forms.TextInput(attrs={
+#                 'class': 'form-control',
+#                 'placeholder': 'Введите название задачи'
+#             }),
+#             'difficulty': forms.Select(attrs={
+#                 'class': 'form-select'
+#             }),
+#             'description': forms.Textarea(attrs={
+#                 'class': 'form-control',
+#                 'rows': 3,
+#                 'placeholder': 'Краткое описание задачи (необязательно)'
+#             }),
+#         }
+#
+#     # Поля для выбора/создания пути
+#     class_name = forms.CharField(
+#         label='Класс',
+#         widget=forms.TextInput(attrs={
+#             'class': 'form-control',
+#             'placeholder': 'Например: 8 класс или 10 класс'
+#         })
+#     )
+#
+#     topic = forms.CharField(
+#         label='Тема',
+#         widget=forms.TextInput(attrs={
+#             'class': 'form-control',
+#             'placeholder': 'Например: Тема №1. Введение в программирование'
+#         })
+#     )
+#
+#     lesson = forms.CharField(
+#         label='Урок',
+#         widget=forms.TextInput(attrs={
+#             'class': 'form-control',
+#             'placeholder': 'Например: Урок 27 или Урок 84(38)'
+#         })
+#     )
+#
+#     level = forms.ChoiceField(
+#         label='Уровень',
+#         choices=[
+#             # ('level_A', 'Уровень А'),
+#             # ('level_B', 'Уровень B'),
+#             # ('level_C', 'Уровень C'),
+#             # ('level_D', 'Уровень D'),
+#             # ('level_E', 'Уровень E'),
+#             ('Уровень_А', 'Уровень А'),
+#             ('Уровень_B', 'Уровень B'),
+#             ('Уровень_C', 'Уровень C'),
+#             ('Уровень_D', 'Уровень D'),
+#             ('Уровень_E', 'Уровень E'),
+#         ],
+#         widget=forms.Select(attrs={'class': 'form-select'})
+#     )
+#
+#     task_folder = forms.CharField(
+#         label='Папка задачи',
+#         widget=forms.TextInput(attrs={
+#             'class': 'form-control',
+#             'placeholder': 'Например: task_001'
+#         })
+#     )
+
+
+# class TaskContentForm(forms.Form):
+#     """Форма для содержимого задачи"""
+#     task_md_content = forms.CharField(
+#         label='Описание задачи (task.md)',
+#         required=True,
+#         widget=forms.Textarea(attrs={
+#             'class': 'form-control',
+#             'rows': 15,
+#             'placeholder': '# Номер задачи\n\n## Условие\n\nОписание задачи...\n\n### Пример\n\nВход: 5 3\nВыход: 8'
+#         })
+#     )
+#
+#     task_py_content = forms.CharField(
+#         label='Решение учителя (task.py)',
+#         required=True,
+#         widget=forms.Textarea(attrs={
+#             'class': 'form-control',
+#             'rows': 10,
+#             'placeholder': 'def solve():\n    # Ваш код\n    pass\n\nif __name__ == "__main__":\n    solve()'
+#         })
+#     )
+
+
 class TestCaseForm(forms.Form):
     """Форма для одного теста"""
     input_data = forms.CharField(
@@ -110,6 +203,41 @@ class TaskAddForm(forms.ModelForm):
                 'placeholder': 'Краткое описание задачи (необязательно)'
             }),
         }
+
+
+# class TaskEditForm(forms.ModelForm):
+#     """Форма для редактирования существующей задачи"""
+#
+#     class Meta:
+#         model = Task
+#         fields = ['title', 'difficulty', 'description']
+#         widgets = {
+#             'title': forms.TextInput(attrs={
+#                 'class': 'form-control',
+#                 'placeholder': 'Введите название задачи'
+#             }),
+#             'difficulty': forms.Select(attrs={
+#                 'class': 'form-select'
+#             }),
+#             'description': forms.Textarea(attrs={
+#                 'class': 'form-control',
+#                 'rows': 3,
+#                 'placeholder': 'Краткое описание задачи (необязательно)'
+#             }),
+#         }
+#
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         # Добавляем поля для отображения пути (только для чтения)
+#         self.fields['current_path'] = forms.CharField(
+#             label='Текущий путь',
+#             required=False,
+#             widget=forms.TextInput(attrs={
+#                 'class': 'form-control',
+#                 'readonly': True,
+#                 'disabled': True
+#             })
+#         )
 
 
 class TaskContentForm(forms.Form):
