@@ -5,7 +5,7 @@
 }
 
 html, body {
-    min-width: 1010px;
+    /*min-width: 1010px;*/
     width: 100%;
     overflow-x: auto; /* Добавляет горизонтальную прокрутку при уменьшении */
 }

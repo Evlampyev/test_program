@@ -22,6 +22,7 @@
 .btn-primary:hover, .btn-add-test:hover, .btn-secondary:hover, .btn-success:hover, .btn-warning:hover,
 .btn-remove-image:hover, .btn-delete:hover {
     transform: translateY(-2px);
+    /*transition: box-shadow 0.3s ease;*/
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     color: black;
 }
@@ -53,6 +54,7 @@
 .btn-success:hover {
     background: #47af7c;
 }
+
 .btn-warning {
     background: #604c17;
     color: white;
@@ -63,12 +65,13 @@
     background: transparent;
     color: #667eea;
     border: 2px solid #667eea;
-    box-shadow: #6a737d 0px 2px 6px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .btn-outline:hover {
     background: #667eea;
     color: white;
+    box-shadow: none;
 }
 
 .btn-outline-sms {
@@ -81,6 +84,7 @@
 .btn-outline-sms:hover {
     background: #13a4b2;
     color: white;
+    box-shadow: none;
 }
 
 .btn-outline-primary {
@@ -103,19 +107,19 @@
     color: white;
 }
 
-.btn-export {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: background 0.3s;
-}
+/*.btn-export {*/
+/*    background: #28a745;*/
+/*    color: white;*/
+/*    border: none;*/
+/*    padding: 8px 16px;*/
+/*    border-radius: 8px;*/
+/*    transition: background 0.3s;*/
+/*}*/
 
-.btn-export:hover {
-    background: #218838;
-    color: white;
-}
+/*.btn-export:hover {*/
+/*    background: #218838;*/
+/*    color: white;*/
+/*}*/
 
 .btn-delete {
     background: #dc3545;
