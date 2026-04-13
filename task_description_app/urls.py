@@ -2,7 +2,6 @@
 from django.urls import path
 from . import views
 
-
 app_name = 'tasks'
 
 urlpatterns = [
@@ -17,7 +16,6 @@ urlpatterns = [
     path('task/<int:task_id>/edit/', views.task_edit, name='task_edit'),
     path('task/<int:task_id>/delete/', views.task_delete, name='task_delete'),
 
-
     # Подборки задач
     path('collections/', views.collection_list, name='collection_list'),
     path('collections/create/', views.collection_create, name='collection_create'),
@@ -26,10 +24,11 @@ urlpatterns = [
     path('collections/<int:collection_id>/start/', views.start_collection, name='start_collection'),
     path('attempt/<int:attempt_id>/', views.collection_attempt, name='collection_attempt'),
 
-
-# Выдача КР
+    # Выдача КР
     path('collections/<int:collection_id>/assign/', views.assign_collection, name='assign_collection'),
     path('my-assignments/', views.my_assignments, name='my_assignments'),
     path('collection/<int:attempt_id>/complete/', views.complete_collection, name='complete_collection'),
     path('check-solution/', views.check_solution, name='check_solution'),
+    path('api/collection/<int:collection_id>/request-time/', views.student_request_time_extension,
+         name='student_request_time'),
 ]

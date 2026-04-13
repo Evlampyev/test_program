@@ -1,6 +1,3 @@
-{% load static %}
-<link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
-
 <div class="dropdown notifications-dropdown">
     <button class="btn btn-outline-light position-relative" type="button" id="notificationsDropdown"
             data-bs-toggle="dropdown">
@@ -13,7 +10,8 @@
             <span class="fw-bold">
                 <i class="fas fa-bell me-2"></i>Уведомления
             </span>
-            <button class="btn btn-outline ms-auto" style="width: 30%" onclick="markAllNotificationsRead(); return false;">Прочитать
+            <button class="btn btn-little btn-outline ms-auto" style="width: 30%"
+                    onclick="markAllNotificationsRead(); return false;">Прочитать
                 все
             </button>
         </div>
@@ -28,4 +26,3 @@
 </div>
 
 
-<script src="{% static 'notifications/js/notifications.js' %}"></script>

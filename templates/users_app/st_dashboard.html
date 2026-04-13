@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load custom_filters %}
-{% block extra_css %}
+{% load pluralize_ru %}
 
+{% block extra_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     {#    Мой файл css #}
     <link rel="stylesheet" href="{% static '/users_app/css/users_app.css' %}">
@@ -222,12 +223,7 @@
                                 </div>
                                 <div class="text-end">
                     <span class="badge bg-primary" style="font-size: 1rem;">
-                        {{ student.solved_count }}
-                        {% if student.solved_count|pluralize %}
-                            задач
-                        {% else %}
-                            задача
-                        {% endif %}
+                        {{ student.solved_count | pluralize_ru:"задача,задачи,задач" }}
                     </span>
                                 </div>
                             </div>
@@ -252,7 +248,7 @@
                                                 <span class="badge bg-info ms-2">Вы</span>
                                             {% endif %}
                                         </div>
-                                        <span class="badge bg-primary">{{ student.solved_count }} задач</span>
+                                        <span class="badge bg-primary">{{ student.solved_count|pluralize_ru:"задача,задачи,задач" }}</span>
                                     </div>
                                 {% endfor %}
                             </div>

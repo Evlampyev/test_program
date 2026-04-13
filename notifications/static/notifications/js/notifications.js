@@ -24,8 +24,9 @@ function loadNotifications() {
                                     <strong class="small">${n.title}</strong>
                                     <small class="text-muted ms-2">${n.created_at}</small>
                                 </div>
-                                <p class="small text-muted mb-1">${n.message}</p>
+                                <p class="small text-muted mb-1" style="width: 100%" >${n.message}</p>
                                 <small class="text-primary">Задача #${n.task_id}</small>
+                                 <span class="badge-level level-${n.task_level}"><small><i class="fas fa-signal me-1"></i>Уровень ${n.task_level}</small></span>
                             </div>
                         </div>
                     </div>

@@ -160,7 +160,7 @@ def notify_teacher_about_task_solved(student, task_id, task_level=None, task_tit
         return None
 
 
-def notify_teacher_about_task_attempt(student, task_id, attempt_count, task_level):
+def notify_teacher_about_task_attempt(student, task_id, attempt_count, task_level=None):
     """
     Отправляет уведомление учителю о попытке решения задачи
 
@@ -182,7 +182,7 @@ def notify_teacher_about_task_attempt(student, task_id, attempt_count, task_leve
         from users_app.views import get_task_title
         message = (
             f"{student_group.school_class} (группа {student_group.number}). "
-            
+
             f"Задача #{task_id} '{get_task_title(task_id)}'"
             f" Попытка {attempt_count}-я."
         )
@@ -190,12 +190,17 @@ def notify_teacher_about_task_attempt(student, task_id, attempt_count, task_leve
         status = "📝 попытка решения"
         title = f"{status} задачи: {student.last_name} {student.first_name}"
 
+        if not task_level:
+            from users_app.views import get_task_level
+            task_level = get_task_level(task_id)
+
         notification = Notification.objects.create(
             recipient=teacher,
             sender=student,
             notification_type='task_attempt',
             title=title,
             message=message,
+            task_level=task_level,
             task_id=str(task_id),
         )
 
@@ -224,8 +229,6 @@ def notify_teacher_about_completed_assignment(teacher, student, collection, atte
         else:
             # Если у пользователя не задан, используем часовой пояс сервера
             timezone.activate(pytz.timezone(settings.TIME_ZONE))
-
-
 
         title = f"✅ Выполнена КР: {collection.title}"
         message = (
@@ -369,4 +372,81 @@ def notify_new_student_registration(teacher, student):
 
     except Exception as e:
         logger.error(f"Ошибка создания уведомления о новом ученике: {e}")
+        return None
+
+
+def notify_teacher_about_time_request(teacher, student, collection, assignment, message=''):
+    """
+    Уведомляет учителя о запросе ученика на продление времени
+
+    Args:
+        teacher: Объект User учителя
+        student: Объект User ученика
+        collection: Объект Collection (подборка задач)
+        assignment: Объект CollectionAssignment (назначение)
+        message: Текст сообщения от ученика
+
+    Returns:
+        Notification: Созданное уведомление или None
+    """
+    try:
+        from .models import Notification
+        from django.utils import timezone
+        import pytz
+
+        # Активируем часовой пояс
+        if hasattr(teacher, 'timezone') and teacher.timezone:
+            user_timezone = pytz.timezone(teacher.timezone)
+            timezone.activate(user_timezone)
+        else:
+            timezone.activate(pytz.timezone(settings.TIME_ZONE))
+
+        title = f"⏰ Запрос на продление времени: {student.last_name} {student.first_name}"
+
+        message_text = (
+            # f"Ученик {student.last_name} {student.first_name} "
+            # f"просит продлить время на выполнение задания:\n\n"
+            f"📚 {collection.title}<br>"
+        )
+
+        if assignment.due_date:
+            message_text += f"📅 Текущий срок: {timezone.localtime(assignment.due_date).strftime('%d.%m.%Y %H:%M')}<br>"
+
+        if message:
+            message_text += f"💬 Сообщение от ученика:\n{message}"
+
+        # message_text += f"\n🔗 Для продления срока перейдите в настройки задания."
+
+        # Проверяем, нет ли уже непрочитанного запроса по этому заданию
+        existing = Notification.objects.filter(
+            recipient=teacher,
+            sender=student,
+            notification_type='time_request',
+            task_id=str(collection.id),
+            is_read=False
+        ).first()
+
+        if existing:
+            # Обновляем существующее уведомление
+            existing.message = message_text
+            existing.created_at = timezone.now()
+            existing.save()
+            return existing
+
+        # Создаем новое уведомление
+        notification = Notification.objects.create(
+            recipient=teacher,
+            sender=student,
+            notification_type='time_request',
+            title=title,
+            message=message_text,
+            task_id=str(collection.id),
+            task_level=collection.collection_type
+        )
+
+        timezone.deactivate()
+        return notification
+
+    except Exception as e:
+        print(f"Ошибка создания уведомления о запросе времени: {e}")
         return None

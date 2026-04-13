@@ -15,7 +15,8 @@ class Notification(models.Model):
         ('student_registered', '👤 Новый ученик'),
         ('collection_assigned', '📚 Выдана контрольная работа'),
         ('collection_completed', '🎉 Контрольная выполнена'),
-        ('system', '🔔 Системное'),
+        ('time_request', '⏰ Запрос на продление времени'),
+        ('system', '🔔 Системное')
     )
 
     recipient = models.ForeignKey(

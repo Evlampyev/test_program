@@ -60,7 +60,6 @@
     color: white;
 }
 
-/*до сих пор проверил кнопк */
 .btn-outline {
     background: transparent;
     color: #667eea;
@@ -91,6 +90,10 @@
     background: transparent;
     border: 2px solid #135db2;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.btn-outline-primary:hover {
+    background: #0066ff;
+    box-shadow: none;
 }
 
 .logout-btn {

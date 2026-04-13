@@ -3,66 +3,329 @@
 
 {% block title %}Мои задания{% endblock %}
 
+{% block extra_css %}
+    <style>
+        .request-time-modal .modal-body {
+            padding: 20px;
+        }
+
+        .btn-request-time {
+            background: #ffc107;
+            color: #856404;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-request-time:hover {
+            background: #e0a800;
+            color: #856404;
+            transform: translateY(-2px);
+        }
+
+        .request-message {
+            width: 100%;
+            min-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .request-message:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+
+        .btn-loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-loading .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <h2>
-        <i class="fas fa-tasks me-2" style="color: #667eea;"></i>
-        Мои задания
-    </h2>
+    <div class="container mt-4">
+        <h2>
+            <i class="fas fa-tasks me-2" style="color: #667eea;"></i>
+            Мои задания
+        </h2>
 
-    {% if assignments %}
-    <div class="row mt-4">
-        {% for assignment in assignments %}
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 {% if assignment.status == 'expired' %}border-danger{% endif %}">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="badge {% if assignment.status == 'pending' %}bg-warning{% elif assignment.status == 'in_progress' %}bg-info{% elif assignment.status == 'completed' %}bg-success{% else %}bg-danger{% endif %}">
-                        {{ assignment.get_status_display }}
-                    </span>
-                    {% if assignment.due_date %}
-                    <small class="text-muted">
-                        <i class="fas fa-calendar-alt me-1"></i>
-                        Срок: {{ assignment.due_date|date:"d.m.Y H:i" }}
-                    </small>
-                    {% endif %}
+        {% if assignments %}
+            <div class="row mt-4">
+                {% for assignment in assignments %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 {% if assignment.status == 'expired' %}border-danger{% endif %}">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="badge {% if assignment.status == 'pending' %}bg-warning{% elif assignment.status == 'in_progress' %}bg-info{% elif assignment.status == 'completed' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ assignment.get_status_display }}
+                                </span>
+                                {% if assignment.due_date %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        Срок: {{ assignment.due_date|date:"d.m.Y H:i" }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ assignment.collection.title }}</h5>
+                                <p class="card-text text-muted">{{ assignment.collection.description|truncatechars:100 }}</p>
+
+                                <div class="mb-2">
+                                    <span class="badge bg-primary">📚 {{ assignment.collection.collection_items.count }} задач</span>
+                                    <span class="badge bg-warning">⭐ {{ assignment.collection.get_total_score }} баллов</span>
+                                </div>
+
+                                {% if assignment.is_overdue %}
+                                    <div class="alert alert-danger small py-1 mb-2">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Задание просрочено!
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer d-flex justify-content-between gap-2">
+                                {% if assignment.status == 'pending' or assignment.status == 'in_progress' %}
+                                    <a href="{% url 'tasks:start_collection' assignment.collection.id %}"
+                                       class="btn btn-primary flex-grow-1">
+                                        <i class="fas fa-play me-2"></i>Выполнить
+                                    </a>
+                                    <!-- Кнопка "Попросить больше времени" -->
+                                    <button type="button"
+                                            class="btn btn-request-time"
+                                            onclick="showRequestModal({{ assignment.collection.id }}, '{{ assignment.collection.title|escapejs }}')">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Попросить время
+                                    </button>
+                                {% elif assignment.status == 'completed' %}
+                                    <a href="{% url 'tasks:collection_attempt' assignment.id %}"
+                                       class="btn btn-outline-secondary w-100">
+                                        <i class="fas fa-eye me-2"></i>Посмотреть результат
+                                    </a>
+                                {% elif assignment.status == 'expired' %}
+                                    <button type="button"
+                                            class="btn btn-primary w-100"
+                                            onclick="showRequestModal({{ assignment.collection.id }}, '{{ assignment.collection.title|escapejs }}')">
+                                        <i class="fas fa-commenting me-2"></i>Попросить больше времени
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center py-5 mt-4">
+                <i class="fas fa-inbox fa-3x mb-3"></i>
+                <h4>У вас пока нет заданий</h4>
+                <p>Когда учитель выдаст вам контрольную работу, она появится здесь</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Модальное окно для запроса времени -->
+    <div class="modal fade" id="requestTimeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="fas fa-clock me-2"></i>
+                        Запрос на продление времени
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ assignment.collection.title }}</h5>
-                    <p class="card-text text-muted">{{ assignment.collection.description|truncatechars:100 }}</p>
+                <div class="modal-body">
+                    <p>Вы хотите попросить больше времени на выполнение задания:</p>
+                    <p class="fw-bold" id="assignmentTitle"></p>
 
-                    <div class="mb-2">
-                        <span class="badge bg-primary">📚 {{ assignment.collection.collection_items.count }} задач</span>
-                        <span class="badge bg-warning">⭐ {{ assignment.collection.get_total_score }} баллов</span>
+                    <div class="mb-3">
+                        <label class="form-label">Сообщение учителю (необязательно):</label>
+                        <textarea id="requestMessage" class="request-message"
+                                  placeholder="Напишите причину, почему вам нужно больше времени..."></textarea>
                     </div>
 
-                    {% if assignment.is_overdue %}
-                    <div class="alert alert-danger small py-1">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        Задание просрочено!
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Учитель получит уведомление и сможет продлить срок выполнения задания.
                     </div>
-                    {% endif %}
                 </div>
-                <div class="card-footer">
-                    {% if assignment.status == 'pending' or assignment.status == 'in_progress' %}
-                    <a href="{% url 'tasks:start_collection' assignment.collection.id %}" class="btn btn-primary">
-                        <i class="fas fa-play me-2"></i>Выполнить
-                    </a>
-                    {% elif assignment.status == 'completed' %}
-                    <a href="{% url 'tasks:collection_attempt' assignment.id %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-eye me-2"></i>Посмотреть результат
-                    </a>
-                    {% endif %}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-warning" id="sendRequestBtn" onclick="sendTimeRequest()">
+                        <i class="fas fa-paper-plane me-2"></i>Отправить запрос
+                    </button>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
-    {% else %}
-    <div class="alert alert-info text-center py-5 mt-4">
-        <i class="fas fa-inbox fa-3x mb-3"></i>
-        <h4>У вас пока нет заданий</h4>
-        <p>Когда учитель выдаст вам контрольную работу, она появится здесь</p>
+
+    <!-- Тостер для уведомлений -->
+    <div class="toast-notification" id="notificationToast" style="display: none;">
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true"
+             data-bs-delay="3000">
+            <div class="toast-header">
+                <i class="fas fa-bell me-2"></i>
+                <strong class="me-auto">Уведомление</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Сообщение
+            </div>
+        </div>
     </div>
-    {% endif %}
-</div>
+{% endblock %}
+
+{% block extra_js %}
+    <!-- В блоке extra_js обновите функцию sendTimeRequest -->
+    <script>
+        let currentCollectionId = null;
+        let currentAssignmentTitle = '';
+
+        // Показать модальное окно для запроса времени
+        function showRequestModal(collectionId, assignmentTitle) {
+            currentCollectionId = collectionId;
+            currentAssignmentTitle = assignmentTitle;
+
+            document.getElementById('assignmentTitle').textContent = assignmentTitle;
+            document.getElementById('requestMessage').value = '';
+
+            const modal = new bootstrap.Modal(document.getElementById('requestTimeModal'));
+            modal.show();
+        }
+
+        // Отправить запрос на продление времени
+        async function sendTimeRequest() {
+            const sendBtn = document.getElementById('sendRequestBtn');
+            const originalText = sendBtn.innerHTML;
+            const message = document.getElementById('requestMessage').value;
+
+            // Отключаем кнопку
+            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Отправка...';
+            sendBtn.disabled = true;
+            sendBtn.classList.add('btn-loading');
+
+            try {
+                const response = await fetch(`/tasks/api/collection/${currentCollectionId}/request-time/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Закрываем модальное окно
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('requestTimeModal'));
+                    modal.hide();
+
+                    // Показываем уведомление об успехе
+                    showToast('✅ Запрос отправлен учителю!', 'success');
+                } else {
+                    showToast('❌ Ошибка: ' + (data.error || 'Не удалось отправить запрос'), 'danger');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showToast('❌ Произошла ошибка при отправке запроса', 'danger');
+            } finally {
+                // Восстанавливаем кнопку
+                sendBtn.innerHTML = originalText;
+                sendBtn.disabled = false;
+                sendBtn.classList.remove('btn-loading');
+            }
+        }
+
+        // Функция для отображения тостера
+        function showToast(message, type = 'info') {
+            // Проверяем, есть ли контейнер для тостов
+            let toastContainer = document.getElementById('notificationToast');
+
+            if (!toastContainer) {
+                // Создаем контейнер, если его нет
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'notificationToast';
+                toastContainer.className = 'toast-notification';
+                toastContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                toastContainer.innerHTML = `
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+                    <div class="toast-header">
+                        <i class="fas fa-bell me-2"></i>
+                        <strong class="me-auto">Уведомление</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body" id="toastMessage"></div>
+                </div>
+            `;
+                document.body.appendChild(toastContainer);
+            }
+
+            const toastBody = document.getElementById('toastMessage');
+            const toastHeader = toastContainer.querySelector('.toast-header');
+
+            toastBody.textContent = message;
+
+            // Меняем цвет в зависимости от типа
+            if (type === 'success') {
+                toastHeader.style.backgroundColor = '#28a745';
+                toastHeader.style.color = 'white';
+            } else if (type === 'danger') {
+                toastHeader.style.backgroundColor = '#dc3545';
+                toastHeader.style.color = 'white';
+            } else {
+                toastHeader.style.backgroundColor = '';
+                toastHeader.style.color = '';
+            }
+
+            toastContainer.style.display = 'block';
+
+            const toastElement = toastContainer.querySelector('.toast');
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: 3000
+            });
+            toast.show();
+
+            // Скрываем контейнер после скрытия тоста
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                setTimeout(() => {
+                    if (!toastContainer.querySelector('.toast.show')) {
+                        toastContainer.style.display = 'none';
+                    }
+                }, 100);
+            });
+        }
+
+        // Функция для получения CSRF токена
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
 {% endblock %}

@@ -1,4 +1,5 @@
 # views.py (приложение tasks)
+from datetime import datetime
 import os
 import re
 import textwrap
@@ -619,7 +620,7 @@ def serve_task_image(request, task_id, filename):
             return HttpResponse(f.read(), content_type=content_type)
 
     except Exception as e:
-        logger.info (f"Ошибка в serve_task_image: {e}")
+        logger.info(f"Ошибка в serve_task_image: {e}")
         raise
 
 
@@ -1073,9 +1074,15 @@ def my_assignments(request):
         student=request.user
     ).select_related('collection').order_by('-assigned_at')
 
+    for assignment in assignments:
+        if assignment.is_overdue():
+            assignment.status = 'expired'
+            assignment.save()
+
     context = {
         'assignments': assignments,
         'title': 'Мои задания',
+
     }
     return render(request, 'task_description_app/my_assignments.html', context)
 
@@ -1137,6 +1144,60 @@ def complete_collection(request, attempt_id):
         'max_score': max_score,
         'percentage': round((total_score / max_score) * 100) if max_score > 0 else 0
     })
+
+
+@login_required
+@csrf_exempt
+def student_request_time_extension(request, collection_id):
+    """
+    API для отправки запроса учителю о продлении времени на выполнение задания
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+
+    # Проверяем, что пользователь - ученик
+    if request.user.user_type != 'student':
+        return JsonResponse({'error': 'Доступ только для учеников'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+        message = data.get('message', '')
+
+        # Получаем задание
+        from .models import CollectionAssignment
+        assignment = get_object_or_404(CollectionAssignment,
+                                       collection_id=collection_id,
+                                       student=request.user)
+
+        # Получаем учителя (автора коллекции)
+        teacher = assignment.collection.author
+
+        # Используем существующую функцию из уведомлений
+        from notifications.utils import notify_teacher_about_time_request
+
+        notification = notify_teacher_about_time_request(
+            teacher=teacher,
+            student=request.user,
+            collection=assignment.collection,
+            assignment=assignment,
+            message=message
+        )
+
+        if notification:
+            return JsonResponse({
+                'success': True,
+                'message': 'Запрос отправлен учителю'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Не удалось отправить запрос'
+            }, status=500)
+
+    except CollectionAssignment.DoesNotExist:
+        return JsonResponse({'error': 'Задание не найдено'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required

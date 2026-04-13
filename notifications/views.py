@@ -43,7 +43,7 @@ def get_notifications(request):
                     'task_id': n.task_id,
                     'task_level': n.task_level,
                     'is_read': n.is_read,
-                    'created_at': n.created_at.strftime('%d.%m.%Y %H:%M'),
+                    'created_at': n.get_local_time().strftime('%d.%m.%Y %H:%M'),
                 }
                 for n in notifications
             ]
