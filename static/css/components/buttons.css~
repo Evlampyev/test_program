@@ -91,7 +91,6 @@
     border: 2px solid #135db2;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
-
 .btn-outline-primary:hover {
     background: #0066ff;
     box-shadow: none;
@@ -134,7 +133,6 @@
     /*font-weight: 600;*/
     /*width: 100%;*/
 }
-
 .btn-delete:hover {
     background: #e1515f;
 }
@@ -156,8 +154,4 @@
 
 .btn-little {
     padding: 10px 12px;
-}
-
-.btn-sm {
-    width: auto !important;
 }

@@ -3,6 +3,10 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'task_description_app/css/collections.css' %}">
+{% endblock %}
+
 {% block content %}
     <div class="container mt-4">
         <h2>
@@ -29,15 +33,14 @@
                                             <strong>Задача #{{ task.id }}</strong>
                                             <small class="text-muted">{{ task.title|truncatechars:50 }}</small><br>
                                             <strong>Описание:</strong>
-                                            <small class="text-muted">{{ task.description|truncatechars:50 }}</small></div>
+                                            <small class="text-muted">{{ task.description|truncatechars:50 }}</small>
+                                        </div>
                                         <div>
-
                                             <button class="btn btn-sm btn-success add-task"
                                                     data-task-id="{{ task.id }}">
                                                 <i class="fas fa-plus"></i> Добавить
                                             </button>
                                         </div>
-
                                     </div>
                                 </div>
                             {% endfor %}
@@ -57,29 +60,30 @@
                             {% csrf_token %}
                             <div id="selectedTasks">
                                 {% for item in selected_tasks %}
-                                    <div class="selected-task mb-3 p-3 border rounded" data-item-id="{{ item.id }}">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
+                                    <div class="selected-task mb-2 p-1 border rounded task-card-{{ item.id }}"
+                                         data-item-id="{{ item.id }}">
+                                        <div class="d-flex align-items-center">
+                                            {#                                            <div class="flex-grow-1 row">#}
+                                            <div class="col align-items-center">
                                                 <strong>Задача #{{ item.task.id }}</strong>
-                                                <div class="mt-2 d-flex gap-3">
-                                                    <label>Порядок:</label>
-                                                    <input type="number" name="order_{{ item.id }}"
-                                                           value="{{ item.order }}"
-                                                           class="form-control form-control-sm d-inline-block"
-                                                           style="width: 80px;">
-                                                    <label>Баллы:</label>
-                                                    <input type="number" name="max_score_{{ item.id }}"
-                                                           value="{{ item.max_score }}"
-                                                           class="form-control form-control-sm d-inline-block"
-                                                           style="width: 80px;">
-                                                    <button type="button" class="btn btn-sm btn-danger remove-task"
-                                                            data-item-id="{{ item.id }}">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-
-
                                             </div>
+                                            <div class="col d-flex gap-3 align-items-center">
+                                                <label class="small mb-0">Порядок:</label>
+                                                <input type="number" name="order_{{ item.id }}"
+                                                       value="{{ item.order }}"
+                                                       class="form-control form-control-sm d-inline-block"
+                                                       style="width: 80px;">
+                                                <label class="small mb-0">Баллы:</label>
+                                                <input type="number" name="max_score_{{ item.id }}"
+                                                       value="{{ item.max_score }}"
+                                                       class="form-control form-control-sm d-inline-block"
+                                                       style="width: 80px;">
+                                                <button type="button" class="btn btn-sm btn-delete remove-task"
+                                                        data-item-id="{{ item.id }}">
+                                                    <i class="fas fa-trash"></i> Удалить
+                                                </button>
+                                            </div>
+                                            {#                                            </div>#}
                                         </div>
                                     </div>
                                 {% empty %}
@@ -94,10 +98,6 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save me-2"></i>Сохранить
                                 </button>
-{#                                <a href="{% url 'tasks:collection_edit' collection_id=collection.id %}"#}
-{#                                   class="btn btn-primary">#}
-{#                                    <i class="fas fa-save me-2"></i>Сохранить#}
-{#                                </a>#}
                                 <a href="{% url 'tasks:collection_list' %}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left me-2"></i>Назад
                                 </a>
@@ -137,22 +137,22 @@
                 selectedDiv.className = 'selected-task mb-3 p-3 border rounded';
                 selectedDiv.setAttribute('data-task-id', taskId);
                 selectedDiv.innerHTML = `
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1">
-                    <strong>${taskTitle}</strong>
-                    <input type="hidden" name="selected_tasks_hidden" value="${taskId}">
-                    <div class="mt-2">
-                        <label class="small">Порядок:</label>
-                        <input type="number" class="form-control form-control-sm d-inline-block" style="width: 80px;" value="${document.querySelectorAll('.selected-task').length + 1}">
-                        <label class="small ms-2">Баллы:</label>
-                        <input type="number" class="form-control form-control-sm d-inline-block" style="width: 80px;" value="10">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <strong>${taskTitle}</strong>
+                            <input type="hidden" name="selected_tasks_hidden" value="${taskId}">
+                            <div class="mt-2 d-flex gap-3 align-items-center">
+                                <label class="small mb-0">Порядок:</label>
+                                <input type="number" class="form-control form-control-sm d-inline-block" style="width: 80px;" value="${document.querySelectorAll('.selected-task').length + 1}">
+                                <label class="small mb-0 ms-2">Баллы:</label>
+                                <input type="number" class="form-control form-control-sm d-inline-block" style="width: 80px;" value="10">
+                                <button type="button" class="btn btn-sm btn-danger remove-task-btn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <button type="button" class="btn btn-sm btn-danger remove-task-btn">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
+                `;
 
                 const container = document.getElementById('selectedTasks');
                 container.appendChild(selectedDiv);
