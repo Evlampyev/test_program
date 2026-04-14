@@ -4,9 +4,8 @@
 {% block title %}Редактирование задачи #{{ task.id }} | {{ task.title|default:"Без названия" }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'task_description_app/css/task_description.css' %}">
+    <link rel="stylesheet" href="/task_description_app/static/task_description_app/css/task_description.css">
     <style>
-        /* все ваши стили остаются без изменений */
         .edit-badge {
             background: #ffc107;
             color: #856404;
@@ -17,8 +16,7 @@
         }
 
         .delete-section {
-            {#margin-top: 30px;#}
-            padding: 20px 2rem 0 2rem ;
+        {#margin-top: 30px;#} padding: 20px 2rem 0 2rem;
             border-top: 2px solid #e0e0e0;
             display: flex;
             gap: 2rem;
@@ -38,15 +36,12 @@
             border-radius: 5px;
             padding: 10px;
             background: #f8f9fa;
-
         }
 
         .image-preview img {
             max-width: 100%;
             height: auto;
         }
-
-
 
         .form-card {
             background: white;
@@ -88,11 +83,6 @@
         .test-number {
             font-weight: 600;
             color: #495057;
-        }
-
-        .remove-test {
-            color: #dc3545;
-            cursor: pointer;
         }
 
         .tab-pane {
@@ -240,7 +230,7 @@
                             <div class="test-card" id="test_{{ test.num }}">
                                 <div class="test-header">
                                     <span class="test-number">Тест #{{ test.num }}</span>
-                                    <span class="remove-test" onclick="removeTest({{ test.num }})">
+                                    <span class="btn btn-sm btn-remove-test" onclick="removeTest({{ test.num }})">
                                     <i class="fas fa-trash-alt"></i> Удалить
                                 </span>
                                 </div>
@@ -259,7 +249,7 @@
                             </div>
                         {% endfor %}
                     </div>
-                    <button type="button" class="btn-add-test" id="addTestBtn">+ Добавить тест</button>
+                    <button type="button" class="btn btn-add-test" id="addTestBtn">+ Добавить тест</button>
                     <input type="hidden" name="test_count" id="testCount" value="{{ existing_tests|length }}">
                 </div>
             </div>
@@ -273,6 +263,10 @@
             <button type="submit" class="btn btn-primary col" id="submitBtn">
                 <i class="fas fa-save me-2"></i> Сохранить изменения
             </button>
+            <div type="submit" class="col btn btn-secondary">
+                <a href="{% url 'tasks:task_list' %}"><i class="fas fa-tasks me-2"></i> Выйти без сохранения</a>
+            </div>
+
         </div>
     </form>
 

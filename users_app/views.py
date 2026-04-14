@@ -492,6 +492,7 @@ def student_tasks(request, student_id):
 
     return render(request, 'users_app/teacher/student_tasks.html', context)
 
+
 # Для администратора: назначение учителя на группу
 @staff_member_required
 def assign_teacher(request):
@@ -589,3 +590,113 @@ def generate_random_password(length=8):
     """Генерирует случайный пароль"""
     chars = string.ascii_letters + string.digits
     return ''.join(random.choice(chars) for _ in range(length))
+
+
+@login_required
+def group_students_export(request, group_id):
+    """
+    API для экспорта данных об учениках группы и их задачах за текущую дату
+    """
+    if request.user.user_type != 'teacher':
+        return JsonResponse({'error': 'Доступ запрещен'}, status=403)
+    try:
+        group = Group.objects.get(id=group_id)
+    except Group.DoesNotExist:
+        return JsonResponse({'error': 'Группа не найдена'}, status=404)
+
+    # Получаем всех учеников группы
+    students = User.objects.filter(
+        student_profile__group=group,
+        user_type='student'
+    ).select_related('student_profile')
+
+    # Текущая дата (начало и конец дня)
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = timezone.now().replace(hour=23, minute=59, second=59, microsecond=999999)
+
+    result = []
+
+    for student in students:
+        # Получаем попытки ученика за сегодня
+        attempts = TaskAttempt.objects.filter(
+            user=student,
+            attempt_time__range=(today_start, today_end)
+        ).select_related('user')
+
+        # Группируем попытки по задачам
+        tasks_dict = {}
+
+        for attempt in attempts:
+            task_id = attempt.real_task_id
+
+            if task_id not in tasks_dict:
+                # Получаем информацию о задаче
+                try:
+                    task = Task.objects.get(id=task_id)
+                    tasks_dict[task_id] = {
+                        'id': task_id,
+                        'title': task.title,
+                        'level': task.difficulty.display_name if task.difficulty else 'Не указан',
+                        'description': task.description or '',
+                        'is_solved': False,
+                        'attempts_count': 0,
+                        'best_result': 0,
+                        'last_attempt_date': None
+                    }
+                except Task.DoesNotExist:
+                    tasks_dict[task_id] = {
+                        'id': task_id,
+                        'title': f'Задача #{task_id}',
+                        'level': 'Неизвестно',
+                        'description': '',
+                        'is_solved': False,
+                        'attempts_count': 0,
+                        'best_result': 0,
+                        'last_attempt_date': None
+                    }
+
+            # # Обновляем информацию о попытке
+            tasks_dict[task_id]['attempts_count'] += 1
+
+            # Вычисляем лучший результат из тестов
+            if attempt.result:
+                try:
+                    import json
+                    results = json.loads(attempt.result)
+                    if isinstance(results, list) and len(results) > 0:
+                        passed = sum(1 for r in results if r.get('passed', False))
+                        total = len(results)
+                        result_percent = int((passed / total) * 100) if total > 0 else 0
+
+                        if result_percent > tasks_dict[task_id]['best_result']:
+                            tasks_dict[task_id]['best_result'] = result_percent
+                except:
+                    pass
+
+            if attempt.is_solved:
+                tasks_dict[task_id]['is_solved'] = True
+
+            # Обновляем дату последней попытки
+            attempt_date = attempt.get_local_time()
+            if (not tasks_dict[task_id]['last_attempt_date'] or
+                    attempt_date > tasks_dict[task_id]['last_attempt_date']):
+                tasks_dict[task_id]['last_attempt_date'] = attempt_date.strftime('%d.%m.%Y %H:%M')
+
+        class_name = str(group.school_class) if group.school_class else 'Не указан'
+        # Формируем результат для ученика
+        student_data = {
+            'full_name': f"{student.last_name} {student.first_name} {student.middle_name or ''}".strip(),
+            'class_name': class_name,
+            'group_number': group.number,
+            'tasks': list(tasks_dict.values())
+        }
+
+        result.append(student_data)
+
+    group_name = f"{group.school_class} - Группа {group.number}"
+
+    return JsonResponse({
+        'success': True,
+        'students': result,
+        'export_date': timezone.now().strftime('%d.%m.%Y'),
+        'group_name': group_name})

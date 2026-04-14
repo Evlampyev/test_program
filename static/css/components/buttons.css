@@ -111,20 +111,6 @@
     color: white;
 }
 
-/*.btn-export {*/
-/*    background: #28a745;*/
-/*    color: white;*/
-/*    border: none;*/
-/*    padding: 8px 16px;*/
-/*    border-radius: 8px;*/
-/*    transition: background 0.3s;*/
-/*}*/
-
-/*.btn-export:hover {*/
-/*    background: #218838;*/
-/*    color: white;*/
-/*}*/
-
 .btn-delete {
     background: #dc3545;
     color: white;
@@ -153,6 +139,20 @@
 .btn-remove-image:hover {
     background: #c82333;
 }
+
+.btn-remove-test {
+    background: transparent;
+    color: #dc3545;
+    border: 2px solid #dc3545;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    cursor: pointer;
+}
+.btn-remove-test:hover {
+    background: #dc3545;
+    color: white;
+    box-shadow: none;
+}
+
 
 .btn-little {
     padding: 10px 12px;

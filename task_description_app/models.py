@@ -220,7 +220,7 @@ class TaskAttempt(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='task_attempts')
     task_path = models.CharField('Путь к задаче', max_length=500)  # путь к папке задачи
-    task_id = models.CharField('ID задания', max_length=50)  # из task.md
+    task_id = models.CharField('ID задания', max_length=50)  # Непонятное число , нужно удалить
     attempt_time = models.DateTimeField('Время попытки', default=timezone.now)
     status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='pending')
     code = models.TextField('Код решения', blank=True)
@@ -234,7 +234,7 @@ class TaskAttempt(models.Model):
         verbose_name_plural = 'Попытки решения'
 
     def __str__(self):
-        return f"{self.user.username} - {self.task_id} - {self.attempt_time}"
+        return f"{self.user.username} - {self.real_task_id} - {self.get_local_time()}"
 
     def get_local_time(self):
         """Вспомогательный метод для получения локального времени"""
