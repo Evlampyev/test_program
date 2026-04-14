@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="/task_description_app/static/task_description_app/css/collections.css">
+
+{% endblock %}
+
 {% block title %}Мои подборки{% endblock %}
 
 {% block content %}
@@ -41,23 +46,33 @@
                                     <p class="small text-muted">🎯 {{ collection.target_class }}</p>
                                 {% endif %}
                             </div>
-                            <div class="card-footer row">
+                            <div class="card-footer gy-3">
                                 <div class="col">
                                     <a href="{% url 'tasks:collection_detail' collection.id %}"
-                                       class="btn btn-sm btn-outline">
-                                        Подробнее
+                                       class="btn btn-little btn-outline"> Подробнее
                                     </a>
                                 </div>
-                                <div class="col">
-                                    {% if collection.author == user %}
+                                {% if collection.author == user %}
+                                    <div class="col">
                                         <a href="{% url 'tasks:collection_edit' collection.id %}"
-                                           class="btn btn-sm btn-outline-sms">
+                                           class="btn btn-little btn-outline-sms">
                                             <i class="fas fa-edit"></i> Редактировать
                                         </a>
-                                    {% endif %}
+                                    </div>
+                                {% endif %}
+                                <div class="col">
+                                    <form method="post" action="{% url 'tasks:collection_delete' collection.id %}"
+                                          onsubmit="return confirm('Вы уверены, что хотите удалить подборку «{{ collection.title }}»? Это действие необратимо.');"
+                                          style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-little btn-remove-test">
+                                            <i class="fas fa-trash"></i> Удалить
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </div>
                 {% endfor %}
             </div>

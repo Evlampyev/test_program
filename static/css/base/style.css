@@ -202,3 +202,38 @@ pre:has(code:empty) {
 }
 
 /*Конец оповещений учителя*/
+
+/*Уровни подкраска*/
+.badge-level {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.level-A {
+    background: #d4edda;
+    color: #155724;
+}
+
+.level-B {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.level-C {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.level-D {
+    background: #eed3c6;
+    color: #623816;
+}
+
+
+.level-E {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+/*конец уровней*/

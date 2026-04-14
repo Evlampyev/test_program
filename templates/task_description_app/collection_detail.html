@@ -15,6 +15,7 @@
         }
 
         .collection-header h1 {
+        .collection-header h1 {
             font-size: 2rem;
             margin-bottom: 10px;
         }
@@ -280,7 +281,7 @@
                                 Задача #{{ item.task.id }}: {{ item.task.title|default:"Без названия" }}
                             </div>
                             <div class="task-meta">
-                        <span class="me-3">
+                        <span class="me-3 badge-level level-{{ item.task.difficulty.level_name }}">
                             <i class="fas fa-signal me-1"></i>
                             {% if item.task.difficulty %}
                                 {{ item.task.difficulty.display_name }}

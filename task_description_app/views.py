@@ -1,11 +1,8 @@
 # views.py (приложение tasks)
-from datetime import datetime
 import os
 import re
 import textwrap
 import mimetypes
-import pytz
-
 from django.db.models import Max
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -17,6 +14,7 @@ from django.utils import timezone
 import markdown
 import json
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from .forms import TaskAddForm, TaskContentForm, CollectionForm, TaskEditForm
 from .models import Task, DifficultyLevel, ClassStructure, TaskPlacement, CollectionAttempt, Collection, CollectionItem, \
@@ -1198,6 +1196,30 @@ def student_request_time_extension(request, collection_id):
         return JsonResponse({'error': 'Задание не найдено'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@user_passes_test(is_teacher)
+@require_POST
+def collection_delete(request, collection_id):
+    """Удаление подборки (только POST запрос)"""
+
+    collection = get_object_or_404(Collection, id=collection_id, author=request.user)
+    collection_title = collection.title
+
+    try:
+        # Удаляем все связанные объекты
+        collection.collection_items.all().delete()
+        collection.attempts.all().delete()
+        collection.assignments.all().delete()
+        collection.delete()
+
+        messages.success(request, f'Подборка "{collection_title}" успешно удалена!')
+
+    except Exception as e:
+        messages.error(request, f'Ошибка при удалении: {str(e)}')
+
+    return redirect('tasks:collection_list')
 
 
 @login_required

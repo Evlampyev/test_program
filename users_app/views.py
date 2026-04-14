@@ -339,7 +339,7 @@ def group_students(request, group_id):
 
         # Максимальное количество задач для прогресс-бара
         # Можно взять общее количество задач в этом уровне или установить константу
-        max_tasks = 20  # или рассчитать динамически
+        max_tasks = Task.objects.all().count()
 
         students_data.append({
             'student': student,

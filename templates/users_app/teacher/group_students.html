@@ -142,7 +142,7 @@
                 <div class="col-md-4">
                     <div class="row mb-2 align-items-center">
                         <a href="#" class="btn btn-success btn-little me-2" onclick="exportToCSV()">
-                            <i class="fas fa-file-csv me-2 "></i>Экспорт в CSV
+                            <i class="fas fa-file-csv me-2 "></i>Экспорт в Excel
                         </a>
                     </div>
                     <div class="row align-items-center">
@@ -238,9 +238,6 @@
                                             <div class="student-info">
                                                 <h5>
                                                     {{ student.last_name }} {{ student.first_name }} {{ student.middle_name }}
-                                                    {#                                                    {% if student.student_profile.solved_tasks > 10 %}#}
-                                                    {#                                                        <span class="badge bg-success ms-2">Отличник</span>#}
-                                                    {#                                                    {% endif %}#}
                                                     {% with stars=student_data.solved_count|star_rating %}
                                                         {% if stars %}
                                                             <span class="stars-container ms-2">
@@ -278,7 +275,7 @@
                                                 </ul>
                                             </div>
                                         </div>
-                                        <!-- Прогресс (обновленная версия) -->
+                                        <!-- Прогресс -->
                                         <div class="mt-3">
                                             <div class="d-flex justify-content-between mb-1">
                                                 <span class="task-progress">
@@ -673,13 +670,13 @@
 
         // Экспорт в CSV с подробной информацией о задачах, решённых сегодня
         async function exportToCSV() {
-            try {
-                // Показываем индикатор загрузки
-                const exportBtn = event.currentTarget;
-                const originalText = exportBtn.innerHTML;
-                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Экспорт...';
-                exportBtn.disabled = true;
 
+            // Показываем индикатор загрузки
+            const exportBtn = event.currentTarget;
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Экспорт...';
+            exportBtn.disabled = true;
+            try {
                 // Получаем ID группы из URL или из данных на странице
                 const groupId = getGroupIdFromUrl();
 
@@ -707,7 +704,7 @@
                 alert('Ошибка при экспорте: ' + error.message);
             } finally {
                 // Восстанавливаем кнопку
-                const exportBtn = event.currentTarget;
+                {#const exportBtn = event.currentTarget;#}
                 exportBtn.innerHTML = originalText;
                 exportBtn.disabled = false;
             }

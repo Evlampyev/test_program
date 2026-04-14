@@ -23,6 +23,7 @@ urlpatterns = [
     path('collections/<int:collection_id>/', views.collection_detail, name='collection_detail'),
     path('collections/<int:collection_id>/start/', views.start_collection, name='start_collection'),
     path('attempt/<int:attempt_id>/', views.collection_attempt, name='collection_attempt'),
+    path('collection/<int:collection_id>/delete/', views.collection_delete, name='collection_delete'),
 
     # Выдача КР
     path('collections/<int:collection_id>/assign/', views.assign_collection, name='assign_collection'),
