@@ -264,9 +264,9 @@
             <button type="submit" class="btn btn-primary col" id="submitBtn">
                 <i class="fas fa-save me-2"></i> Сохранить изменения
             </button>
-            <a href="{% url 'tasks:task_list' %}" class="btn btn-secondary col">
-                <i class="fas fa-tasks me-2"></i> Выйти без сохранения
-            </a>
+            <div type="submit" class="btn btn-secondary col">
+                <a href="{% url 'tasks:task_list' %}"><i class="fas fa-tasks me-2"></i> Выйти без сохранения</a>
+            </div>
 
         </div>
     </form>

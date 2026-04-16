@@ -24,6 +24,51 @@
             max-height: 400px;
             overflow-y: auto;
         }
+
+        /* Адаптивная сетка для карточек групп */
+        .groups-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .groups-grid .card {
+            min-width: 195px;
+        }
+
+        /* При ширине экрана 1280px и выше - 6 колонок */
+        @media (min-width: 1280px) {
+            .groups-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        /* При ширине экрана от 768px до 1279px - 4 колонки */
+        @media (min-width: 900px) and (max-width: 1279px) {
+            .groups-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* При ширине экрана от 576px до 767px - 2 колонки */
+        @media (min-width: 576px) and (max-width: 900px) {
+            .groups-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* При ширине экрана меньше 576px - 1 колонка */
+        @media (max-width: 575px) {
+            .groups-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Убираем лишние отступы у карточек */
+        .groups-grid .card {
+            margin-bottom: 0;
+            height: 100%;
+        }
     </style>
 {% endblock %}
 
@@ -31,45 +76,43 @@
     <div class="container mt-4">
         <h2>Мои группы</h2>
         {% if groups %}
-            <div class="row">
+            <div class="groups-grid">
                 {% for group in groups %}
-                    <div class="col-md-2 mb-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>{{ group.school_class }} - Группа {{ group.number }}</h5>
-                            </div>
-                            <div class="card-body">
-                                {% with students=group.students_list %}
-                                    {% if students %}
-                                        <p>Всего
-                                            <strong> {{ students|length|pluralize_ru:"ученик,ученика,учеников" }}</strong>
-                                        </p>
-                                        <ul class="list-group">
-                                            <!-- Показываем только первых 4 учеников -->
-                                            {% for student in students|slice:":4" %}
-                                                <li class="list-group-item">
-                                                    {{ student.last_name }} {{ student.first_name }}
-                                                </li>
-                                            {% endfor %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>{{ group.school_class }} - Группа {{ group.number }}</h5>
+                        </div>
+                        <div class="card-body">
+                            {% with students=group.students_list %}
+                                {% if students %}
+                                    <p>Всего
+                                        <strong> {{ students|length|pluralize_ru:"ученик,ученика,учеников" }}</strong>
+                                    </p>
+                                    <ul class="list-group">
+                                        <!-- Показываем только первых 4 учеников -->
+                                        {% for student in students|slice:":4" %}
+                                            <li class="list-group-item">
+                                                {{ student.last_name }} {{ student.first_name }}
+                                            </li>
+                                        {% endfor %}
 
-                                            <!-- Если учеников больше 5, показываем индикатор -->
-                                            {% if students|length > 4 %}
-                                                <li class="list-group-item student-limit-indicator">
-                                                    <i class="fas fa-ellipsis-h"></i>
-                                                    и
-                                                    еще {{ students|length|add:"-4"|pluralize_ru:"ученик,ученика,учеников" }}
-                                                </li>
-                                            {% endif %}
-                                        </ul>
-                                    {% else %}
-                                        <p class="text-muted">Нет учеников в этой группе</p>
-                                    {% endif %}
-                                {% endwith %}
+                                        <!-- Если учеников больше 5, показываем индикатор -->
+                                        {% if students|length > 4 %}
+                                            <li class="list-group-item student-limit-indicator">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                                и
+                                                еще {{ students|length|add:"-4"|pluralize_ru:"ученик,ученика,учеников" }}
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted">Нет учеников в этой группе</p>
+                                {% endif %}
+                            {% endwith %}
 
-                                <a href="{% url 'group_students' group.id %}" class="btn btn-primary mt-3 w-100">
-                                    <i class="fas fa-users me-1"></i> Подробнее
-                                </a>
-                            </div>
+                            <a href="{% url 'group_students' group.id %}" class="btn btn-primary mt-3 w-100">
+                                <i class="fas fa-users me-1"></i> Подробнее
+                            </a>
                         </div>
                     </div>
                 {% endfor %}
@@ -81,4 +124,57 @@
             </div>
         {% endif %}
     </div>
+    {#    <div class="container mt-4">#}
+    {#        <h2>Мои группы</h2>#}
+    {#        {% if groups %}#}
+    {#            <div class="row">#}
+    {#                {% for group in groups %}#}
+    {#                    <div class="col-md-2 mb-4">#}
+    {#                        <div class="card">#}
+    {#                            <div class="card-header">#}
+    {#                                <h5>{{ group.school_class }} - Группа {{ group.number }}</h5>#}
+    {#                            </div>#}
+    {#                            <div class="card-body">#}
+    {#                                {% with students=group.students_list %}#}
+    {#                                    {% if students %}#}
+    {#                                        <p>Всего#}
+    {#                                            <strong> {{ students|length|pluralize_ru:"ученик,ученика,учеников" }}</strong>#}
+    {#                                        </p>#}
+    {#                                        <ul class="list-group">#}
+    {#                                            <!-- Показываем только первых 4 учеников -->#}
+    {#                                            {% for student in students|slice:":4" %}#}
+    {#                                                <li class="list-group-item">#}
+    {#                                                    {{ student.last_name }} {{ student.first_name }}#}
+    {#                                                </li>#}
+    {#                                            {% endfor %}#}
+    {##}
+    {#                                            <!-- Если учеников больше 5, показываем индикатор -->#}
+    {#                                            {% if students|length > 4 %}#}
+    {#                                                <li class="list-group-item student-limit-indicator">#}
+    {#                                                    <i class="fas fa-ellipsis-h"></i>#}
+    {#                                                    и#}
+    {#                                                    еще {{ students|length|add:"-4"|pluralize_ru:"ученик,ученика,учеников" }}#}
+    {#                                                </li>#}
+    {#                                            {% endif %}#}
+    {#                                        </ul>#}
+    {#                                    {% else %}#}
+    {#                                        <p class="text-muted">Нет учеников в этой группе</p>#}
+    {#                                    {% endif %}#}
+    {#                                {% endwith %}#}
+    {##}
+    {#                                <a href="{% url 'group_students' group.id %}" class="btn btn-primary mt-3 w-100">#}
+    {#                                    <i class="fas fa-users me-1"></i> Подробнее#}
+    {#                                </a>#}
+    {#                            </div>#}
+    {#                        </div>#}
+    {#                    </div>#}
+    {#                {% endfor %}#}
+    {#            </div>#}
+    {#        {% else %}#}
+    {#            <div class="alert alert-info">#}
+    {#                <i class="fas fa-info-circle me-2"></i>#}
+    {#                У вас пока нет назначенных групп. Обратитесь к администратору.#}
+    {#            </div>#}
+    {#        {% endif %}#}
+    {#    </div>#}
 {% endblock %}
