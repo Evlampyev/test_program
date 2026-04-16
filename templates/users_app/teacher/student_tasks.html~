@@ -338,29 +338,11 @@
                     }
 
                     if (data.difficulty) {
-                        // Извлекаем уровень из строки сложности (например, "Уровень A" -> "A")
-                        let level = data.difficulty;
-                        let levelLetter = '';
+                        htmlContent += `<div class="mb-3"><span class="badge bg-secondary"><i class="fas fa-signal me-1"></i>Сложность: ${escapeHtml(data.difficulty)}</span></div>`;
 
-                        if (level.includes('A') || level.includes('А')) {
-                            levelLetter = 'A';
-                        } else if (level.includes('B')) {
-                            levelLetter = 'B';
-                        } else if (level.includes('C')) {
-                            levelLetter = 'C';
-                        } else if (level.includes('D')) {
-                            levelLetter = 'D';
-                        } else if (level.includes('E')) {
-                            levelLetter = 'E';
-                        } else {
-                            levelLetter = 'default';
-                        }
+                        {#htmlContent += `<div class="mb-3"><span class="badge-level level-${escapeHtml(data.difficulty)}"><i class="fas fa-signal me-1"></i>Уровень ${escapeHtml(data.difficulty)}</span></div>';#}
 
-                        htmlContent += `<div class="mb-3">
-        <span class="badge-level level-${levelLetter}">
-            <i class="fas fa-signal me-1"></i>Уровень ${levelLetter}
-        </span>
-    </div>`;
+
                     }
 
                     htmlContent += `<div class="task-md-content">${data.md_content}</div>`;
