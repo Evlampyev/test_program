@@ -609,6 +609,7 @@ def group_students_export(request, group_id):
         student_profile__group=group,
         user_type='student'
     ).select_related('student_profile')
+    # print(f"{students=}")
 
     # Текущая дата (начало и конец дня)
     today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -625,7 +626,8 @@ def group_students_export(request, group_id):
 
         # Группируем попытки по задачам
         tasks_dict = {}
-
+        # print(student)
+        # print(attempts)
         for attempt in attempts:
             task_id = attempt.real_task_id
 
@@ -657,12 +659,14 @@ def group_students_export(request, group_id):
 
             # # Обновляем информацию о попытке
             tasks_dict[task_id]['attempts_count'] += 1
+            # print("------------")
 
             # Вычисляем лучший результат из тестов
             if attempt.result:
                 try:
                     import json
                     results = json.loads(attempt.result)
+                    # print(f"+ {results}")
                     if isinstance(results, list) and len(results) > 0:
                         passed = sum(1 for r in results if r.get('passed', False))
                         total = len(results)
@@ -675,12 +679,14 @@ def group_students_export(request, group_id):
 
             if attempt.is_solved:
                 tasks_dict[task_id]['is_solved'] = True
-
+            # print("==== 1 ====", tasks_dict)
             # Обновляем дату последней попытки
             attempt_date = attempt.get_local_time()
+            # print(f"{attempt_date= }")
             if (not tasks_dict[task_id]['last_attempt_date'] or
                     attempt_date > tasks_dict[task_id]['last_attempt_date']):
-                tasks_dict[task_id]['last_attempt_date'] = attempt_date.strftime('%d.%m.%Y %H:%M')
+                tasks_dict[task_id]['last_attempt_date'] = attempt_date
+            # print("=== 2 ===", tasks_dict)
 
         class_name = str(group.school_class) if group.school_class else 'Не указан'
         # Формируем результат для ученика
@@ -688,7 +694,21 @@ def group_students_export(request, group_id):
             'full_name': f"{student.last_name} {student.first_name} {student.middle_name or ''}".strip(),
             'class_name': class_name,
             'group_number': group.number,
-            'tasks': list(tasks_dict.values())
+            'tasks': [
+                {
+                    'id': task['id'],
+                    'title': task['title'],
+                    'level': task['level'],
+                    'description': task['description'],
+                    'is_solved': task['is_solved'],
+                    'attempts_count': task['attempts_count'],
+                    'best_result': task['best_result'],
+                    'last_attempt_date': task['last_attempt_date'].strftime('%d.%m.%Y %H:%M') if task[
+                        'last_attempt_date'] else None
+                }
+                for task in tasks_dict.values()
+            ]
+
         }
 
         result.append(student_data)

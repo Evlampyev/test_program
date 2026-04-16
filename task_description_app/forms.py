@@ -85,13 +85,13 @@ class TaskAddForm(forms.ModelForm):
         ],
         widget=forms.Select(attrs={'class': 'form-select'})
     )
-    task_folder = forms.CharField(
-        label='Папка задачи',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Например: task_001'
-        })
-    )
+    # task_folder = forms.CharField(
+    #     label='Папка задачи',
+    #     widget=forms.TextInput(attrs={
+    #         'class': 'form-control',
+    #         'placeholder': 'Например: task_001'
+    #     })
+    # )
 
     class Meta:
         model = Task

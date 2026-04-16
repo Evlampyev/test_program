@@ -445,7 +445,7 @@ def task_add(request):
                 topic = task_form.cleaned_data['topic'].strip()
                 lesson = task_form.cleaned_data['lesson'].strip()
                 level = task_form.cleaned_data['level']
-                task_folder = task_form.cleaned_data['task_folder'].strip()
+                # task_folder = task_form.cleaned_data['task_folder'].strip()
 
                 # Создаем задачу в БД
                 task = task_form.save(commit=False)
