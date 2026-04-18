@@ -67,7 +67,7 @@ def build_tree_structure():
 
     return tree_data
 
-
+@login_required
 def task_list(request):
     """Страница со списком всех задач"""
     tasks = Task.objects.all()

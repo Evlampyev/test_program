@@ -12,7 +12,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.utils import timezone
 
-from task_description_app.models import Task, TaskAttempt
+from task_description_app.models import Task, TaskAttempt, UploadedProgram, CollectionAttempt, CollectionAssignment
 from .forms import StudentRegistrationForm, LoginForm, AssignTeacherForm
 from .models import User, StudentProfile, Group, SchoolClass
 from manage import logger
@@ -31,7 +31,7 @@ def student_register(request):
     else:
         form = StudentRegistrationForm()
 
-    return render(request, 'users_app/student_register.html', {'form': form})
+    return render(request, 'users_app/student/student_register.html', {'form': form})
 
 
 # Вход для всех
@@ -259,7 +259,7 @@ def student_dashboard(request):
         'success_rate': success_rate,
         'rating_data': rating_data,
     }
-    return render(request, 'users_app/st_dashboard.html', context)
+    return render(request, 'users_app/student/student_dashboard.html', context)
 
 
 # Вспомогательная функция для форматирования последнего входа
@@ -539,7 +539,7 @@ def assign_teacher(request):
         'classes_count': classes.count(),
         'total_groups': Group.objects.count(),
     }
-    return render(request, 'users_app/assign_teacher.html', context)
+    return render(request, 'users_app/superuser/assign_teacher.html', context)
 
 
 @csrf_exempt  # ТОЛЬКО ДЛЯ ОТЛАДКИ!
@@ -590,6 +590,59 @@ def generate_random_password(length=8):
     """Генерирует случайный пароль"""
     chars = string.ascii_letters + string.digits
     return ''.join(random.choice(chars) for _ in range(length))
+
+
+@login_required
+def delete_student(request, student_id):
+    """Полное удаление ученика из системы со всеми его данными"""
+    if request.user.user_type != 'teacher':
+        messages.error(request, 'Доступ запрещен')
+        return redirect('teacher_dashboard')
+
+    try:
+        student = get_object_or_404(User, id=student_id, user_type='student')
+
+        # Проверяем, что учитель имеет доступ к группе этого ученика
+        if not hasattr(student, 'student_profile') or not student.student_profile.group:
+            messages.error(request, 'У ученика нет группы')
+            return redirect('teacher_dashboard')
+
+        group = student.student_profile.group
+        if group.teacher != request.user:
+            messages.error(request, 'У вас нет прав на удаление этого ученика')
+            return redirect('teacher_dashboard')
+
+        # Сохраняем имя и группу для сообщения
+        student_name = f"{student.last_name} {student.first_name}"
+        group_name = f"{group.school_class} - Группа {group.number}"
+
+        # 1. Удаляем все попытки решения задач
+        TaskAttempt.objects.filter(user=student).delete()
+
+        # 2. Удаляем все загруженные программы
+        UploadedProgram.objects.filter(user=student).delete()
+
+        # 3. Удаляем попытки выполнения контрольных работ
+        CollectionAttempt.objects.filter(student=student).delete()
+
+        # 4. Удаляем назначения контрольных работ
+        CollectionAssignment.objects.filter(student=student).delete()
+
+        # 5. Удаляем профиль ученика
+        if hasattr(student, 'student_profile'):
+            student.student_profile.delete()
+
+        # 6. Удаляем самого пользователя
+        student.delete()
+
+        messages.success(request, f'Ученик "{student_name}" успешно удалён из группы {group_name}')
+
+        # Перенаправляем обратно на страницу группы
+        return redirect('group_students', group_id=group.id)
+
+    except Exception as e:
+        messages.error(request, f'Ошибка при удалении ученика: {str(e)}')
+        return redirect('teacher_dashboard')
 
 
 @login_required

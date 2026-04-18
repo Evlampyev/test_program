@@ -48,6 +48,7 @@
 
         </a>
 
+        <!-- бургер-меню -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -129,6 +130,13 @@
                         {#                            <i class="fas fa-user-friends"></i> Одноклассники#}
                         {#                            </a>#}
                         {#                        </li>#}
+                    {% endif %}
+                    {% if user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'assign_teacher' %}">
+                                <i class="fas fa-crown me-1"></i> Aдмин
+
+                        </li>
                     {% endif %}
                 </ul>
 
