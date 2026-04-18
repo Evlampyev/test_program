@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
 {% load custom_filters %}
 {% load pluralize_ru %}
+{% load static %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -25,9 +25,7 @@
                     <p>
                         {% with stars=solved_tasks_count|star_rating %}
                             {% if stars %}
-                                <span class="stars-container ms-2">{{ stars|safe }}
-{#                                    <small class="text-muted ms-1">({{ solved_tasks_count }})</small>#}
-                                </span>
+                                <span class="stars-container ms-2">{{ stars|safe }}</span>
                             {% endif %}
                         {% endwith %}
                     </p>
@@ -45,8 +43,8 @@
                     </p>
                 </div>
             </div>
-            <!-- Статистика (обновленная) -->
 
+            <!-- Статистика -->
             <div class="col-md-3 mb-4">
                 <div class="stats-card">
                     <div class="stats-icon">
@@ -108,13 +106,9 @@
                                             <i class="fas fa-hourglass-half text-warning me-1"></i>
                                         {% endif %}
                                         Попыток: {{ task.attempts_count }}
-                                        {#                                        <span class="ms-3">📊 Уровень: {{ task.level }}</span>#}
-
                                         <span class="ms-3 badge-level level-{{ task.level }}">
                                             <i class="fas fa-signal me-1"></i>Уровень {{ task.level }}
                                         </span>
-
-
                                         {% if task.last_attempt %}
                                             <span class="ms-3">
                                         <i class="fas fa-calendar me-1"></i>
@@ -123,7 +117,7 @@
                                         {% endif %}
                                     </small>
 
-                                    <!-- Прогресс-бар (опционально) -->
+                                    <!-- Прогресс-бар -->
                                     {% if not task.is_solved %}
                                         <div class="progress mt-2" style="height: 4px;">
                                             <div class="progress-bar bg-warning" role="progressbar"
@@ -150,7 +144,6 @@
                     </div>
                 {% endif %}
             </div>
-
 
             <!-- Правая колонка: Одноклассники -->
             <div class="col-md-4">
@@ -199,7 +192,6 @@
                         Вам еще не назначена группа. Обратитесь к учителю.
                     </div>
                 {% endif %}
-
 
                 <!-- Рейтинг группы -->
                 <div class="section-title mt-4">
@@ -271,7 +263,7 @@
         </div>
     </div>
 {% endblock %}
-
-{% block extra_js %}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-{% endblock %}
+{##}
+{#{% block extra_js %}#}
+{#    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>#}
+{#{% endblock %}#}

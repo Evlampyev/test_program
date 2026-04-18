@@ -172,8 +172,7 @@
                              {% if not img_exists %}style="display: none;"{% endif %}>
                             <img id="previewImg" src="/tasks/task/{{ task_id }}/image/img.png"
                                  alt="Текущее изображение"
-                                 style="max-width: 100%; height: auto;"
-                                 onerror="handleImageError(this)">
+                                 style="max-width: 100%; height: auto;">
                             <button type="button" class=" btn-remove-image" onclick="removeImage()">
                                 <i class="fas fa-trash-alt me-1"></i>Удалить изображение
                             </button>
@@ -499,6 +498,19 @@
             });
 
             // Проверяем загрузку текущего изображения
+            const previewImg = document.getElementById('previewImg');
+            if (previewImg) {
+                previewImg.onerror = function () {
+                    console.log('Текущее изображение не найдено');
+                    const imagePreview = document.getElementById('imagePreview');
+                    if (imagePreview) {
+                        imagePreview.style.display = 'none';
+                    }
+                };
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
             const previewImg = document.getElementById('previewImg');
             if (previewImg) {
                 previewImg.onerror = function () {

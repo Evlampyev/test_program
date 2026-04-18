@@ -291,7 +291,7 @@
                                             <div class="d-flex justify-content-between mb-1">
                                                 <span class="task-progress">
                                                     <i class="fas fa-check-circle text-success"></i>
-                                                    Решено: {{ student_data.solved_count|pluralize_ru:"задача,задачи,задач"}}
+                                                    Решено: {{ student_data.solved_count|pluralize_ru:"задача,задачи,задач" }}
                                                 </span>
                                                 <span class="task-progress">
                                                     <i class="fas fa-clock text-warning"></i>
@@ -398,8 +398,9 @@
     <script>
         // Просмотр статистики ученика
         function viewStudentStats(studentId) {
-            let modal = new bootstrap.Modal(document.getElementById('studentStatsModal'));
-            let modalBody = document.getElementById('statsModalBody');
+            const modalElement = document.getElementById('studentStatsModal');
+            const modal = new bootstrap.Modal(modalElement);
+            const modalBody = document.getElementById('statsModalBody');
 
             // Показываем загрузку
             modalBody.innerHTML = `
@@ -411,9 +412,23 @@
         </div>
     `;
 
+            // Удаляем предыдущий обработчик, чтобы не накапливались
+            modalElement.removeEventListener('hidden.bs.modal', handleModalClose);
+
+            // Добавляем новый обработчик
+            function handleModalClose() {
+                const dropdownToggle = document.querySelector('.dropdown-toggle');
+                if (dropdownToggle) {
+                    dropdownToggle.focus();
+                }
+                modalElement.removeEventListener('hidden.bs.modal', handleModalClose);
+            }
+
+            modalElement.addEventListener('hidden.bs.modal', handleModalClose);
+
             modal.show();
 
-            // Загружаем данные за неделю
+            // Загружаем данные
             fetch(`/users/api/student-stats/${studentId}/`)
                 .then(response => {
                     if (!response.ok) {
@@ -676,179 +691,171 @@
             }, 2000);
         }
 
+        // Назначить задачу / закомментировано
+        function assignTask(studentId) {
+            window.location.href = '/task/assign/?student=' + studentId;
+        }
 
-        {#// Функция копирования пароля#}
-        {#function copyPassword() {#}
-        {#    const passwordInput = document.getElementById('newPassword');#}
-        {#    passwordInput.select();#}
-        {#    document.execCommand('copy');#}
-        {#    alert('Пароль скопирован в буфер обмена');#}
-        {#}#}
+        // Отправить сообщение / закомментировано
+        function sendMessage(studentId) {
+            window.location.href = '/messages/new/?to=' + studentId;
+        }
 
-            // Назначить задачу
-            function assignTask(studentId) {
-                window.location.href = '/task/assign/?student=' + studentId;
-            }
+        // Экспорт в CSV с подробной информацией о задачах, решённых сегодня
+        async function exportToCSV() {
 
-            // Отправить сообщение
-            function sendMessage(studentId) {
-                window.location.href = '/messages/new/?to=' + studentId;
-            }
+            // Показываем индикатор загрузки
+            const exportBtn = event.currentTarget;
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Экспорт...';
+            exportBtn.disabled = true;
+            try {
+                // Получаем ID группы из URL или из данных на странице
+                const groupId = getGroupIdFromUrl();
 
-            // Экспорт в CSV с подробной информацией о задачах, решённых сегодня
-            async function exportToCSV() {
+                // Запрашиваем данные с сервера
+                const response = await fetch(`/users/api/group-students-export/${groupId}/`);
 
-                // Показываем индикатор загрузки
-                const exportBtn = event.currentTarget;
-                const originalText = exportBtn.innerHTML;
-                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Экспорт...';
-                exportBtn.disabled = true;
-                try {
-                    // Получаем ID группы из URL или из данных на странице
-                    const groupId = getGroupIdFromUrl();
-
-                    // Запрашиваем данные с сервера
-                    const response = await fetch(`/users/api/group-students-export/${groupId}/`);
-
-                    if (!response.ok) {
-                        throw new Error('Ошибка загрузки данных');
-                    }
-
-                    const data = await response.json();
-
-                    if (!data.success) {
-                        throw new Error(data.error || 'Неизвестная ошибка');
-                    }
-
-                    // Формируем CSV
-                    let csv = generateCSV(data.students);
-
-                    // Скачиваем файл с правильной кодировкой
-                    downloadCSV(csv, `students_export_${new Date().toISOString().split('T')[0]}.csv`);
-
-                } catch (error) {
-                    console.error('Ошибка экспорта:', error);
-                    alert('Ошибка при экспорте: ' + error.message);
-                } finally {
-                    // Восстанавливаем кнопку
-                    {#const exportBtn = event.currentTarget;#}
-                    exportBtn.innerHTML = originalText;
-                    exportBtn.disabled = false;
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки данных');
                 }
-            }
 
-            // Получение ID группы из URL
-            function getGroupIdFromUrl() {
-                const path = window.location.pathname;
-                const match = path.match(/\/group\/(\d+)\//);
-                if (match) {
-                    return match[1];
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Неизвестная ошибка');
                 }
-                // Альтернативный вариант: из data-атрибута или из контекста
-                return '{{ group.id }}';
+
+                // Формируем CSV
+                let csv = generateCSV(data.students);
+
+                // Скачиваем файл с правильной кодировкой
+                downloadCSV(csv, `students_export_${new Date().toISOString().split('T')[0]}.csv`);
+
+            } catch (error) {
+                console.error('Ошибка экспорта:', error);
+                alert('Ошибка при экспорте: ' + error.message);
+            } finally {
+                // Восстанавливаем кнопку
+                {#const exportBtn = event.currentTarget;#}
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
             }
+        }
 
-            // Генерация CSV с правильной кодировкой
-            function generateCSV(students) {
-                // Используем разделитель ";" для лучшей совместимости с Excel
-                const delimiter = ';';
+        // Получение ID группы из URL
+        function getGroupIdFromUrl() {
+            const path = window.location.pathname;
+            const match = path.match(/\/group\/(\d+)\//);
+            if (match) {
+                return match[1];
+            }
+            // Альтернативный вариант: из data-атрибута или из контекста
+            return '{{ group.id }}';
+        }
 
-                // Заголовки
-                const headers = [
-                    'ФИО ученика',
-                    'Класс',
-                    'Группа',
-                    'ID задачи',
-                    'Название задачи',
-                    'Уровень сложности',
-                    'Описание задачи',
-                    'Статус',
-                    'Количество попыток',
-                    'Лучший результат (%)',
-                    'Дата последней попытки'
-                ];
+        // Генерация CSV с правильной кодировкой
+        function generateCSV(students) {
+            // Используем разделитель ";" для лучшей совместимости с Excel
+            const delimiter = ';';
 
-                const rows = [headers];
+            // Заголовки
+            const headers = [
+                'ФИО ученика',
+                'Класс',
+                'Группа',
+                'ID задачи',
+                'Название задачи',
+                'Уровень сложности',
+                'Описание задачи',
+                'Статус',
+                'Количество попыток',
+                'Лучший результат (%)',
+                'Дата последней попытки'
+            ];
 
-                for (const student of students) {
-                    if (student.tasks && student.tasks.length > 0) {
-                        // Если есть решённые задачи, добавляем по одной строке на задачу
-                        for (const task of student.tasks) {
-                            rows.push([
-                                escapeCSV(student.full_name),
-                                escapeCSV(student.class_name),
-                                escapeCSV(student.group_number),
-                                task.id,
-                                escapeCSV(task.title),
-                                escapeCSV(task.level),
-                                escapeCSV(task.description || ''),
-                                task.is_solved ? 'Решено' : 'В процессе',
-                                task.attempts_count,
-                                task.best_result,
-                                task.last_attempt_date
-                            ]);
-                        }
-                    } else {
-                        // Если нет решённых задач, добавляем одну строку с информацией об ученике
+            const rows = [headers];
+
+            for (const student of students) {
+                if (student.tasks && student.tasks.length > 0) {
+                    // Если есть решённые задачи, добавляем по одной строке на задачу
+                    for (const task of student.tasks) {
                         rows.push([
                             escapeCSV(student.full_name),
                             escapeCSV(student.class_name),
                             escapeCSV(student.group_number),
-                            '-',
-                            'Нет активности за сегодня',
-                            '-',
-                            '-',
-                            '-',
-                            '0',
-                            '0%',
-                            '-'
+                            task.id,
+                            escapeCSV(task.title),
+                            escapeCSV(task.level),
+                            escapeCSV(task.description || ''),
+                            task.is_solved ? 'Решено' : 'В процессе',
+                            task.attempts_count,
+                            task.best_result,
+                            task.last_attempt_date
                         ]);
                     }
+                } else {
+                    // Если нет решённых задач, добавляем одну строку с информацией об ученике
+                    rows.push([
+                        escapeCSV(student.full_name),
+                        escapeCSV(student.class_name),
+                        escapeCSV(student.group_number),
+                        '-',
+                        'Нет активности за сегодня',
+                        '-',
+                        '-',
+                        '-',
+                        '0',
+                        '0%',
+                        '-'
+                    ]);
                 }
-
-                // Формируем CSV строку
-                return rows.map(row => row.join(delimiter)).join('\n');
             }
 
-            // Экранирование полей для CSV
-            function escapeCSV(value) {
-                if (value === undefined || value === null) return '';
+            // Формируем CSV строку
+            return rows.map(row => row.join(delimiter)).join('\n');
+        }
 
-                let stringValue = String(value);
+        // Экранирование полей для CSV
+        function escapeCSV(value) {
+            if (value === undefined || value === null) return '';
 
-                // Если есть кавычки, разделители или переносы строк, оборачиваем в кавычки
-                if (stringValue.includes('"') || stringValue.includes(';') || stringValue.includes('\n')) {
-                    // Экранируем кавычки
-                    stringValue = stringValue.replace(/"/g, '""');
-                    return `"${stringValue}"`;
-                }
+            let stringValue = String(value);
 
-                return stringValue;
+            // Если есть кавычки, разделители или переносы строк, оборачиваем в кавычки
+            if (stringValue.includes('"') || stringValue.includes(';') || stringValue.includes('\n')) {
+                // Экранируем кавычки
+                stringValue = stringValue.replace(/"/g, '""');
+                return `"${stringValue}"`;
             }
 
-            // Скачивание CSV файла с правильной кодировкой (UTF-8 с BOM для Excel)
-            function downloadCSV(csv, filename) {
-                // Добавляем BOM (Byte Order Mark) для корректного отображения кириллицы в Excel
-                const bom = '\uFEFF';
-                const blob = new Blob([bom + csv], {type: 'text/csv;charset=utf-8;'});
+            return stringValue;
+        }
 
-                // Для IE/Edge
-                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-                    window.navigator.msSaveOrOpenBlob(blob, filename);
-                    return;
-                }
+        // Скачивание CSV файла с правильной кодировкой (UTF-8 с BOM для Excel)
+        function downloadCSV(csv, filename) {
+            // Добавляем BOM (Byte Order Mark) для корректного отображения кириллицы в Excel
+            const bom = '\uFEFF';
+            const blob = new Blob([bom + csv], {type: 'text/csv;charset=utf-8;'});
 
-                // Для остальных браузеров
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-
-                link.href = url;
-                link.setAttribute('download', filename);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+            // Для IE/Edge
+            if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveOrOpenBlob(blob, filename);
+                return;
             }
+
+            // Для остальных браузеров
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
     </script>
 
     <!-- Добавим немного стилей -->
