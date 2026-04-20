@@ -1,0 +1,174 @@
+/* файл dashboard.html */
+.student-limit-indicator {
+    color: #6c757d;
+    font-style: italic;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.student-limit-indicator i {
+    margin-right: 5px;
+}
+
+.card-body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Адаптивная сетка для карточек групп */
+.groups-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.groups-grid .card {
+    min-width: 195px;
+}
+
+/* При ширине экрана 1280px и выше - 6 колонок */
+@media (min-width: 1280px) {
+    .groups-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* При ширине экрана от 768px до 1279px - 4 колонки */
+@media (min-width: 900px) and (max-width: 1279px) {
+    .groups-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* При ширине экрана от 576px до 767px - 2 колонки */
+@media (min-width: 576px) and (max-width: 900px) {
+    .groups-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* При ширине экрана меньше 576px - 1 колонка */
+@media (max-width: 575px) {
+    .groups-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Убираем лишние отступы у карточек */
+.groups-grid .card {
+    margin-bottom: 0;
+    height: 100%;
+}
+
+/*файл group_students.html*/
+.page-header {
+    background: white;
+}
+
+.group-info {
+    background: linear-gradient(135deg, #667eea 0%, #bd7eda 100%);
+    color: white;
+
+}
+
+.page-header, .group-info {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.stats-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.student-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.student-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+}
+
+.student-avatar {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.student-info h5 {
+    margin: 0;
+    color: #333;
+    font-weight: 600;
+}
+
+.student-info small {
+    color: #6c757d;
+}
+
+.progress {
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.badge-success {
+    background: #d4edda;
+    color: #155724;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.badge-warning {
+    background: #fff3cd;
+    color: #856404;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.filter-section {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+
+.task-progress {
+    font-size: 13px;
+}
+
+.task-progress i {
+    margin-right: 5px;
+}
+
+.row.custom-gap {
+    gap: 6rem;
+}
+
+/*конец файла*/
