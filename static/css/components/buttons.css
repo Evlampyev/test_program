@@ -38,7 +38,7 @@
     border-color: #5a67d8;
 }
 
-.btn-secondary, .btn-success, .btn-warning, .btn-delete{
+.btn-secondary, .btn-success, .btn-warning, .btn-delete {
     color: white;
 }
 
@@ -159,4 +159,10 @@
 
 .btn-sm {
     width: auto !important;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+    color: white;
 }

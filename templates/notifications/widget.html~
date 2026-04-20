@@ -1,0 +1,28 @@
+<div class="dropdown notifications-dropdown">
+    <button class="btn btn-outline btn-little position-relative" type="button" id="notificationsDropdown"
+            data-bs-toggle="dropdown">
+        <i class="fas fa-bell"></i>
+        <span class="position-absolute top-0 start-80 translate-middle badge rounded-pill bg-danger"
+              id="notificationBadge" style="display: none;">0</span>
+    </button>
+    <div class="dropdown-menu dropdown-menu-end p-0">
+        <div class="dropdown-header bg-light d-flex align-items-center">
+            <span class="fw-bold">
+                <i class="fas fa-bell me-2"></i>Уведомления
+            </span>
+            <button class="btn btn-little btn-outline ms-auto" style="width: 30%"
+                    onclick="markAllNotificationsRead(); return false;">Прочитать
+                все
+            </button>
+        </div>
+        <div class="dropdown-divider m-0"></div>
+        <div id="notificationsList">
+            <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+                <p class="text-muted small mt-2">Загрузка...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+

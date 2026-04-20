@@ -141,10 +141,8 @@
                 </ul>
 
                 {% if user.user_type == 'teacher' %}
-                    <div class="nav-item">
-                        <!-- Иконка уведомлений -->
-                        {% include 'notifications/widget.html' %}
-                    </div>
+                    <!-- Иконка уведомлений -->
+                    {% include 'notifications/widget.html' %}
                 {% endif %}
 
                 <!-- Блок пользователя -->
