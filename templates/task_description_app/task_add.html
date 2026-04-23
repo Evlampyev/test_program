@@ -152,7 +152,7 @@
                 <div class="form-card">
                     <div class="section-title">
                         <i class="fas fa-map-signs"></i>
-                        Расположение задачи (будет создано при необходимости)
+                        Расположение задачи
                     </div>
 
                     <div class="row">
@@ -194,15 +194,15 @@
                         {#                            <small class="text-muted">Например: task_001</small>#}
                         {#                        </div>#}
                     </div>
-
-                    <div class="path-preview">
-                        <div class="path-label">
-                            <i class="fas fa-link"></i> Будет создан путь:
-                        </div>
-                        <div class="path-value" id="pathPreview">
-                            /tasks_for_tests/...
-                        </div>
-                    </div>
+{##}
+{#                    <div class="path-preview">#}
+{#                        <div class="path-label">#}
+{#                            <i class="fas fa-link"></i> Будет создан путь:#}
+{#                        </div>#}
+{#                        <div class="path-value" id="pathPreview">#}
+{#                            /tasks_for_tests/...#}
+{#                        </div>#}
+{#                    </div>#}
                 </div>
             </div>
 
@@ -263,7 +263,8 @@
                                 </label>
                                 {{ content_form.task_md_content }}
                                 <small class="text-muted">
-                                    Поддерживается Markdown: # Заголовок, ## Подзаголовок, **жирный**, *курсив*, `код`
+                                    Поддерживается <b>Markdown</b>>: # Заголовок, ## Подзаголовок, **жирный**, *курсив*, `код`<br>
+                                    <b>Теги HTML</b> &lt;br&gt; - перенос строки
                                 </small>
                                 <div class="info-note mt-2">
                                     <i class="fas fa-info-circle"></i>
