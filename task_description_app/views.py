@@ -67,6 +67,7 @@ def build_tree_structure():
 
     return tree_data
 
+
 @login_required
 def task_list(request):
     """Страница со списком всех задач"""
@@ -1257,6 +1258,9 @@ def check_solution(request):
         )
         tests_path = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
 
+        # Сохраняем путь к файлу для последующего удаления
+        file_path = uploaded_program.program_file.path
+
         # Проверяем решение
         if language == 'python':
             from testing_app.tester_project.tester import PythonCodeTester
@@ -1295,6 +1299,20 @@ def check_solution(request):
             task_id=uploaded_program.task_id,  # связываем с программой
             task_path=uploaded_program.program_file.path,
         )
+
+        # 🔥 УДАЛЯЕМ ВРЕМЕННЫЙ ФАЙЛ ПОСЛЕ ТЕСТИРОВАНИЯ
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                logger.info(f"Удален временный файл после тестирования: {file_path}")
+
+                # Также удаляем директорию, если она пуста
+                dir_path = os.path.dirname(file_path)
+                if os.path.exists(dir_path) and not os.listdir(dir_path):
+                    os.rmdir(dir_path)
+                    logger.info(f"Удалена пустая директория: {dir_path}")
+        except Exception as e:
+            logger.error(f"Ошибка удаления файла {file_path}: {e}")
 
         # Отправляем уведомление учителю, если задача решена
         if result.get('success', False):
