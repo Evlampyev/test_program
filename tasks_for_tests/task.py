@@ -1,5 +1,17 @@
-first = [1, 2, 3, 1, 2 , 3]
-second = '1'
-first.remove(2)
-print(first)
-first.remove(second)
+from random import randint
+
+
+def print_matrix(my_list):
+    for row in my_list:
+        for x in row:
+            print(f"{x:4d}", end="")
+        print()
+
+
+matrix = []
+n = 5
+m = 8
+for i in range(n):
+    matrix.append([randint(0, 100) for j in range(m)])
+
+print_matrix(matrix)

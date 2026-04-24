@@ -40,7 +40,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
+    <script src="{% static 'task_description_app/js/img_views_modal.js' %}"></script>
     <script>
         // Данные дерева из контекста
         const treeData = {{ tree_data|safe }};
@@ -204,13 +204,12 @@
             // Показываем загрузку
             document.getElementById('currentTitle').innerHTML = 'Загрузка...';
             document.getElementById('taskContent').innerHTML = `
-                <div class="loader-container">
-                    <span class="loading"></span> Загрузка задачи...
-                </div>
-            `;
+        <div class="loader-container">
+            <span class="loading"></span> Загрузка задачи...
+        </div>
+    `;
 
             try {
-                // URL для API
                 const response = await fetch(`/tasks/api/task/${taskId}/`);
 
                 if (!response.ok) {
@@ -219,43 +218,40 @@
 
                 const task = await response.json();
 
-                // Обновляем путь
                 document.getElementById('currentPath').innerHTML = `Задача #${task.id}`;
                 document.getElementById('currentTitle').innerHTML = task.title || `Задача #${task.id}`;
 
-                // Конвертируем Markdown в HTML
-                const htmlContent = task.md_content ? marked.parse(task.md_content) : '<p>Нет описания</p>';
+                // Используем HTML, который уже приходит с сервера
+                const htmlContent = task.md_content || '<p>Нет описания</p>';
 
                 const checkUrl = `/tasks/task/${task.id}/`;
                 const editUrl = `/tasks/task/${task.id}/edit/`;
 
-                // Формируем HTML с кнопками
                 let buttonsHtml = `
-                    <div class="mt-3 d-flex gap-2">
-                        <a href="${checkUrl}" class="btn btn-primary">
-                            ✅ Проверить решение
-                        </a>
-                `;
+            <div class="mt-3 d-flex gap-2">
+                <a href="${checkUrl}" class="btn btn-primary">
+                    ✅ Проверить решение
+                </a>
+        `;
 
-                // Добавляем кнопку "Редактировать задачу" только для учителя
                 if (isTeacher) {
                     buttonsHtml += `
-                        <a href="${editUrl}" class="btn btn-secondary">
-                            ✏️ Редактировать задачу
-                        </a>
-                    `;
+                <a href="${editUrl}" class="btn btn-secondary">
+                    ✏️ Редактировать задачу
+                </a>
+            `;
                 }
 
                 buttonsHtml += `</div>`;
 
                 document.getElementById('taskContent').innerHTML = `
-                    <div>
-                        <div class="markdown-content">
-                            ${htmlContent}
-                        </div>
-                        ${buttonsHtml}
-                    </div>
-                `;
+            <div>
+                <div class="markdown-content">
+                    ${htmlContent}
+                </div>
+                ${buttonsHtml}
+            </div>
+        `;
 
                 // Подсветка синтаксиса
                 if (typeof hljs !== 'undefined') {
@@ -264,15 +260,29 @@
                     });
                 }
 
+                // Инициализируем обработчики для изображений в новом контенте
+                if (imageViewer) {
+                    // Небольшая задержка для рендеринга DOM
+                    setTimeout(() => {
+                        const newImages = document.querySelectorAll('.markdown-content img');
+                        newImages.forEach(img => {
+                            img.removeEventListener('click', imageClickHandler);
+                            img.addEventListener('click', imageClickHandler);
+                            img.style.cursor = 'pointer';
+                            img.title = 'Нажмите для увеличения';
+                        });
+                    }, 50);
+                }
+
             } catch (error) {
                 console.error('Ошибка:', error);
                 document.getElementById('taskContent').innerHTML = `
-                    <div class="error-message">
-                        <h3>❌ Ошибка загрузки задачи</h3>
-                        <p>${error.message}</p>
-                        <p>Проверьте соединение и попробуйте снова.</p>
-                    </div>
-                `;
+            <div class="error-message">
+                <h3>❌ Ошибка загрузки задачи</h3>
+                <p>${error.message}</p>
+                <p>Проверьте соединение и попробуйте снова.</p>
+            </div>
+        `;
             }
         }
 
@@ -291,5 +301,7 @@
                 }, 100);
             }
         });
+
+
     </script>
 {% endblock %}
