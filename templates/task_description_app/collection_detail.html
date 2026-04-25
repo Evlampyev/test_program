@@ -153,7 +153,7 @@
         <!-- Хлебные крошки -->
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'tasks:collection_list' %}" class="text-decoration-none">Мои
+                <li class="breadcrumb-item"><a href="{% url 'tasks_&_collections:collections:list' %}" class="text-decoration-none">Мои
                     подборки</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ collection.title }}</li>
             </ol>
@@ -183,7 +183,7 @@
                     <p class="mb-0 opacity-75">{{ collection.description }}</p>
                 </div>
                 {% if user.user_type == 'student' and attempt and attempt.status == 'in_progress' %}
-                    <a href="{% url 'tasks:collection_attempt' attempt.id %}" class="btn btn-light">
+                    <a href="{% url 'tasks_&_collections:collections:attempt' attempt.id %}" class="btn btn-light">
                         <i class="fas fa-play me-2"></i>Продолжить
                     </a>
                 {% endif %}
@@ -296,12 +296,12 @@
                         </div>
                         <div>
                             {% if user.user_type == 'teacher' %}
-                                <a href="{% url 'tasks:task_detail' item.task.id %}"
+                                <a href="{% url 'tasks_&_collections:tasks:detail' item.task.id %}"
                                    class="btn btn-sm btn-outline-primary" target="_blank">
                                     <i class="fas fa-eye"></i> Просмотр
                                 </a>
                             {% else %}
-                                <a href="{% url 'tasks:task_detail' item.task.id %}"
+                                <a href="{% url 'tasks_&_collections:tasks:detail' item.task.id %}"
                                    class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-play"></i> Решить
                                 </a>
@@ -315,7 +315,7 @@
                 <i class="fas fa-inbox fa-3x mb-3"></i>
                 <h5>В этой подборке пока нет задач</h5>
                 {% if user.user_type == 'teacher' %}
-                    <a href="{% url 'tasks:collection_edit' collection.id %}" class="btn btn-primary mt-2">
+                    <a href="{% url 'tasks_&_collections:collections:edit' collection.id %}" class="btn btn-primary mt-2">
                         <i class="fas fa-plus me-2"></i>Добавить задачи
                     </a>
                 {% endif %}
@@ -325,7 +325,7 @@
         <!-- Кнопки действий -->
         <div class="mt-4 d-flex gap-3 justify-content-center">
             <div>
-                <a href="{% url 'tasks:collection_list' %}" class="btn btn-secondary">
+                <a href="{% url 'tasks_&_collections:collections:list' %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-2"></i>К списку
                 </a>
             </div>
@@ -336,21 +336,21 @@
                 {#                    </a>#}
                 {% if collection.author == user %}
                     <div class="d-flex gap-2">
-                        <a href="{% url 'tasks:assign_collection' collection.id %}" class="btn btn-success">
+                        <a href="{% url 'tasks_&_collections:collections:assign' collection.id %}" class="btn btn-success">
                             <i class="fas fa-paper-plane me-2"></i>
                             Выдать ученикам
                         </a>
                     </div>
                 {% endif %}
                 <div>
-                    <a href="{% url 'tasks:collection_edit' collection.id %}" class="btn btn-warning">
+                    <a href="{% url 'tasks_&_collections:collections:edit' collection.id %}" class="btn btn-warning">
                         <i class="fas fa-edit me-2"></i>Редактировать
                     </a>
                 </div>
 
             {% elif user.user_type == 'student' and items %}
                 {% if not attempt or attempt.status == 'completed' or attempt.status == 'graded' %}
-                    <form method="post" action="{% url 'tasks:start_collection' collection.id %}"
+                    <form method="post" action="{% url 'tasks_&_collections:collections:start' collection.id %}"
                           style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" class="btn-start">

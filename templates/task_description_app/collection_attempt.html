@@ -4,7 +4,7 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'task_description_app/css/collections.css' %}">
+    <link rel="stylesheet" href="{% static 'collections/css/collections.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -108,7 +108,7 @@
                 </button>
             </div>
             <div class="col">
-                <a href="{% url 'tasks:collection_detail' attempt.collection.id %}"
+                <a href="{% url 'tasks_&_collections:collections:detail' attempt.collection.id %}"
                    class="btn btn-secondary btn-lg ms-2">
                     <i class="fas fa-times me-2"></i>Выйти без сохранения
                 </a>

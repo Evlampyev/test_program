@@ -99,7 +99,7 @@
                             </div>
                             <div class="card-footer d-flex justify-content-between gap-2">
                                 {% if assignment.status == 'pending' or assignment.status == 'in_progress' %}
-                                    <a href="{% url 'tasks:start_collection' assignment.collection.id %}"
+                                    <a href="{% url 'tasks_&_collections:collections:start' assignment.collection.id %}"
                                        class="btn btn-primary flex-grow-1">
                                         <i class="fas fa-play me-2"></i>Выполнить
                                     </a>
@@ -111,7 +111,7 @@
                                         Попросить время
                                     </button>
                                 {% elif assignment.status == 'completed' %}
-                                    <a href="{% url 'tasks:collection_attempt' assignment.id %}"
+                                    <a href="{% url 'tasks_&_collections:collections:attempt' assignment.id %}"
                                        class="btn btn-outline-secondary w-100">
                                         <i class="fas fa-eye me-2"></i>Посмотреть результат
                                     </a>

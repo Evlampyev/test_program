@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 
-    <link rel="stylesheet" href="{% static 'task_description_app/css/collections.css' %}">
+    <link rel="stylesheet" href="{% static 'collections/css/collections.css' %}">
     {#<style>#}
     {#    .students-list {#}
     {#        max-height: 500px;#}
@@ -144,7 +144,7 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-paper-plane me-2"></i>Выдать задание
                                 </button>
-                                <a href="{% url 'tasks:collection_detail' collection_id=collection.id %}"
+                                <a href="{% url 'tasks_&_collections:collections:detail' collection_id=collection.id %}"
                                    class="btn btn-secondary">
                                     <i class="fas fa-arrow-left me-2"></i>Назад
                                 </a>
@@ -160,7 +160,7 @@
 
 {% block extra_js %}
 
-    <script src="{% static 'task_description_app/js/collections.js' %}"></script>
+    <script src="{% static 'collections/js/collections.js' %}"></script>
 
 {% endblock %}
 

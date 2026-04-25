@@ -5,7 +5,7 @@
 {% block extra_css %}
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <link rel="stylesheet" href="{% static 'task_description_app/css/task_description.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/tasks.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -40,7 +40,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="{% static 'task_description_app/js/img_views_modal.js' %}"></script>
+    <script src="{% static 'shared/js/img_views_modal.js' %}"></script>
     <script>
         // Данные дерева из контекста
         const treeData = {{ tree_data|safe }};

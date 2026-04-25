@@ -116,7 +116,7 @@
         <!-- Хлебные крошки -->
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'tasks:collection_list' %}" class="text-decoration-none">Мои подборки</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'tasks_&_collections:collections:list' %}" class="text-decoration-none">Мои подборки</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Создание подборки</li>
             </ol>
         </nav>
@@ -220,7 +220,7 @@
 
                 <!-- Кнопки -->
                 <div class="d-flex justify-content-end gap-3 mt-4">
-                    <a href="{% url 'tasks:collection_list' %}" class="btn btn-secondary">
+                    <a href="{% url 'tasks_&_collections:collections:list' %}" class="btn btn-secondary">
                         <i class="fas fa-times me-2"></i>Отмена
                     </a>
                     <button type="submit" class="btn-submit" id="submitBtn">

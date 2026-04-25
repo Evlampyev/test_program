@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="/task_description_app/static/task_description_app/css/collections.css">
+    <link rel="stylesheet" href="{%  static 'collections/css/collections.css' %}">
 
 {% endblock %}
 
@@ -19,7 +19,7 @@
             </div>
             <div>
                 {% if user.user_type == 'teacher' %}
-                    <a href="{% url 'tasks:collection_create' %}" class="btn btn-primary">
+                    <a href="{% url 'tasks_&_collections:collections:create' %}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Создать подборку
                     </a>
                 {% endif %}
@@ -48,20 +48,20 @@
                             </div>
                             <div class="card-footer gy-3">
                                 <div class="col">
-                                    <a href="{% url 'tasks:collection_detail' collection.id %}"
+                                    <a href="{% url 'tasks_&_collections:collections:detail' collection.id %}"
                                        class="btn btn-little btn-outline"> Подробнее
                                     </a>
                                 </div>
                                 {% if collection.author == user %}
                                     <div class="col">
-                                        <a href="{% url 'tasks:collection_edit' collection.id %}"
+                                        <a href="{% url 'tasks_&_collections:collections:edit' collection.id %}"
                                            class="btn btn-little btn-outline-sms">
                                             <i class="fas fa-edit"></i> Редактировать
                                         </a>
                                     </div>
                                 {% endif %}
                                 <div class="col">
-                                    <form method="post" action="{% url 'tasks:collection_delete' collection.id %}"
+                                    <form method="post" action="{% url 'tasks_&_collections:collections:delete' collection.id %}"
                                           onsubmit="return confirm('Вы уверены, что хотите удалить подборку «{{ collection.title }}»? Это действие необратимо.');"
                                           style="display: inline;">
                                         {% csrf_token %}
@@ -81,7 +81,7 @@
                 <i class="fas fa-folder-open fa-3x mb-3"></i>
                 <h4>У вас пока нет подборок</h4>
                 {% if user.user_type == 'teacher' %}
-                    <a href="{% url 'tasks:collection_create' %}" class="btn btn-primary mt-2">
+                    <a href="{% url 'tasks_&_collections:collections:create' %}" class="btn btn-primary mt-2">
                         Создать первую подборку
                     </a>
                 {% endif %}

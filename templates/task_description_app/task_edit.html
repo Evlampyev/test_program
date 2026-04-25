@@ -4,7 +4,7 @@
 {% block title %}Редактирование задачи #{{ task.id }} | {{ task.title|default:"Без названия" }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="/task_description_app/static/task_description_app/css/task_description.css">
+    <link rel="stylesheet" href="{%  static 'tasks/css/tasks.css' %}">
     <style>
         .edit-badge {
             background: #ffc107;
@@ -263,7 +263,7 @@
             <button type="submit" class="btn btn-primary col" id="submitBtn">
                 <i class="fas fa-save me-2"></i> Сохранить изменения
             </button>
-            <a href="{% url 'tasks:task_list' %}" class="btn btn-secondary col">
+            <a href="{% url 'tasks_&_collections:tasks:list' %}" class="btn btn-secondary col">
                 <i class="fas fa-tasks me-2"></i> Выйти без сохранения
             </a>
 
@@ -282,7 +282,7 @@
                     <p class="text-danger">Действие необратимо!</p>
                 </div>
                 <div class="modal-footer">
-                    <form method="post" action="{% url 'tasks:task_delete' task.id %}">
+                    <form method="post" action="{% url 'tasks_&_collections:tasks:delete' task.id %}">
                         {% csrf_token %}
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                         <button type="submit" class="btn btn-danger">Удалить</button>

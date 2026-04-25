@@ -7,7 +7,7 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     {#    Мой файл css #}
-    <link rel="stylesheet" href="{% static 'task_description_app/css/task_description.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/tasks.css' %}">
     <link rel="stylesheet" href="{% static 'testing_app/css/testing_app.css' %}">
 {% endblock %}
 
@@ -22,7 +22,7 @@
                     {{ md_html|safe }}
                 </div>
                 <div class="results-actions">
-                    <a href="{% url 'tasks:task_list' %}" class="btn btn-success">
+                    <a href="{% url 'tasks_&_collections:tasks:list' %}" class="btn btn-success">
                         📋 Сменить задачу
                     </a>
                 </div>
@@ -92,7 +92,7 @@
 {% block extra_js %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-    <script src="{% static 'task_description_app/js/task_detail.js' %}"></script>
-    <script src="{% static 'task_description_app/js/img_views_modal.js' %}"></script>
+    <script src="{% static 'tasks/js/tasks.js' %}"></script>
+    <script src="{% static 'shared/js/img_views_modal.js' %}"></script>
 
 {% endblock %}

@@ -10,4 +10,5 @@ class TaskDescriptionConfig(AppConfig):  # замените YourApp на имя 
     name = 'task_description_app'
 
     def ready(self):
-        import task_description_app.signals  # импортируем сигналы
+        # import task_description_app.signals  # импортируем сигналы
+        pass

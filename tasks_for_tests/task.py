@@ -1,17 +1,9 @@
-from random import randint
-
-
-def print_matrix(my_list):
-    for row in my_list:
-        for x in row:
-            print(f"{x:4d}", end="")
-        print()
-
-
-matrix = []
-n = 5
-m = 8
-for i in range(n):
-    matrix.append([randint(0, 100) for j in range(m)])
-
-print_matrix(matrix)
+first = [1, 2, 3]
+second = 'sdgsd'
+third = [4, 5, 6]
+first.extend(second)
+print(first)
+first.extend([76])
+print(first)
+first.extend(third)
+print(first)

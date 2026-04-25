@@ -64,19 +64,19 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'task_list' %}active{% endif %}"
-                               href="{% url 'tasks:task_list' %}">
+                               href="{% url 'tasks_&_collections:tasks:list' %}">
                                 <i class="fas fa-tasks"></i> Все задачи
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'task_add' %}active{% endif %}"
-                               href="{% url 'tasks:task_add' %}">
+                               href="{% url 'tasks_&_collections:tasks:add' %}">
                                 <i class="fas fa-plus-circle"></i> Добавить задачу
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'collection_list' %}active{% endif %}"
-                               href="{% url 'tasks:collection_list' %}">
+                               href="{% url 'tasks_&_collections:collections:list' %}">
                                 <i class="fas fa-layer-group"></i> Мои подборки
                             </a>
                         </li>
@@ -106,12 +106,12 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'task_list' %}active{% endif %}"
-                               href="{% url 'tasks:task_list' %}">
+                               href="{% url 'tasks_&_collections:tasks:list' %}">
                                 <i class="fas fa-tasks"></i> Задачи
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'tasks:my_assignments' %}">
+                            <a class="nav-link" href="{% url 'tasks_&_collections:collections:my_assignments' %}">
                                 <i class="fas fa-tasks me-1"></i> Мои задания
                             </a>
                         </li>

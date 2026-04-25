@@ -4,7 +4,7 @@
 {% block title %}Добавление новой задачи{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'task_description_app/css/task_description.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/tasks.css' %}">
     <style>
         .image-preview {
             margin-top: 10px;
@@ -355,10 +355,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <a href="{% url 'tasks:task_add' %}" class="btn btn-primary">
+                    <a href="{% url 'tasks_&_collections:tasks:add' %}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Создать ещё
                     </a>
-                    <a href="{% url 'tasks:task_list' %}" class="btn btn-success">
+                    <a href="{% url 'tasks_&_collections:tasks:list' %}" class="btn btn-success">
                         <i class="fas fa-eye me-2"></i>Посмотреть задачу
                     </a>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -410,37 +410,37 @@
             document.getElementById('previewImg').src = '#';
         }
 
-        // Обновление предпросмотра пути
-        function updatePathPreview() {
-            const classVal = document.getElementById('id_class_name').value;
-            const topicVal = document.getElementById('id_topic').value;
-            const lessonVal = document.getElementById('id_lesson').value;
-            const levelVal = document.getElementById('id_level').value;
-            const taskFolder = document.getElementById('id_task_folder').value;
-
-            const parts = [];
-            if (classVal) parts.push(classVal);
-            if (topicVal) parts.push(topicVal);
-            if (lessonVal) parts.push(lessonVal);
-            if (levelVal) parts.push(levelVal);
-            if (taskFolder) parts.push(taskFolder);
-
-            document.getElementById('pathPreview').textContent =
-                parts.length > 0 ? '/tasks_for_tests/' + parts.join('/') : '/tasks_for_tests/...';
-        }
-
-        // Слушатели для обновления пути
-        const classInput = document.getElementById('id_class_name');
-        const topicInput = document.getElementById('id_topic');
-        const lessonInput = document.getElementById('id_lesson');
-        const levelSelect = document.getElementById('id_level');
-        const taskFolderInput = document.getElementById('id_task_folder');
-
-        if (classInput) classInput.addEventListener('input', updatePathPreview);
-        if (topicInput) topicInput.addEventListener('input', updatePathPreview);
-        if (lessonInput) lessonInput.addEventListener('input', updatePathPreview);
-        if (levelSelect) levelSelect.addEventListener('change', updatePathPreview);
-        if (taskFolderInput) taskFolderInput.addEventListener('input', updatePathPreview);
+        {#// Обновление предпросмотра пути#}
+        {#function updatePathPreview() {#}
+        {#    const classVal = document.getElementById('id_class_name').value;#}
+        {#    const topicVal = document.getElementById('id_topic').value;#}
+        {#    const lessonVal = document.getElementById('id_lesson').value;#}
+        {#    const levelVal = document.getElementById('id_level').value;#}
+        {#    const taskFolder = document.getElementById('id_task_folder').value;#}
+        {##}
+        {#    const parts = [];#}
+        {#    if (classVal) parts.push(classVal);#}
+        {#    if (topicVal) parts.push(topicVal);#}
+        {#    if (lessonVal) parts.push(lessonVal);#}
+        {#    if (levelVal) parts.push(levelVal);#}
+        {#    if (taskFolder) parts.push(taskFolder);#}
+        {##}
+        {#    document.getElementById('pathPreview').textContent =#}
+        {#        parts.length > 0 ? '/tasks_for_tests/' + parts.join('/') : '/tasks_for_tests/...';#}
+        {#}#}
+        {##}
+        {#// Слушатели для обновления пути#}
+        {#const classInput = document.getElementById('id_class_name');#}
+        {#const topicInput = document.getElementById('id_topic');#}
+        {#const lessonInput = document.getElementById('id_lesson');#}
+        {#const levelSelect = document.getElementById('id_level');#}
+        {#const taskFolderInput = document.getElementById('id_task_folder');#}
+        {##}
+        {#if (classInput) classInput.addEventListener('input', updatePathPreview);#}
+        {#if (topicInput) topicInput.addEventListener('input', updatePathPreview);#}
+        {#if (lessonInput) lessonInput.addEventListener('input', updatePathPreview);#}
+        {#if (levelSelect) levelSelect.addEventListener('change', updatePathPreview);#}
+        {#if (taskFolderInput) taskFolderInput.addEventListener('input', updatePathPreview);#}
 
         // Управление тестами
         let testCount = 0;
