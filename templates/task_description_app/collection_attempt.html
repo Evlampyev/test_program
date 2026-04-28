@@ -237,7 +237,7 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Проверка...';
 
             try {
-                const response = await fetch('/tasks/check-solution/', {
+                const response = await fetch('/tasks/api/check/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -343,7 +343,7 @@
                 }
 
                 try {
-                    const response = await fetch(`/tasks/collection/{{ attempt.id }}/complete/`, {
+                    const response = await fetch(`/tasks/collections/collection/{{ attempt.id }}/complete/`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

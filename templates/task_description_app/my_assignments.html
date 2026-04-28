@@ -9,19 +9,6 @@
             padding: 20px;
         }
 
-        .btn-request-time {
-            background: #ffc107;
-            color: #856404;
-            border: none;
-            transition: all 0.3s;
-        }
-
-        .btn-request-time:hover {
-            background: #e0a800;
-            color: #856404;
-            transform: translateY(-2px);
-        }
-
         .request-message {
             width: 100%;
             min-height: 100px;
@@ -105,7 +92,7 @@
                                     </a>
                                     <!-- Кнопка "Попросить больше времени" -->
                                     <button type="button"
-                                            class="btn btn-request-time"
+                                            class="btn btn-warning"
                                             onclick="showRequestModal({{ assignment.collection.id }}, '{{ assignment.collection.title|escapejs }}')">
                                         <i class="fas fa-clock me-1"></i>
                                         Попросить время
@@ -218,7 +205,7 @@
             sendBtn.classList.add('btn-loading');
 
             try {
-                const response = await fetch(`/tasks/api/collection/${currentCollectionId}/request-time/`, {
+                const response = await fetch(`/tasks/collections/api/collection/${currentCollectionId}/request-time/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

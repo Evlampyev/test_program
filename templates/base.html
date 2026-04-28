@@ -13,7 +13,9 @@
     <link rel="stylesheet" href="{% static 'css/base/style.css' %}">
 
     <!-- Компоненты (общие) -->
-    <link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
+    {% if user.user_type == 'teacher' %}
+        <link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
+    {% endif %}
     <link rel="stylesheet" href="{% static 'css/components/buttons.css' %}">
     <link rel="stylesheet" href="{% static 'css/components/tabs.css' %}">
     {#    <link rel="stylesheet" href="{% static 'css/components/cards.css' %}">#}

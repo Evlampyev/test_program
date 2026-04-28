@@ -44,7 +44,7 @@ def collection_create(request):
             collection = form.save(commit=False)
             collection.author = request.user
             collection.save()
-            return redirect('collection_edit', collection_id=collection.id)
+            return redirect('tasks_&_collections:collections:edit', collection_id=collection.id)
     else:
         form = CollectionForm()
 
@@ -70,32 +70,53 @@ def collection_edit(request, collection_id):
     selected_tasks = collection.collection_items.select_related('task').order_by('order')
 
     if request.method == 'POST':
-        # Обновляем порядок и баллы
+        # Обновляем порядок и баллы только для существующих задач
         for item in selected_tasks:
-            order = request.POST.get(f'order_{item.id}')
-            max_score = request.POST.get(f'max_score_{item.id}')
-            if order:
-                item.order = int(order)
-            if max_score:
-                item.max_score = int(max_score)
+            order = request.POST.get(f'order_{item.id}', '')
+            max_score = request.POST.get(f'max_score_{item.id}', '')
+
+            # Проверяем, что значения не пустые
+            if order and order.strip():
+                try:
+                    item.order = int(order)
+                except ValueError:
+                    pass  # Если не число, оставляем как есть
+
+            if max_score and max_score.strip():
+                try:
+                    item.max_score = int(max_score)
+                except ValueError:
+                    pass
             item.save()
 
-        # Добавляем новые задачи
-        task_ids = request.POST.getlist('selected_tasks')[0].split(',')
-        for i, task_id in enumerate(task_ids):
-            task = get_object_or_404(Task, id=int(task_id))
-            CollectionItem.objects.get_or_create(
-                collection=collection,
-                task=task,
-                defaults={'order': selected_tasks.count() + i + 1}
-            )
+        # Добавляем новые задачи через скрытое поле
+        selected_tasks_str = request.POST.get('selected_tasks', '')
+        if selected_tasks_str:
+            task_ids = selected_tasks_str.split(',')
+            existing_task_ids = [item.task.id for item in selected_tasks]
+
+            for order_num, task_id in enumerate(task_ids, start=1):
+                task_id = task_id.strip()
+                if not task_id:
+                    continue
+
+                task_id_int = int(task_id)
+                if task_id_int not in existing_task_ids:
+                    task = get_object_or_404(Task, id=task_id_int)
+                    CollectionItem.objects.create(
+                        collection=collection,
+                        task=task,
+                        order=order_num,
+                        max_score=10  # Значение по умолчанию
+                    )
 
         # Удаляем задачи, отмеченные для удаления
-        if request.POST.get('remove_tasks'):
-            remove_ids = request.POST.getlist('remove_tasks')
+        remove_tasks_str = request.POST.get('remove_tasks', '')
+        if remove_tasks_str:
+            remove_ids = [int(id_str) for id_str in remove_tasks_str.split(',') if id_str]
             CollectionItem.objects.filter(id__in=remove_ids).delete()
 
-        return redirect('tasks:collection_edit', collection_id=collection.id)
+        return redirect('tasks_&_collections:collections:edit', collection_id=collection.id)
 
     context = {
         'collection': collection,
@@ -104,6 +125,57 @@ def collection_edit(request, collection_id):
         'title': f'Редактирование: {collection.title}',
     }
     return render(request, 'task_description_app/collection_edit.html', context)
+
+
+# def collection_edit(request, collection_id):
+#     """Редактирование подборки (выбор задач)"""
+#     if request.user.user_type != 'teacher':
+#         return redirect('student_dashboard')
+#
+#     collection = get_object_or_404(Collection, id=collection_id, author=request.user)
+#
+#     # Получаем все доступные задачи
+#     from task_description_app.tasks import Task
+#     all_tasks = Task.objects.all().order_by('id')
+#
+#     # Получаем задачи уже в подборке
+#     selected_tasks = collection.collection_items.select_related('task').order_by('order')
+#
+#     if request.method == 'POST':
+#         # Обновляем порядок и баллы
+#         for item in selected_tasks:
+#             order = request.POST.get(f'order_{item.id}')
+#             max_score = request.POST.get(f'max_score_{item.id}')
+#             if order:
+#                 item.order = int(order)
+#             if max_score:
+#                 item.max_score = int(max_score)
+#             item.save()
+#
+#         # Добавляем новые задачи
+#         task_ids = request.POST.getlist('selected_tasks')[0].split(',')
+#         for i, task_id in enumerate(task_ids):
+#             task = get_object_or_404(Task, id=int(task_id))
+#             CollectionItem.objects.get_or_create(
+#                 collection=collection,
+#                 task=task,
+#                 defaults={'order': selected_tasks.count() + i + 1}
+#             )
+#
+#         # Удаляем задачи, отмеченные для удаления
+#         if request.POST.get('remove_tasks'):
+#             remove_ids = request.POST.getlist('remove_tasks')
+#             CollectionItem.objects.filter(id__in=remove_ids).delete()
+#
+#         return redirect('tasks_&_collections:collections:edit', collection_id=collection.id)
+#
+#     context = {
+#         'collection': collection,
+#         'all_tasks': all_tasks,
+#         'selected_tasks': selected_tasks,
+#         'title': f'Редактирование: {collection.title}',
+#     }
+#     return render(request, 'task_description_app/collection_edit.html', context)
 
 
 def collection_detail(request, collection_id):
@@ -148,7 +220,7 @@ def start_collection(request, collection_id):
         max_score=collection.get_total_score()
     )
 
-    return redirect('tasks:collection_attempt', attempt_id=attempt.id)
+    return redirect('tasks_&_collections:collections:attempt', attempt_id=attempt.id)
 
 
 def collection_attempt(request, attempt_id):
@@ -156,7 +228,7 @@ def collection_attempt(request, attempt_id):
     attempt = get_object_or_404(CollectionAttempt, id=attempt_id, student=request.user)
 
     if attempt.status != 'in_progress':
-        return redirect('collection_detail', collection_id=attempt.collection.id)
+        return redirect('tasks_&_collections:collections:detail', collection_id=attempt.collection.id)
 
     items = attempt.collection.collection_items.select_related('task').order_by('order')
 
@@ -183,7 +255,7 @@ def assign_collection(request, collection_id):
 
         if not student_ids:
             messages.error(request, 'Выберите хотя бы одного ученика')
-            return redirect('assign_collection', collection_id=collection.id)
+            return redirect('tasks_&_collections:collections:assign', collection_id=collection.id)
 
         # Создаем назначения
         for student_id in student_ids:
@@ -203,7 +275,7 @@ def assign_collection(request, collection_id):
                 notify_student_about_assignment(student, collection)
 
         messages.success(request, f'Контрольная работа выдана {len(student_ids)} ученикам')
-        return redirect('tasks:collection_detail', collection_id=collection.id)
+        return redirect('tasks_&_collections:collections:detail', collection_id=collection.id)
 
     # GET запрос - показываем форму выдачи
     students = collection.get_available_students()
@@ -313,6 +385,7 @@ def student_request_time_extension(request, collection_id):
     """
     API для отправки запроса учителю о продлении времени на выполнение задания
     """
+    print("*" * 30)
     if request.method != 'POST':
         return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
 
@@ -323,6 +396,7 @@ def student_request_time_extension(request, collection_id):
     try:
         data = json.loads(request.body)
         message = data.get('message', '')
+        print(message)
 
         # Получаем задание
         from .models import CollectionAssignment
@@ -382,4 +456,4 @@ def collection_delete(request, collection_id):
     except Exception as e:
         messages.error(request, f'Ошибка при удалении: {str(e)}')
 
-    return redirect('tasks:collection_list')
+    return redirect('tasks_&_collections:collections:list')

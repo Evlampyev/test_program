@@ -2,8 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{%  static 'collections/css/collections.css' %}">
-
+    <link rel="stylesheet" href="{% static 'collections/css/collections.css' %}">
 {% endblock %}
 
 {% block title %}Мои подборки{% endblock %}
@@ -46,22 +45,20 @@
                                     <p class="small text-muted">🎯 {{ collection.target_class }}</p>
                                 {% endif %}
                             </div>
-                            <div class="card-footer gy-3">
-                                <div class="col">
+                            <div class="card-footer">
+                                <div class="d-flex gap-2">
                                     <a href="{% url 'tasks_&_collections:collections:detail' collection.id %}"
-                                       class="btn btn-little btn-outline"> Подробнее
+                                       class="btn btn-little btn-outline">
+                                        Подробнее
                                     </a>
-                                </div>
-                                {% if collection.author == user %}
-                                    <div class="col">
+                                    {% if collection.author == user %}
                                         <a href="{% url 'tasks_&_collections:collections:edit' collection.id %}"
                                            class="btn btn-little btn-outline-sms">
                                             <i class="fas fa-edit"></i> Редактировать
                                         </a>
-                                    </div>
-                                {% endif %}
-                                <div class="col">
-                                    <form method="post" action="{% url 'tasks_&_collections:collections:delete' collection.id %}"
+                                    {% endif %}
+                                    <form method="post"
+                                          action="{% url 'tasks_&_collections:collections:delete' collection.id %}"
                                           onsubmit="return confirm('Вы уверены, что хотите удалить подборку «{{ collection.title }}»? Это действие необратимо.');"
                                           style="display: inline;">
                                         {% csrf_token %}
@@ -72,7 +69,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
                     </div>
                 {% endfor %}
             </div>

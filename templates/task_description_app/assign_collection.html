@@ -4,46 +4,7 @@
 {% block title %}Выдача: {{ collection.title }}{% endblock %}
 
 {% block extra_css %}
-
     <link rel="stylesheet" href="{% static 'collections/css/collections.css' %}">
-    {#<style>#}
-    {#    .students-list {#}
-    {#        max-height: 500px;#}
-    {#        overflow-y: auto;#}
-    {#        border: 1px solid #dee2e6;#}
-    {#        border-radius: 8px;#}
-    {#        padding: 15px;#}
-    {#    }#}
-    {##}
-    {#    .class-group {#}
-    {#        margin-bottom: 20px;#}
-    {#    }#}
-    {##}
-    {#    .class-title {#}
-    {#        background: #f8f9fa;#}
-    {#        padding: 8px 12px;#}
-    {#        border-radius: 6px;#}
-    {#        font-weight: 600;#}
-    {#        margin-bottom: 10px;#}
-    {#    }#}
-    {##}
-    {#    .student-checkbox {#}
-    {#        display: flex;#}
-    {#        align-items: center;#}
-    {#        padding: 8px 12px;#}
-    {#        border-bottom: 1px solid #f0f0f0;#}
-    {#    }#}
-    {##}
-    {#    .student-checkbox:hover {#}
-    {#        background: #f8f9fa;#}
-    {#    }#}
-    {##}
-    {#    .select-all {#}
-    {#        margin-bottom: 15px;#}
-    {#        padding-bottom: 10px;#}
-    {#        border-bottom: 1px solid #dee2e6;#}
-    {#    }#}
-    {#</style>#}
 {% endblock %}
 
 {% block content %}
@@ -164,19 +125,4 @@
 
 {% endblock %}
 
-{#<script>#}
-{#    // Выделить всех#}
-{#    document.getElementById('selectAll').addEventListener('change', function() {#}
-{#        const checkboxes = document.querySelectorAll('.student-check');#}
-{#        checkboxes.forEach(cb => cb.checked = this.checked);#}
-{#    });#}
-{##}
-{#    // Снять выделение "Все", если снят один#}
-{#    document.querySelectorAll('.student-check').forEach(cb => {#}
-{#        cb.addEventListener('change', function() {#}
-{#            const allChecked = Array.from(document.querySelectorAll('.student-check')).every(cb => cb.checked);#}
-{#            document.getElementById('selectAll').checked = allChecked;#}
-{#        });#}
-{#    });#}
-{#</script>#}
 

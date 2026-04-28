@@ -172,7 +172,7 @@ tests/
 
             <!-- Кнопки действий -->
             <div class="results-actions">
-                <a href="{% url 'tasks:task_detail' task.id %}" class="btn btn-secondary">
+                <a href="{% url 'tasks_&_collections:tasks:detail' task.id %}" class="btn btn-secondary">
                     ← Вернуться к задаче
                 </a>
 
@@ -180,7 +180,7 @@ tests/
                     🔄 Проверить другую программу
                 </button>
 
-                <a href="{% url 'tasks:task_list' %}" class="btn btn-success">
+                <a href="{% url 'tasks_&_collections:tasks:list' %}" class="btn btn-success">
                     📋 Список задач
                 </a>
             </div>
@@ -188,6 +188,3 @@ tests/
     </div>
 
 
-{#{% block extra_js %}#}
-{#    <script src="{% static 'testing_app/js/testing_app.js' %}"></script>#}
-{#{% endblock %}#}
