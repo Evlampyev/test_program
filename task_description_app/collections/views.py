@@ -127,57 +127,6 @@ def collection_edit(request, collection_id):
     return render(request, 'task_description_app/collection_edit.html', context)
 
 
-# def collection_edit(request, collection_id):
-#     """Редактирование подборки (выбор задач)"""
-#     if request.user.user_type != 'teacher':
-#         return redirect('student_dashboard')
-#
-#     collection = get_object_or_404(Collection, id=collection_id, author=request.user)
-#
-#     # Получаем все доступные задачи
-#     from task_description_app.tasks import Task
-#     all_tasks = Task.objects.all().order_by('id')
-#
-#     # Получаем задачи уже в подборке
-#     selected_tasks = collection.collection_items.select_related('task').order_by('order')
-#
-#     if request.method == 'POST':
-#         # Обновляем порядок и баллы
-#         for item in selected_tasks:
-#             order = request.POST.get(f'order_{item.id}')
-#             max_score = request.POST.get(f'max_score_{item.id}')
-#             if order:
-#                 item.order = int(order)
-#             if max_score:
-#                 item.max_score = int(max_score)
-#             item.save()
-#
-#         # Добавляем новые задачи
-#         task_ids = request.POST.getlist('selected_tasks')[0].split(',')
-#         for i, task_id in enumerate(task_ids):
-#             task = get_object_or_404(Task, id=int(task_id))
-#             CollectionItem.objects.get_or_create(
-#                 collection=collection,
-#                 task=task,
-#                 defaults={'order': selected_tasks.count() + i + 1}
-#             )
-#
-#         # Удаляем задачи, отмеченные для удаления
-#         if request.POST.get('remove_tasks'):
-#             remove_ids = request.POST.getlist('remove_tasks')
-#             CollectionItem.objects.filter(id__in=remove_ids).delete()
-#
-#         return redirect('tasks_&_collections:collections:edit', collection_id=collection.id)
-#
-#     context = {
-#         'collection': collection,
-#         'all_tasks': all_tasks,
-#         'selected_tasks': selected_tasks,
-#         'title': f'Редактирование: {collection.title}',
-#     }
-#     return render(request, 'task_description_app/collection_edit.html', context)
-
-
 def collection_detail(request, collection_id):
     """Просмотр подборки"""
     collection = get_object_or_404(Collection, id=collection_id)
@@ -227,7 +176,12 @@ def collection_attempt(request, attempt_id):
     """Выполнение подборки"""
     attempt = get_object_or_404(CollectionAttempt, id=attempt_id, student=request.user)
 
+
+
+
+
     if attempt.status != 'in_progress':
+        messages.warning(request, 'Эта работа уже завершена или проверена')
         return redirect('tasks_&_collections:collections:detail', collection_id=attempt.collection.id)
 
     items = attempt.collection.collection_items.select_related('task').order_by('order')
@@ -306,7 +260,11 @@ def my_assignments(request):
         student=request.user
     ).select_related('collection').order_by('-assigned_at')
 
+    print(assignments)
+    print("*"*40)
     for assignment in assignments:
+        print("*" * 40)
+        print(f"{assignment.status = }")
         if assignment.is_overdue():
             assignment.status = 'expired'
             assignment.save()
@@ -346,7 +304,7 @@ def complete_collection(request, attempt_id):
             if item:
                 total_score += item.max_score
 
-        # Сохраняем попытку
+        # Сохраняем попытку решения задачи
         from task_description_app.tasks import TaskAttempt
         TaskAttempt.objects.create(
             user=request.user,
@@ -356,15 +314,17 @@ def complete_collection(request, attempt_id):
             status='completed'
         )
 
-    # Обновляем попытку
+    # Обновляем попытку КР
     attempt.score = total_score
     attempt.status = 'completed'
+    print(10*"-", f"{attempt.status}")
     attempt.completed_at = timezone.now()
     attempt.save()
 
     # Уведомляем учителя
     from notifications.utils import notify_teacher_about_completed_assignment
-    notify_teacher_about_completed_assignment(
+
+    notification = notify_teacher_about_completed_assignment(
         teacher=attempt.collection.author,
         student=request.user,
         collection=attempt.collection,

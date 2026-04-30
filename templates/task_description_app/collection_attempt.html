@@ -126,6 +126,13 @@
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function () {
+            // Проверяем, не завершена ли уже попытка
+            const attemptStatus = '{{ attempt.status }}';  // Оборачиваем в кавычки
+            if (attemptStatus === 'completed') {
+                alert('Эта контрольная работа уже завершена');
+                window.location.href = "{% url 'tasks_&_collections:collections:my_assignments' %}";
+                return;
+            }
             startTime = new Date();
 
             // Загружаем описания задач
@@ -364,7 +371,7 @@
                         }
 
                         alert(`Контрольная работа завершена!\nРезультат: ${data.score}/${data.max_score} баллов (${data.percentage}%)`);
-                        window.location.href = `/tasks/collections/{{ attempt.collection.id }}/`;
+                        window.location.href = `/tasks/collections/my-assignments/`;
                     } else {
                         alert('Ошибка при сохранении результатов');
                     }

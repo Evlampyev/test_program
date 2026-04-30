@@ -20,7 +20,7 @@
 }
 
 .btn-primary:hover, .btn-add-test:hover, .btn-secondary:hover, .btn-success:hover, .btn-warning:hover,
-.btn-remove-image:hover, .btn-delete:hover {
+.btn-remove-image:hover, .btn-delete:hover, .btn-start:hover  {
     transform: translateY(-2px);
     /*transition: box-shadow 0.3s ease;*/
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
@@ -165,4 +165,12 @@
     background: rgba(255, 255, 255, 0.1);
     transform: translateY(-1px);
     color: white;
+}
+
+.btn-start {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+
+
 }

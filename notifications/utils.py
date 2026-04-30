@@ -1,7 +1,9 @@
 import pytz
 from django.conf import settings
 
+from task_description_app.collections import Collection, CollectionAttempt
 from task_description_app.models import Task
+from users_app.models import TeacherProfile, StudentProfile
 from .models import Notification
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -211,7 +213,8 @@ def notify_teacher_about_task_attempt(student, task_id, attempt_count, task_leve
         return None
 
 
-def notify_teacher_about_completed_assignment(teacher, student, collection, attempt):
+def notify_teacher_about_completed_assignment(teacher, student, collection: Collection,
+                                              attempt: CollectionAttempt):
     """
     Уведомляет учителя о том, что ученик выполнил контрольную работу
 
@@ -221,16 +224,14 @@ def notify_teacher_about_completed_assignment(teacher, student, collection, atte
         collection: Объект Collection
         attempt: Объект CollectionAttempt
     """
+    # print("notify_teacher_about_completed_assignment", student)
     try:
-        # Активируем часовой пояс пользователя
-        if teacher.user.timezone:
-            user_timezone = pytz.timezone(teacher.user.timezone)
-            timezone.activate(user_timezone)
-        else:
-            # Если у пользователя не задан, используем часовой пояс сервера
-            timezone.activate(pytz.timezone(settings.TIME_ZONE))
+        # Проверяем, что учитель существует
+        if not teacher:
+            # print("Учитель не найден")
+            return None
 
-        title = f"✅ Выполнена КР: {collection.title}"
+        title = f"🚩 Выполнена КР: {collection.title}"
         message = (
             f" {student.last_name} {student.first_name} "
             # f"выполнил КР '{collection.title}'.\n\n"
@@ -238,8 +239,8 @@ def notify_teacher_about_completed_assignment(teacher, student, collection, atte
             f"({attempt.get_progress_percent()}%)\n"
         )
 
-        if attempt.completed_at:
-            message += f"📅 {timezone.localtime(attempt.completed_at).strftime('%d.%m.%Y %H:%M')}\n"
+        # if attempt.completed_at:
+        #     message += f"📅 {timezone.localtime(attempt.completed_at).strftime('%d.%m.%Y %H:%M')}\n"
 
         notification = Notification.objects.create(
             recipient=teacher,
@@ -254,6 +255,9 @@ def notify_teacher_about_completed_assignment(teacher, student, collection, atte
 
     except Exception as e:
         logger.error(f"Ошибка создания уведомления о выполнении КР: {e}")
+        print(f"Ошибка создания уведомления о выполнении КР: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 

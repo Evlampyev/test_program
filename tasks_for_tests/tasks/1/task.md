@@ -26,7 +26,7 @@
         <th><b><i>Выходные данные</i></b></th>
     </tr>
     <tr style="vertical-align: top">
-        <td style="vertical-align: top" >4<br>25 80<br>20 70<br>35 60<br>55 20</td>
+        <td style="vertical-align: top" >4<br>25 80<br>20 70<br>35 60<br>20 55</td>
         <td style="vertical-align: top">6600</td>
     </tr>
 </table>

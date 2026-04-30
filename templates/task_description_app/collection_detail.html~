@@ -334,7 +334,7 @@
                 </div>
 
             {% elif user.user_type == 'student' and items %}
-                {% if not attempt or attempt.status != 'completed' or attempt.status == 'graded' %}
+                {% if not attempt or attempt.status == 'completed' or attempt.status == 'graded' %}
                     <form method="post" action="{% url 'tasks_&_collections:collections:start' collection.id %}"
                           style="display: inline;">
                         {% csrf_token %}

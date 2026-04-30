@@ -48,7 +48,7 @@ function loadNotifications() {
                          data-id="${n.id}"
                          onclick="markNotificationRead(${n.id})">
                         <div class="d-flex">
-                            <div class="me-2">✔️</div>
+<!--                            <div class="me-2">✔️</div>-->
                             <div style="flex: 1;">
                                 <div class="d-flex justify-content-between">
                                     <strong class="small">${escapeHtml(n.title)}</strong>
