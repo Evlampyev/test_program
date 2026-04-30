@@ -126,27 +126,24 @@
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function () {
-            // Проверяем, не завершена ли уже попытка
-            const attemptStatus = '{{ attempt.status }}';  // Оборачиваем в кавычки
+            // Проверяем статус попытки через переменную (с кавычками!)
+            const attemptStatus = '{{ attempt.status }}';
+
+            // Если попытка уже завершена - перенаправляем
             if (attemptStatus === 'completed') {
-                alert('Эта контрольная работа уже завершена');
-                window.location.href = "{% url 'tasks_&_collections:collections:my_assignments' %}";
+                alert('Эта попытка уже завершена');
+                window.location.href = "{% url 'tasks_&_collections:collections:detail' attempt.collection.id %}";
                 return;
             }
+
             startTime = new Date();
-
-            // Загружаем описания задач
             loadAllTasks();
-
-            // Открываем первую задачу
             openTask(0);
 
-            // Запускаем таймер
             {% if attempt.collection.time_limit %}
                 startTimer();
             {% endif %}
 
-            // Сохраняем решения при уходе
             window.addEventListener('beforeunload', function (e) {
                 saveAllSolutions();
             });

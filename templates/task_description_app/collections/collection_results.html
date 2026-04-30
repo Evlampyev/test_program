@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0">{{ attempt.collection.title }}</h2>
+                <p class="mb-0">Результат: {{ attempt.score }}/{{ attempt.max_score }} баллов
+                    ({{ attempt.get_progress_percent }}%)</p>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Задача</th>
+                            <th>Макс. балл</th>
+                            <th>Результат</th>
+                            <th>Статус</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in items %}
+                            {% with result=task_results|dictsortreversed:"attempt_time"|first %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <strong>Задача #{{ item.task.id }}</strong><br>
+                                        <small class="text-muted">{{ item.task.title }}</small>
+                                    </td>
+                                    <td>{{ item.max_score }}</td>
+                                    <td>
+                                        {% if result and result.is_solved %}
+                                            <span class="text-success">+{{ item.max_score }}</span>
+                                        {% else %}
+                                            <span class="text-danger">0</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if result and result.is_solved %}
+                                            <span class="badge bg-success">✅ Решена</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">❌ Не решена</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endwith %}
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                        <tr class="table-primary">
+                            <th colspan="2">Итого:</th>
+                            <th>{{ attempt.max_score }}</th>
+                            <th colspan="2">{{ attempt.score }}</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="mt-4">
+                    <a href="{% url 'tasks_&_collections:collections:detail' attempt.collection.id %}"
+                       class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Назад
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

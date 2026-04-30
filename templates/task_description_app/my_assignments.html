@@ -70,11 +70,16 @@
                                 {% endif %}
                             </div>
                             <div class="card-body">
-                                <h5 class="card-title">{{ assignment.collection.title }}</h5>
+                                <h5 class="card-title">
+                                    <a href="{% url 'tasks_&_collections:collections:detail' assignment.collection.id %}"
+                                       class="text-decoration-none">
+                                        {{ assignment.collection.title }}
+                                    </a>
+                                </h5>
                                 <p class="card-text text-muted">{{ assignment.collection.description|truncatechars:100 }}</p>
 
                                 <div class="mb-2">
-                                    <span class="badge bg-primary">📚 {{ assignment.collection.collection_items.count|pluralize_ru:"задача,задачи,задач"}} </span>
+                                    <span class="badge bg-primary">📚 {{ assignment.collection.collection_items.count|pluralize_ru:"задача,задачи,задач" }} </span>
                                     <span class="badge bg-warning">⭐ {{ assignment.collection.get_total_score }} баллов</span>
                                 </div>
 
@@ -99,8 +104,7 @@
                                         Попросить время
                                     </button>
                                 {% elif assignment.status == 'completed' %}
-                                {% elif assignment.status == 'completed' %}
-                                    <a href="{% url 'tasks_&_collections:collections:attempt' assignment.id %}"
+                                    <a href="{% url 'tasks_&_collections:collections:attempt_results' assignment.collection.id %}"
                                        class="btn btn-outline-secondary w-100">
                                         <i class="fas fa-eye me-2"></i>Посмотреть результат
                                     </a>
@@ -111,6 +115,12 @@
                                         <i class="fas fa-commenting me-2"></i>Попросить больше времени
                                     </button>
                                 {% endif %}
+{#                                <h5 class="card-title">#}
+{#                                    <a href="{% url 'tasks_&_collections:collections:detail' assignment.collection.id %}"#}
+{#                                       class="text-decoration-none">#}
+{#                                        {{ assignment.collection.title }}#}
+{#                                    </a>#}
+{#                                </h5>#}
                             </div>
                         </div>
                     </div>

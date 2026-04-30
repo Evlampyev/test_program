@@ -130,26 +130,37 @@ def collection_edit(request, collection_id):
 def collection_detail(request, collection_id):
     """Просмотр подборки"""
     collection = get_object_or_404(Collection, id=collection_id)
-
+    # print("зашли в detail ")
     # Проверяем доступ
-    if not collection.is_public and collection.author != request.user:
-        return redirect('home')
-
+    if request.user.user_type == 'teacher':
+        if not collection.is_public and collection.author != request.user:
+            return redirect('home')
+    # print("Пошли дальше")
     # Получаем все задачи в подборке
     items = collection.collection_items.select_related('task').order_by('order')
 
-    # Проверяем, есть ли попытка ученика
-    attempt = None
+    # Получаем информацию о попытках ученика
+    last_attempt = None
+    last_completed_attempt = None
+    in_progress_attempt = None
+
     if request.user.is_authenticated and request.user.user_type == 'student':
-        attempt = CollectionAttempt.objects.filter(
+        # Все попытки ученика
+        attempts = CollectionAttempt.objects.filter(
             collection=collection,
             student=request.user
-        ).first()
+        ).order_by('-started_at')
+
+        last_attempt = attempts.first()
+        last_completed_attempt = attempts.filter(status='completed').first()
+        in_progress_attempt = attempts.filter(status='in_progress').first()
 
     context = {
         'collection': collection,
         'items': items,
-        'attempt': attempt,
+        'last_attempt': last_attempt,
+        'last_completed_attempt': last_completed_attempt,
+        'in_progress_attempt': in_progress_attempt,
         'title': collection.title,
     }
     return render(request, 'task_description_app/collection_detail.html', context)
@@ -161,6 +172,28 @@ def start_collection(request, collection_id):
         return redirect('home')
 
     collection = get_object_or_404(Collection, id=collection_id)
+
+    # Проверяем, есть ли уже завершенная попытка
+    completed_attempt = CollectionAttempt.objects.filter(
+        collection=collection,
+        student=request.user,
+        status='completed'
+    ).first()
+
+    if completed_attempt:
+        messages.warning(request, 'Вы уже успешно выполнили эту контрольную работу. Повторное выполнение невозможно.')
+        return redirect('tasks_&_collections:collections:my_assignments')
+
+    # Проверяем, есть ли незавершенная попытка
+    in_progress_attempt = CollectionAttempt.objects.filter(
+        collection=collection,
+        student=request.user,
+        status='in_progress'
+    ).first()
+
+    if in_progress_attempt:
+        messages.info(request, 'Продолжаем выполнение контрольной работы')
+        return redirect('tasks_&_collections:collections:attempt', attempt_id=in_progress_attempt.id)
 
     # Создаем новую попытку
     attempt = CollectionAttempt.objects.create(
@@ -175,10 +208,6 @@ def start_collection(request, collection_id):
 def collection_attempt(request, attempt_id):
     """Выполнение подборки"""
     attempt = get_object_or_404(CollectionAttempt, id=attempt_id, student=request.user)
-
-
-
-
 
     if attempt.status != 'in_progress':
         messages.warning(request, 'Эта работа уже завершена или проверена')
@@ -260,11 +289,11 @@ def my_assignments(request):
         student=request.user
     ).select_related('collection').order_by('-assigned_at')
 
-    print(assignments)
-    print("*"*40)
+    # print(assignments)
+    print("*" * 40)
     for assignment in assignments:
-        print("*" * 40)
-        print(f"{assignment.status = }")
+        # print("*" * 40)
+        # print(f"{assignment.status = }")
         if assignment.is_overdue():
             assignment.status = 'expired'
             assignment.save()
@@ -317,7 +346,7 @@ def complete_collection(request, attempt_id):
     # Обновляем попытку КР
     attempt.score = total_score
     attempt.status = 'completed'
-    print(10*"-", f"{attempt.status}")
+    print(10 * "-", f"{attempt.status}")
     attempt.completed_at = timezone.now()
     attempt.save()
 
@@ -394,6 +423,54 @@ def student_request_time_extension(request, collection_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+
+# collections/views.py
+def collection_attempt_results(request, attempt_id):
+    """Просмотр результатов завершенной попытки"""
+    attempt = get_object_or_404(
+        CollectionAttempt,
+        id=attempt_id,
+        student=request.user,
+        status='completed'
+    )
+
+    # Получаем результаты по каждой задаче
+    from task_description_app.tasks.models import TaskAttempt
+    task_results = TaskAttempt.objects.filter(
+        user=request.user,
+        real_task_id__in=[str(item.task.id) for item in attempt.collection.collection_items.all()]
+    ).order_by('-attempt_time')
+
+    context = {
+        'attempt': attempt,
+        'task_results': task_results,
+        'items': attempt.collection.collection_items.select_related('task').order_by('order'),
+        'title': f'Результаты: {attempt.collection.title}',
+    }
+    return render(request, 'task_description_app/collections/collection_results.html', context)
+
+
+# collections/views.py
+def assignment_results(request, assignment_id):
+    """Просмотр результатов по назначению (для ученика)"""
+    assignment = get_object_or_404(
+        CollectionAssignment,
+        id=assignment_id,
+        student=request.user
+    )
+
+    # Находим завершенную попытку
+    attempt = CollectionAttempt.objects.filter(
+        collection=assignment.collection,
+        student=request.user,
+        status='completed'
+    ).first()
+
+    if not attempt:
+        messages.warning(request, 'Нет завершенных попыток')
+        return redirect('tasks_&_collections:collections:detail', collection_id=assignment.collection.id)
+
+    return redirect('tasks_&_collections:collections:attempt_results', attempt_id=attempt.id)
 
 @login_required
 @user_passes_test(is_teacher)

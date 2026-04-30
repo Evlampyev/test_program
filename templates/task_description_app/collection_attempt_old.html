@@ -130,7 +130,7 @@
             const attemptStatus = '{{ attempt.status }}';  // Оборачиваем в кавычки
             if (attemptStatus === 'completed') {
                 alert('Эта контрольная работа уже завершена');
-                window.location.href = "{% url 'tasks_&_collections:collections:my_assignments' attempt.collection.id %}";
+                window.location.href = "{% url 'tasks_&_collections:collections:my_assignments' %}";
                 return;
             }
             startTime = new Date();

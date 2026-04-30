@@ -21,4 +21,7 @@ urlpatterns = [
     # path('check-solution/', views.check_solution, name='check_solution'),
     path('api/collection/<int:collection_id>/request-time/', views.student_request_time_extension,
          name='student_request_time'),
+    path('attempt/<int:attempt_id>/results/', views.collection_attempt_results, name='attempt_results'),
+    path('assignment/<int:assignment_id>/results/', views.assignment_results, name='assignment_results'),
+
 ]
