@@ -30,7 +30,7 @@ def collection_list(request):
         'collections': collections,
         'title': 'Мои подборки',
     }
-    return render(request, 'task_description_app/collection_list.html', context)
+    return render(request, 'task_description_app/collections/collection_list.html', context)
 
 
 def collection_create(request):
@@ -52,7 +52,7 @@ def collection_create(request):
         'form': form,
         'title': 'Создание подборки',
     }
-    return render(request, 'task_description_app/collection_create.html', context)
+    return render(request, 'task_description_app/collections/collection_create.html', context)
 
 
 def collection_edit(request, collection_id):
@@ -124,7 +124,7 @@ def collection_edit(request, collection_id):
         'selected_tasks': selected_tasks,
         'title': f'Редактирование: {collection.title}',
     }
-    return render(request, 'task_description_app/collection_edit.html', context)
+    return render(request, 'task_description_app/collections/collection_edit.html', context)
 
 
 def collection_detail(request, collection_id):
@@ -163,7 +163,7 @@ def collection_detail(request, collection_id):
         'in_progress_attempt': in_progress_attempt,
         'title': collection.title,
     }
-    return render(request, 'task_description_app/collection_detail.html', context)
+    return render(request, 'task_description_app/collections/collection_detail.html', context)
 
 
 def start_collection(request, collection_id):
@@ -230,7 +230,7 @@ def collection_attempt(request, attempt_id):
         'items': items,
         'title': f'Выполнение: {attempt.collection.title}',
     }
-    return render(request, 'task_description_app/collection_attempt.html', context)
+    return render(request, 'task_description_app/collections/collection_attempt.html', context)
 
 
 @login_required
@@ -286,7 +286,7 @@ def assign_collection(request, collection_id):
         'students_by_class': students_by_class,
         'title': f'Выдача: {collection.title}',
     }
-    return render(request, 'task_description_app/assign_collection.html', context)
+    return render(request, 'task_description_app/collections/assign_collection.html', context)
 
 
 @login_required
@@ -328,7 +328,7 @@ def my_assignments(request):
         'title': 'Мои задания',
 
     }
-    return render(request, 'task_description_app/my_assignments.html', context)
+    return render(request, 'task_description_app/collections/my_assignments.html', context)
 
 
 @login_required

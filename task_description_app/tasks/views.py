@@ -168,7 +168,7 @@ def task_list(request):
         'tree_data': json.dumps(tree_data),  # Передаем как JSON строку
         'total_tasks': total_tasks,
     }
-    return render(request, 'task_description_app/task_list.html', context)
+    return render(request, 'task_description_app/tasks/task_list.html', context)
 
 
 def get_task_info(request, task_id):
@@ -239,7 +239,7 @@ def task_detail(request, task_id):
         'last_attempt': last_attempt,
         'title': task.title
     }
-    return render(request, 'task_description_app/task_detail.html', context)
+    return render(request, 'task_description_app/tasks/task_detail.html', context)
 
 
 @login_required
@@ -502,7 +502,7 @@ if __name__ == "__main__":
             'difficulty_levels': difficulty_levels,
             'task_id': max_id + 1,
         }
-        return render(request, 'task_description_app/task_add.html', context)
+        return render(request, 'task_description_app/tasks/task_add.html', context)
 
 
 def serve_task_image(request, task_id, filename):
@@ -693,7 +693,7 @@ def task_edit(request, task_id):
         'img_exists': img_exists,
         'is_edit_mode': True,
     }
-    return render(request, 'task_description_app/task_edit.html', context)
+    return render(request, 'task_description_app/tasks/task_edit.html', context)
 
 
 @login_required
