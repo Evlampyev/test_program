@@ -202,7 +202,7 @@ def student_dashboard(request):
         seen_tasks = set()
 
         for attempt in last_attempts:
-            task_id = attempt.real_task_id  # или attempt.task.id если есть связь
+            task_id = attempt.real_task_id
 
             if task_id not in seen_tasks:
                 seen_tasks.add(task_id)

@@ -166,6 +166,7 @@ class Task(models.Model):
 
 # Модель для отслеживания попыток решения
 class TaskAttempt(models.Model):
+
     STATUS_CHOICES = (
         ('pending', 'Ожидает проверки'),
         ('correct', 'Верно'),
@@ -182,6 +183,14 @@ class TaskAttempt(models.Model):
     result = models.TextField('Результат', blank=True)
     is_solved = models.BooleanField('Решено', default=False)  # флаг, что задача решена (для статистики)
     real_task_id = models.CharField('ID задачи', max_length=50, blank=True)
+    collection_attempt_id = models.ForeignKey(
+        'task_description_app.CollectionAttempt',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='task_attempts',
+        verbose_name='Попытка контрольной работы'
+    )
 
     class Meta:
         db_table = 'task_description_app_taskattempt'

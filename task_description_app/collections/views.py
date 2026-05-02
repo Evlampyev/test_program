@@ -195,6 +195,16 @@ def start_collection(request, collection_id):
         messages.info(request, 'Продолжаем выполнение контрольной работы')
         return redirect('tasks_&_collections:collections:attempt', attempt_id=in_progress_attempt.id)
 
+    # 👇 Обновляем статус назначения на 'in_progress'
+    assignment = CollectionAssignment.objects.filter(
+        collection=collection,
+        student=request.user
+    ).first()
+
+    if assignment and assignment.status != 'in_progress':
+        assignment.status = 'in_progress'
+        assignment.save()
+
     # Создаем новую попытку
     attempt = CollectionAttempt.objects.create(
         collection=collection,
@@ -289,14 +299,29 @@ def my_assignments(request):
         student=request.user
     ).select_related('collection').order_by('-assigned_at')
 
+    # Получаем все завершенные попытки одним запросом (оптимизация)
+    attempts = CollectionAttempt.objects.filter(
+        student=request.user,
+        status='completed'
+    ).order_by('-completed_at')
+
+    # Создаем словарь: collection_id -> последняя попытка
+    attempts_dict = {}
+    for attempt in attempts:
+        if attempt.collection_id not in attempts_dict:
+            attempts_dict[attempt.collection_id] = attempt
+
     # print(assignments)
-    print("*" * 40)
+    # print("*" * 40)
     for assignment in assignments:
         # print("*" * 40)
         # print(f"{assignment.status = }")
         if assignment.is_overdue():
             assignment.status = 'expired'
             assignment.save()
+
+        # Добавляем последнюю завершенную попытку
+        assignment.last_completed_attempt = attempts_dict.get(assignment.collection_id)
 
     context = {
         'assignments': assignments,
@@ -340,15 +365,26 @@ def complete_collection(request, attempt_id):
             real_task_id=task_id,
             code=code,
             is_solved=is_solved,
-            status='completed'
+            status='completed',
+            collection_attempt_id=attempt,
         )
 
     # Обновляем попытку КР
     attempt.score = total_score
     attempt.status = 'completed'
-    print(10 * "-", f"{attempt.status}")
+    # print(10 * "-", f"{attempt.status}")
     attempt.completed_at = timezone.now()
     attempt.save()
+
+    # Обновляем статус назначения
+    assignment = CollectionAssignment.objects.filter(
+        collection=attempt.collection,
+        student=request.user
+    ).first()
+
+    if assignment and assignment.status != 'completed':
+        assignment.status = 'completed'
+        assignment.save()
 
     # Уведомляем учителя
     from notifications.utils import notify_teacher_about_completed_assignment
@@ -374,7 +410,7 @@ def student_request_time_extension(request, collection_id):
     """
     API для отправки запроса учителю о продлении времени на выполнение задания
     """
-    print("*" * 30)
+    # print("*" * 30)
     if request.method != 'POST':
         return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
 
@@ -385,7 +421,7 @@ def student_request_time_extension(request, collection_id):
     try:
         data = json.loads(request.body)
         message = data.get('message', '')
-        print(message)
+        # print(message)
 
         # Получаем задание
         from .models import CollectionAssignment
@@ -434,17 +470,34 @@ def collection_attempt_results(request, attempt_id):
         status='completed'
     )
 
-    # Получаем результаты по каждой задаче
-    from task_description_app.tasks.models import TaskAttempt
-    task_results = TaskAttempt.objects.filter(
-        user=request.user,
-        real_task_id__in=[str(item.task.id) for item in attempt.collection.collection_items.all()]
-    ).order_by('-attempt_time')
+    # Получаем все задачи в подборке
+    items = attempt.collection.collection_items.select_related('task').order_by('order')
+
+    # Получаем результаты из этой попытки контрольной
+    task_results = attempt.task_attempts.all()
+
+    # Создаем словарь: task_id -> результат
+    results_dict = {}
+    for result in task_results:
+        if result.real_task_id not in results_dict:
+            results_dict[result.real_task_id] = result.is_solved
+
+    # Создаем список с уже подготовленными данными
+    items_with_status = []
+    for item in items:
+        task_id_str = str(item.task.id)
+        items_with_status.append({
+            'item': item,
+            'task_id': item.task.id,
+            'title': item.task.title,
+            'max_score': item.max_score,
+            'order': item.order,
+            'is_solved': results_dict.get(task_id_str, False),
+        })
 
     context = {
         'attempt': attempt,
-        'task_results': task_results,
-        'items': attempt.collection.collection_items.select_related('task').order_by('order'),
+        'items_with_status': items_with_status,
         'title': f'Результаты: {attempt.collection.title}',
     }
     return render(request, 'task_description_app/collections/collection_results.html', context)
@@ -471,6 +524,7 @@ def assignment_results(request, assignment_id):
         return redirect('tasks_&_collections:collections:detail', collection_id=assignment.collection.id)
 
     return redirect('tasks_&_collections:collections:attempt_results', attempt_id=attempt.id)
+
 
 @login_required
 @user_passes_test(is_teacher)

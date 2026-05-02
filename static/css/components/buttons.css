@@ -171,6 +171,8 @@
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
     border: none;
+}
 
-
+.btn-white-box_shadow {
+        box-shadow: 0 4px 12px whitesmoke;
 }

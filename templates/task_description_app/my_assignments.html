@@ -104,8 +104,8 @@
                                         Попросить время
                                     </button>
                                 {% elif assignment.status == 'completed' %}
-                                    <a href="{% url 'tasks_&_collections:collections:attempt_results' assignment.collection.id %}"
-                                       class="btn btn-outline-secondary w-100">
+                                    <a href="{% url 'tasks_&_collections:collections:attempt_results' assignment.last_completed_attempt.id %}"
+                                       class="btn btn-secondary w-100">
                                         <i class="fas fa-eye me-2"></i>Посмотреть результат
                                     </a>
                                 {% elif assignment.status == 'expired' %}

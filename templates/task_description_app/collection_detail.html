@@ -146,7 +146,7 @@
 
         <!-- Заголовок -->
         <div class="collection-header">
-            <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex justify-content-between align-content-around">
                 <div>
                 <span class="collection-badge badge-{{ collection.collection_type }}">
                     {% if collection.collection_type == 'lesson' %}
@@ -178,10 +178,12 @@
                                 баллов
                                 ({{ last_attempt.get_progress_percent }}%)
                             </div>
-                            <a href="{% url 'tasks_&_collections:collections:attempt_results' last_attempt.id %}"
-                               class="btn btn-outline-primary btn-lg">
-                                <i class="fas fa-chart-line me-2"></i>Посмотреть результаты
-                            </a>
+                            <div>
+                                <a href="{% url 'tasks_&_collections:collections:attempt_results' last_attempt.id %}"
+                                   class="btn btn-success btn-little btn-white-box_shadow">
+                                    <i class="fas fa-chart-line me-2"></i>Посмотреть результаты
+                                </a>
+                            </div>
                         {% else %}
                             <!-- Нет завершенной попытки - показываем кнопку выполнения -->
                             {% with in_progress_attempt=collection.attempts.filter|dictsortreversed:"started_at"|first %}
@@ -196,10 +198,12 @@
                                         <i class="fas fa-play me-2"></i>Продолжить выполнение
                                     </a>
                                 {% else %}
-                                    <a href="{% url 'tasks_&_collections:collections:start' collection.id %}"
-                                       class="btn btn-success btn-lg">
-                                        <i class="fas fa-play me-2"></i>Начать выполнение
-                                    </a>
+                                    <div>
+                                        <a href="{% url 'tasks_&_collections:collections:start' collection.id %}"
+                                           class="btn btn-success btn-little btn-white-box_shadow">
+                                            <i class="fas fa-play me-2"></i>Начать выполнение
+                                        </a>
+                                    </div>
                                 {% endif %}
                             {% endwith %}
                         {% endif %}
@@ -242,8 +246,8 @@
                 <div class="stats-card">
                     <i class="fas fa-chart-line fa-2x mb-2" style="color: #28a745;"></i>
                     <div class="stats-number">
-                        {% if attempt %}
-                            {{ attempt.score }}/{{ attempt.max_score }}
+                        {% if last_completed_attempt %}
+                            {{ last_completed_attempt.score }}/{{ last_completed_attempt.max_score }}
                         {% else %}
                             0/{{ collection.get_total_score }}
                         {% endif %}
@@ -344,8 +348,12 @@
         <!-- Кнопки действий -->
         <div class="mt-4 d-flex gap-3 justify-content-center">
             <div>
-                <a href="{% url 'tasks_&_collections:collections:list' %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>К списку
+                {% if user.user_type == 'teacher' %}
+                    <a href="{% url 'tasks_&_collections:collections:list' %}" class="btn btn-secondary">
+                {% else %}
+                    <a href="{% url 'tasks_&_collections:collections:my_assignments' %}" class="btn btn-secondary">
+                {% endif %}
+                <i class="fas fa-arrow-left me-2"></i>К списку
                 </a>
             </div>
 
@@ -373,7 +381,7 @@
                     <form method="post" action="{% url 'tasks_&_collections:collections:start' collection.id %}"
                           style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-start">
+                        <button type="submit" class="btn btn-start ">
                             <i class="fas fa-play me-2"></i>Начать выполнение
                         </button>
                     </form>

@@ -24,31 +24,29 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for item in items %}
-                            {% with result=task_results|dictsortreversed:"attempt_time"|first %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-                                    <td>
-                                        <strong>Задача #{{ item.task.id }}</strong><br>
-                                        <small class="text-muted">{{ item.task.title }}</small>
-                                    </td>
-                                    <td>{{ item.max_score }}</td>
-                                    <td>
-                                        {% if result and result.is_solved %}
-                                            <span class="text-success">+{{ item.max_score }}</span>
-                                        {% else %}
-                                            <span class="text-danger">0</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if result and result.is_solved %}
-                                            <span class="badge bg-success">✅ Решена</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">❌ Не решена</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endwith %}
+                        {% for item_data in items_with_status %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <strong>Задача #{{ item_data.task_id }}</strong><br>
+                                    <small class="text-muted">{{ item_data.title }}</small>
+                                </td>
+                                <td>{{ item_data.max_score }}</td>
+                                <td>
+                                    {% if item_data.is_solved %}
+                                        <span class="text-success">+{{ item_data.max_score }}</span>
+                                    {% else %}
+                                        <span class="text-danger">0</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item_data.is_solved %}
+                                        <span class="badge bg-success">✅ Решена</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">❌ Не решена</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
                         {% endfor %}
                         </tbody>
                         <tfoot>
