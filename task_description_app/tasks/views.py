@@ -670,7 +670,7 @@ def task_edit(request, task_id):
             os.remove(img_path)
 
         messages.success(request, f'Задача #{task.id} успешно обновлена!')
-        return redirect('tasks:task_edit', task_id=task.id)
+        return redirect('tasks_&_collections:tasks:edit', task_id=task.id)
 
     # GET запрос - заполняем формы
     from .forms import TaskEditForm, TaskContentForm
