@@ -232,6 +232,9 @@ def notify_teacher_about_completed_assignment(teacher, student, collection: Coll
             return None
 
         title = f"🚩 Выполнена КР: {collection.title}"
+        # Получаем человеко-читаемое название типа
+        collection_type_display = collection.get_collection_type_display()
+
         message = (
             f" {student.last_name} {student.first_name} "
             # f"выполнил КР '{collection.title}'.\n\n"
@@ -248,7 +251,8 @@ def notify_teacher_about_completed_assignment(teacher, student, collection: Coll
             notification_type='collection_completed',
             title=title,
             message=message,
-            task_id=str(collection.id)
+            task_id=str(collection.id),
+            task_level=collection_type_display
         )
 
         return notification
@@ -437,6 +441,9 @@ def notify_teacher_about_time_request(teacher, student, collection, assignment, 
             existing.save()
             return existing
 
+        # Получаем человеко-читаемое название типа
+        collection_type_display = collection.get_collection_type_display()
+
         # Создаем новое уведомление
         notification = Notification.objects.create(
             recipient=teacher,
@@ -445,7 +452,7 @@ def notify_teacher_about_time_request(teacher, student, collection, assignment, 
             title=title,
             message=message_text,
             task_id=str(collection.id),
-            task_level=collection.collection_type
+            task_level=collection_type_display,
         )
 
         timezone.deactivate()

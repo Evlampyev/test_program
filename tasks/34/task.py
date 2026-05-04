@@ -1,10 +1,1 @@
-def solve():
-    """Основная функция решения"""
-    # Чтение данных
-    data = input().split()
-    # Ваш код здесь
-    result = 0
-    print(result)
-
-if __name__ == "__main__":
-    solve()
+def solve():    data = input()    space = data.find(' ')    comma = data.find(',')    if 0 < comma < space or comma > 0 > space:        first_word = comma    elif 0 < space < comma or space > 0 > comma:        first_word = space    first = data[:first_word].lower()    data = data[first_word:]    last_space = data.rfind(' ')    last_comma = data.rfind(',')    last_char = data[-1]    if 0 <= last_space < last_comma  or last_comma >= 0 > last_space:        last_word = last_comma    elif 0 <= last_comma < last_space  or last_space >= 0 > last_comma:        last_word = last_space    last = data[last_word + 1:-1].title()    data = data[:last_word + 1]    result = last + data + first + last_char    print(result)if __name__ == "__main__":    solve()

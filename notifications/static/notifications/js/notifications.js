@@ -54,7 +54,7 @@ function loadNotifications() {
                                     <strong class="small">${escapeHtml(n.title)}</strong>
                                     <small class="text-muted ms-2">${n.created_at}</small>
                                 </div>
-                                <p class="small text-muted mb-1">${escapeHtml(n.message)}</p>
+                                <div class="small text-muted mb-1">${n.message}</div>
                                 <small class="text-primary">Задача #${n.task_id}</small>
                                 ${n.task_level ? `<span class="badge-level level-${n.task_level} ms-2"><small><i class="fas fa-signal me-1"></i>Уровень ${n.task_level}</small></span>` : ''}
                             </div>
