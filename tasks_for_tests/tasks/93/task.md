@@ -8,8 +8,8 @@
         <th><b><i>Формат вывода</i></b></th>
     </tr>
     <tr style="vertical-align: top">
-        <td>Два целых числа через пробел: <b>n</b> и <b>m</b></td>
-        <td style="vertical-align: top">Матрица размером n*m</td>
+        <td>Два натуральных числа через пробел: <b>n</b> и <b>m</b></td>
+        <td style="vertical-align: top">Матрица размером n×m</td>
     </tr>
 </table>
 
