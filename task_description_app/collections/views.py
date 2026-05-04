@@ -324,6 +324,14 @@ def my_assignments(request):
         # Добавляем последнюю завершенную попытку
         assignment.last_completed_attempt = attempts_dict.get(assignment.collection_id)
 
+    # Обрабатываем параметры запроса
+    request_sent = request.GET.get('request_sent')
+    if request_sent == 'success':
+        messages.success(request, '✅ Запрос на продление времени успешно отправлен учителю!')
+    elif request_sent == 'error':
+        error_msg = request.GET.get('error', 'Не удалось отправить запрос')
+        messages.error(request, f'❌ Ошибка: {error_msg}')
+
     context = {
         'assignments': assignments,
         'title': 'Мои задания',

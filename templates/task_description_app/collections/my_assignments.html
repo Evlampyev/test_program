@@ -120,12 +120,12 @@
                                         <i class="fas fa-commenting me-2"></i>Попросить больше времени
                                     </button>
                                 {% endif %}
-{#                                <h5 class="card-title">#}
-{#                                    <a href="{% url 'tasks_&_collections:collections:detail' assignment.collection.id %}"#}
-{#                                       class="text-decoration-none">#}
-{#                                        {{ assignment.collection.title }}#}
-{#                                    </a>#}
-{#                                </h5>#}
+                                {#                                <h5 class="card-title">#}
+                                {#                                    <a href="{% url 'tasks_&_collections:collections:detail' assignment.collection.id %}"#}
+                                {#                                       class="text-decoration-none">#}
+                                {#                                        {{ assignment.collection.title }}#}
+                                {#                                    </a>#}
+                                {#                                </h5>#}
                             </div>
                         </div>
                     </div>
@@ -210,63 +210,102 @@
         }
 
         // Отправить запрос на продление времени
-        async function sendTimeRequest() {
-            const sendBtn = document.getElementById('sendRequestBtn');
-            const originalText = sendBtn.innerHTML;
-            const message = document.getElementById('requestMessage').value;
+        {#async function sendTimeRequest() {#}
+        {#    const sendBtn = document.getElementById('sendRequestBtn');#}
+        {#    const originalText = sendBtn.innerHTML;#}
+        {#    const message = document.getElementById('requestMessage').value;#}
+        {##}
+        {#    // Отключаем кнопку#}
+        {#    sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Отправка...';#}
+        {#    sendBtn.disabled = true;#}
+        {#    sendBtn.classList.add('btn-loading');#}
+        {##}
+        {#    try {#}
+        {#        const response = await fetch(`/tasks/collections/api/collection/${currentCollectionId}/request-time/`, {#}
+        {#            method: 'POST',#}
+        {#            headers: {#}
+        {#                'Content-Type': 'application/json',#}
+        {#                'X-CSRFToken': getCookie('csrftoken')#}
+        {#            },#}
+        {#            body: JSON.stringify({#}
+        {#                message: message#}
+        {#            })#}
+        {#        });#}
+        {##}
+        {#        const data = await response.json();#}
+        {##}
+        {#        if (data.success) {#}
+        {#            // Закрываем модальное окно#}
+        {#            const modal = bootstrap.Modal.getInstance(document.getElementById('requestTimeModal'));#}
+        {#            modal.hide();#}
+        {##}
+        {#            // Показываем уведомление об успехе#}
+        {#            showToast('✅ Запрос отправлен учителю!', 'success');#}
+        {#        } else {#}
+        {#            showToast('❌ Ошибка: ' + (data.error || 'Не удалось отправить запрос'), 'danger');#}
+        {#        }#}
+        {#    } catch (error) {#}
+        {#        console.error('Ошибка:', error);#}
+        {#        showToast('❌ Произошла ошибка при отправке запроса', 'danger');#}
+        {#    } finally {#}
+        {#        // Восстанавливаем кнопку#}
+        {#        sendBtn.innerHTML = originalText;#}
+        {#        sendBtn.disabled = false;#}
+        {#        sendBtn.classList.remove('btn-loading');#}
+        {#    }#}
 
-            // Отключаем кнопку
-            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Отправка...';
-            sendBtn.disabled = true;
-            sendBtn.classList.add('btn-loading');
+            async function sendTimeRequest() {
+                const sendBtn = document.getElementById('sendRequestBtn');
+                const originalText = sendBtn.innerHTML;
+                const message = document.getElementById('requestMessage').value;
 
-            try {
-                const response = await fetch(`/tasks/collections/api/collection/${currentCollectionId}/request-time/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        message: message
-                    })
-                });
+                sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Отправка...';
+                sendBtn.disabled = true;
+                sendBtn.classList.add('btn-loading');
 
-                const data = await response.json();
+                try {
+                    const response = await fetch(`/tasks/collections/api/collection/${currentCollectionId}/request-time/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({message: message})
+                    });
 
-                if (data.success) {
-                    // Закрываем модальное окно
+                    const data = await response.json();
+
                     const modal = bootstrap.Modal.getInstance(document.getElementById('requestTimeModal'));
                     modal.hide();
 
-                    // Показываем уведомление об успехе
-                    showToast('✅ Запрос отправлен учителю!', 'success');
-                } else {
-                    showToast('❌ Ошибка: ' + (data.error || 'Не удалось отправить запрос'), 'danger');
+                    if (data.success) {
+                        // Перенаправляем на ту же страницу с параметром success
+                        window.location.href = window.location.pathname + '?request_sent=success';
+                    } else {
+                        window.location.href = window.location.pathname + '?request_sent=error&error=' + encodeURIComponent(data.error);
+                    }
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    window.location.href = window.location.pathname + '?request_sent=error&error=Ошибка+соединения';
+                } finally {
+                    sendBtn.innerHTML = originalText;
+                    sendBtn.disabled = false;
+                    sendBtn.classList.remove('btn-loading');
                 }
-            } catch (error) {
-                console.error('Ошибка:', error);
-                showToast('❌ Произошла ошибка при отправке запроса', 'danger');
-            } finally {
-                // Восстанавливаем кнопку
-                sendBtn.innerHTML = originalText;
-                sendBtn.disabled = false;
-                sendBtn.classList.remove('btn-loading');
             }
-        }
 
-        // Функция для отображения тостера
-        function showToast(message, type = 'info') {
-            // Проверяем, есть ли контейнер для тостов
-            let toastContainer = document.getElementById('notificationToast');
+            // Функция для отображения тостера
+            function showToast(message, type = 'info') {
+                // Проверяем, есть ли контейнер для тостов
+                let toastContainer = document.getElementById('notificationToast');
 
-            if (!toastContainer) {
-                // Создаем контейнер, если его нет
-                toastContainer = document.createElement('div');
-                toastContainer.id = 'notificationToast';
-                toastContainer.className = 'toast-notification';
-                toastContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-                toastContainer.innerHTML = `
+                if (!toastContainer) {
+                    // Создаем контейнер, если его нет
+                    toastContainer = document.createElement('div');
+                    toastContainer.id = 'notificationToast';
+                    toastContainer.className = 'toast-notification';
+                    toastContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    toastContainer.innerHTML = `
                 <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
                     <div class="toast-header">
                         <i class="fas fa-bell me-2"></i>
@@ -276,59 +315,59 @@
                     <div class="toast-body" id="toastMessage"></div>
                 </div>
             `;
-                document.body.appendChild(toastContainer);
+                    document.body.appendChild(toastContainer);
+                }
+
+                const toastBody = document.getElementById('toastMessage');
+                const toastHeader = toastContainer.querySelector('.toast-header');
+
+                toastBody.textContent = message;
+
+                // Меняем цвет в зависимости от типа
+                if (type === 'success') {
+                    toastHeader.style.backgroundColor = '#28a745';
+                    toastHeader.style.color = 'white';
+                } else if (type === 'danger') {
+                    toastHeader.style.backgroundColor = '#dc3545';
+                    toastHeader.style.color = 'white';
+                } else {
+                    toastHeader.style.backgroundColor = '';
+                    toastHeader.style.color = '';
+                }
+
+                toastContainer.style.display = 'block';
+
+                const toastElement = toastContainer.querySelector('.toast');
+                const toast = new bootstrap.Toast(toastElement, {
+                    autohide: true,
+                    delay: 3000
+                });
+                toast.show();
+
+                // Скрываем контейнер после скрытия тоста
+                toastElement.addEventListener('hidden.bs.toast', function () {
+                    setTimeout(() => {
+                        if (!toastContainer.querySelector('.toast.show')) {
+                            toastContainer.style.display = 'none';
+                        }
+                    }, 100);
+                });
             }
 
-            const toastBody = document.getElementById('toastMessage');
-            const toastHeader = toastContainer.querySelector('.toast-header');
-
-            toastBody.textContent = message;
-
-            // Меняем цвет в зависимости от типа
-            if (type === 'success') {
-                toastHeader.style.backgroundColor = '#28a745';
-                toastHeader.style.color = 'white';
-            } else if (type === 'danger') {
-                toastHeader.style.backgroundColor = '#dc3545';
-                toastHeader.style.color = 'white';
-            } else {
-                toastHeader.style.backgroundColor = '';
-                toastHeader.style.color = '';
-            }
-
-            toastContainer.style.display = 'block';
-
-            const toastElement = toastContainer.querySelector('.toast');
-            const toast = new bootstrap.Toast(toastElement, {
-                autohide: true,
-                delay: 3000
-            });
-            toast.show();
-
-            // Скрываем контейнер после скрытия тоста
-            toastElement.addEventListener('hidden.bs.toast', function () {
-                setTimeout(() => {
-                    if (!toastContainer.querySelector('.toast.show')) {
-                        toastContainer.style.display = 'none';
-                    }
-                }, 100);
-            });
-        }
-
-        // Функция для получения CSRF токена
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
+            // Функция для получения CSRF токена
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
                     }
                 }
+                return cookieValue;
             }
-            return cookieValue;
-        }
     </script>
 {% endblock %}
