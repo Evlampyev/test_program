@@ -30,6 +30,7 @@ def collection_list(request):
         'collections': collections,
         'title': 'Мои подборки',
     }
+
     return render(request, 'task_description_app/collections/collection_list.html', context)
 
 

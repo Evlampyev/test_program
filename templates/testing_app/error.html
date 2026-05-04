@@ -1,4 +1,4 @@
-{#{% load static %}#}
+{% load static %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'testing_app/css/testing_app.css' %}">
@@ -80,7 +80,7 @@
                     </button>
                 {% endif %}
 
-                <a href="{% url 'tasks:task_list' %}" class="btn btn-secondary">
+                <a href="{% url 'tasks_&_collections:tasks:list' %}" class="btn btn-secondary">
                     📋 К списку задач
                 </a>
             </div>

@@ -14,7 +14,7 @@ def create_task_files(task_id, md_content, py_content, tests):
     """
     Создает файлы для задачи в папке tasks/ID/
     """
-    task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
+    task_dir = os.path.join(settings.TASKS_ROOT, str(task_id))
     os.makedirs(task_dir, exist_ok=True)
 
     # Сохраняем task.md
@@ -39,7 +39,7 @@ def copy_task_for_teacher(task_id, teacher_id):
     """
     Копирует задачу для учителя (если нужно сделать приватную копию)
     """
-    original_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
+    original_dir = os.path.join(settings.TASKS_ROOT, str(task_id))
     new_dir = os.path.join(settings.TASKS_ROOT, 'teachers', str(teacher_id), 'tasks', str(task_id))
 
     if os.path.exists(original_dir):
@@ -52,7 +52,7 @@ def get_task_files(task_id):
     """
     Возвращает пути к файлам задачи
     """
-    task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
+    task_dir = os.path.join(settings.TASKS_ROOT, str(task_id))
 
     files = {
         'md': os.path.join(task_dir, 'task.md'),

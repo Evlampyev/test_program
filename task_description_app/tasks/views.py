@@ -285,7 +285,7 @@ def get_attempt_results(request, attempt_id):
                     code = program.program_file.read()
                     program.program_file.close()
                 except Exception as e:
-                    print(f"Ошибка чтения файла: {e}")
+                    logger.error(f"Ошибка чтения файла при попытке полученя кода ученика: {e}")
 
         # Формируем ответ
         response_data = {
@@ -371,7 +371,7 @@ def task_add(request):
                 task.save()
 
                 # СОЗДАЕМ ПАПКУ ДЛЯ ЗАДАЧИ В НОВОМ МЕСТЕ (tasks/ID/)
-                task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
+                task_dir = os.path.join(settings.TASKS_ROOT, str(task.id))
                 os.makedirs(task_dir, exist_ok=True)
 
                 # 1. Сохраняем task.md
@@ -517,7 +517,7 @@ def serve_task_image(request, task_id, filename):
         task = get_object_or_404(Task, id=task_id)
 
         # Путь к папке задачи
-        task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
+        task_dir = os.path.join(settings.TASKS_ROOT, str(task.id))
         file_path = os.path.join(task_dir, filename)
 
         # Выводим список файлов в директории
@@ -548,7 +548,7 @@ def task_edit(request, task_id):
     task = get_object_or_404(Task, id=task_id)
 
     # Получаем путь к папке задачи (из структуры или из settings.TASKS_ROOT)
-    task_dir = os.path.join(settings.TASKS_ROOT, 'tasks', str(task.id))
+    task_dir = os.path.join(settings.TASKS_ROOT, str(task.id))
 
     # Создаем папку, если её нет
     os.makedirs(task_dir, exist_ok=True)
@@ -751,7 +751,7 @@ def check_solution(request):
             program_file=uploaded_file,
             status='testing'
         )
-        tests_path = os.path.join(settings.TASKS_ROOT, 'tasks', str(task_id))
+        tests_path = os.path.join(settings.TASKS_ROOT, str(task_id))
 
         # Сохраняем путь к файлу для последующего удаления
         file_path = uploaded_program.program_file.path

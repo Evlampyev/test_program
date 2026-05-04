@@ -9,6 +9,19 @@
 
 {% block content %}
     <div class="container mt-4">
+
+        <!-- Хлебные крошки -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'tasks_&_collections:collections:list' %}"
+                                               class="text-decoration-none">Мои подборки</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'tasks_&_collections:collections:detail' collection.id %}"
+                                               class="text-decoration-none">{{ collection.title }}</a></li>
+
+                <li class="breadcrumb-item active" aria-current="page">Редактирование</li>
+            </ol>
+        </nav>
+
         <h2>
             <i class="fas fa-edit me-2"></i>
             {{ collection.title }}

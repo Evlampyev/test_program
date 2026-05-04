@@ -16,7 +16,7 @@ from pathlib import Path
 # BASE_DIR = Path(__file__).resolve().parent.parent
 # Путь к папке с задачами
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TASKS_ROOT = os.path.join(BASE_DIR, 'tasks_for_tests')
+TASKS_ROOT = os.path.join(BASE_DIR, 'tasks')
 
 # Проверяем, что папка существует
 if not os.path.exists(TASKS_ROOT):

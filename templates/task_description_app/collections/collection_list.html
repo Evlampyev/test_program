@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load pluralize_ru %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'collections/css/collections.css' %}">
@@ -32,20 +33,24 @@
                         <div class="card h-100">
                             <div class="card-header bg-primary text-white">
                                 <i class="fas {% if collection.collection_type == 'lesson' %}fa-book{% else %}fa-tasks{% endif %} me-2"></i>
-                                {{ collection.get_collection_type_display }}
+                                {{ collection.get_collection_type_display }} #{{ collection.id }}
                             </div>
                             <div class="card-body">
-                                {#                                <h5 class="card-title">{{ collection.title }}</h5>#}
                                 <h5 class="card-title">
                                     <a href="{% url 'tasks_&_collections:collections:detail' collection.id %}"
-                                       class="text-decoration-none">
+                                       class="card-hover p-2">
                                         {{ collection.title }}
                                     </a>
                                 </h5>
                                 <p class="card-text text-muted">{{ collection.description|truncatechars:100 }}</p>
                                 <div class="mb-2">
-                                    <span class="badge bg-info">📚 {{ collection.task_count }} задач</span>
-                                    <span class="badge bg-warning">⭐ {{ collection.get_total_score }} баллов</span>
+                                    <span class="badge bg-info">📚 {{ collection.get_task_count|pluralize_ru:"задача,задачи,задач" }} </span>
+                                    <span class="badge bg-warning">⭐ {{ collection.get_total_score|pluralize_ru:"балл,балла,баллов" }}</span>
+                                    {% if collection.time_limit is None %}
+                                        <span class="badge bg-secondary">🕧 нет ограничений</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">🕧 {{ collection.time_limit|pluralize_ru:"минута,минуты,минут" }} </span>
+                                    {% endif %}
                                 </div>
                                 {% if collection.target_class %}
                                     <p class="small text-muted">🎯 {{ collection.target_class }}</p>
