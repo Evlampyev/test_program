@@ -654,6 +654,7 @@
     border-radius: 8px;
     border: 1px solid #ffcdd2;
 }
+
 .img-right {
     float: right;
     margin: 0 0 20px 20px;
@@ -782,5 +783,74 @@
     padding: 20px 0;
 }
 
-
 /*Конец для файла task_add.html*/
+
+/*для оповещения о загрузке файла*/
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Базовые цвета для уровней (можно менять через CSS переменные) */
+:root {
+    --level-success: #28a745;
+    --level-warning: #ffc107;
+    --level-danger: #dc3545;
+    --level-brown: #8B4513;
+    --level-dark: #343a40;
+}
+
+.legend-item[data-color="success"] .legend-color {
+    background-color: var(--level-success);
+}
+
+.legend-item[data-color="warning"] .legend-color {
+    background-color: var(--level-warning);
+}
+
+.legend-item[data-color="danger"] .legend-color {
+    background-color: var(--level-danger);
+}
+
+.legend-item[data-color="brown"] .legend-color {
+    background-color: var(--level-brown);
+}
+
+.legend-item[data-color="dark"] .legend-color {
+    background-color: var(--level-dark);
+}
+
+/* Стили для badge-level в других местах */
+.badge-level[data-color="success"] {
+    background-color: var(--level-success);
+    color: white;
+}
+
+.badge-level[data-color="warning"] {
+    background-color: var(--level-warning);
+    color: #333;
+}
+
+.badge-level[data-color="danger"] {
+    background-color: var(--level-danger);
+    color: white;
+}
+
+.badge-level[data-color="brown"] {
+    background-color: var(--level-brown);
+    color: white;
+}
+
+.badge-level[data-color="dark"] {
+    background-color: var(--level-dark);
+    color: white;
+}
+.difficulty-legend {
+    text-align: right;
+}

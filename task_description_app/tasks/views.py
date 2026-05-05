@@ -162,11 +162,15 @@ def task_list(request):
     # Подсчитываем общее количество задач
     total_tasks = Task.objects.count()
 
+    # Получаем все уровни сложности для легенды
+    difficulty_levels = DifficultyLevel.objects.all().order_by('level_order')
+
     context = {
         'tasks': tasks,
         'title': 'Список задач',
         'tree_data': json.dumps(tree_data),  # Передаем как JSON строку
         'total_tasks': total_tasks,
+        'difficulty_levels': difficulty_levels,
     }
     return render(request, 'task_description_app/tasks/task_list.html', context)
 

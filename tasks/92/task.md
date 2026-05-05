@@ -19,6 +19,6 @@
     </tr>
     <tr style="vertical-align: top">
         <td>12 14 67 45<br>32 87 45 63<br>69 45 14 11<br>40 12 35 15</td>
-        <td>Min[3,4]=11<br>Max[2,2]=87</td>
+        <td>Min[2,3]=11<br>Max[1,1]=87</td>
     </tr>
 </table>

@@ -17,7 +17,7 @@ document.getElementById('programUploadForm').addEventListener('submit', async fu
         const data = await response.json();
 
         if (data.success) {
-            alert('Файл успешно загружен!');
+            window.App.showMessage('Файл успешно загружен!', 'success');
             // Передаем program_id в окно тестирования
             if (data.program_id) {
                 runTests(data.program_id);

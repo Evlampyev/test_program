@@ -14,11 +14,11 @@ class DifficultyLevel(models.Model):
     Модель уровней сложности задач
     """
     DIFFICULTY_CHOICES = [
-        ('A', 'Легкий'),
-        ('B', 'Средний'),
-        ('C', 'Сложный'),
-        ('D', 'Очень сложный'),
-        ('E', 'Эксперт'),
+        ('A', "Уровень A"),
+        ('B', "Уровень B"),
+        ('C', "Уровень C"),
+        ('D', "Уровень D"),
+        ('E', "Уровень E"),
     ]
 
     COLOR_CHOICES = [
@@ -74,6 +74,17 @@ class DifficultyLevel(models.Model):
             self.display_name = self.get_level_name_display()
         super().save(*args, **kwargs)
 
+
+    def get_grade_display(self):
+        """Возвращает описание оценки для уровня"""
+        grade_map = {
+            'A': "на оценку '3'",
+            'B': "на оценку '4'",
+            'C': "на оценку '5'",
+            'D': "на две оценки '5'",
+            'E': "на '5' в четверти",
+        }
+        return grade_map.get(self.level_name, self.display_name)
 
 class Task(models.Model):
     """Модель задачи"""
