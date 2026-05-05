@@ -137,9 +137,16 @@
         <!-- Хлебные крошки -->
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'tasks_&_collections:collections:list' %}"
-                                               class="text-decoration-none">Мои
-                    подборки</a></li>
+                {% if user.user_type == 'teacher' %}
+                    <li class="breadcrumb-item"><a href="{% url 'tasks_&_collections:collections:list' %}"
+                                                   class="text-decoration-none">Мои подборки</a>
+                    </li>
+                {% else %}
+                    <li class="breadcrumb-item"><a href="{% url 'tasks_&_collections:collections:my_assignments' %}"
+                                                   class="text-decoration-none">Мои задания</a>
+                    </li>
+                {% endif %}
+
                 <li class="breadcrumb-item active" aria-current="page">{{ collection.title }}</li>
             </ol>
         </nav>

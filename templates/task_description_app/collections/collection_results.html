@@ -5,6 +5,25 @@
 
 {% block content %}
     <div class="container mt-4">
+        <!-- Хлебные крошки -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                {% if user.user_type == 'teacher' %}
+                    <li class="breadcrumb-item"><a href="{% url 'tasks_&_collections:collections:list' %}"
+                                                   class="text-decoration-none">Мои подборки</a>
+                    </li>
+                {% else %}
+                    <li class="breadcrumb-item"><a href="{% url 'tasks_&_collections:collections:my_assignments' %}"
+                                                   class="text-decoration-none">Мои задания</a>
+                    </li>
+                {% endif %}
+                <li class="breadcrumb-item"><a href="{%  url 'tasks_&_collections:collections:detail' attempt.collection.id %}"
+                                               class="text-decoration-none">{{ attempt.collection.title }}</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Результаты
+                </li>
+            </ol>
+        </nav>
         <div class="card">
             <div class="card-header bg-success text-white">
                 <h2 class="mb-0">{{ attempt.collection.title }}</h2>
