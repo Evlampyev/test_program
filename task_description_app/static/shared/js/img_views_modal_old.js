@@ -1,4 +1,4 @@
-// img_views_modal.js// Класс для управления просмотром изображений
+// Класс для управления просмотром изображений
 class ImageViewer {
     constructor() {
         this.createModal();
@@ -25,10 +25,12 @@ class ImageViewer {
         const closeBtn = document.getElementById('imageViewerClose');
         const viewerImage = document.getElementById('viewerImage');
 
+        // Закрытие по крестику
         if (closeBtn) {
             closeBtn.onclick = () => this.close();
         }
 
+        // Закрытие по клику на фон
         if (modal) {
             modal.onclick = (e) => {
                 if (e.target === modal) {
@@ -37,6 +39,7 @@ class ImageViewer {
             };
         }
 
+        // Закрытие по клавише ESC
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isOpen()) {
                 this.close();
@@ -51,7 +54,7 @@ class ImageViewer {
         if (modal && viewerImage) {
             viewerImage.src = imageSrc;
             modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; // Запрещаем скролл фона
         }
     }
 
@@ -59,7 +62,7 @@ class ImageViewer {
         const modal = document.getElementById('imageViewerModal');
         if (modal) {
             modal.style.display = 'none';
-            document.body.style.overflow = '';
+            document.body.style.overflow = ''; // Восстанавливаем скролл
         }
     }
 
@@ -74,22 +77,17 @@ let imageViewer;
 
 // Функция инициализации обработчиков для изображений
 function initImageClickHandler() {
-    // Ищем изображения внутри .markdown-content, .task-condition-modal, а также изображения с классом .img-right
-    const images = document.querySelectorAll('.markdown-content img, .task-condition-modal img, .img-right');
+    // Находим все изображения внутри .markdown-content
+    const images = document.querySelectorAll('.markdown-content img');
 
     images.forEach(img => {
-        // Убираем курсор pointer с родительских элементов (если они есть)
-        if (img.parentElement) {
-            img.parentElement.style.cursor = 'default';
-        }
-
         // Удаляем старый обработчик, если есть
         img.removeEventListener('click', imageClickHandler);
         // Добавляем новый
         img.addEventListener('click', imageClickHandler);
         // Добавляем атрибут title для подсказки
         img.title = 'Нажмите для увеличения';
-        // Убеждаемся, что курсор - указатель только на изображении
+        // Убеждаемся, что курсор - указатель
         img.style.cursor = 'pointer';
     });
 }
@@ -106,17 +104,18 @@ function imageClickHandler(e) {
 function observeDynamicContent() {
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
+            // Если добавлены новые узлы
             if (mutation.addedNodes.length) {
+                // Проверяем, есть ли среди них .markdown-content или его родители
                 const hasNewContent = Array.from(mutation.addedNodes).some(node => {
                     return node.nodeType === 1 && (
                         node.classList?.contains('markdown-content') ||
-                        node.classList?.contains('task-condition-modal') ||
-                        node.querySelector?.('.markdown-content') ||
-                        node.querySelector?.('.task-condition-modal')
+                        node.querySelector?.('.markdown-content')
                     );
                 });
 
                 if (hasNewContent) {
+                    // Небольшая задержка для рендеринга DOM
                     setTimeout(initImageClickHandler, 100);
                 }
             }
@@ -128,10 +127,12 @@ function observeDynamicContent() {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function () {
+    // Создаем просмотрщик изображений
     imageViewer = new ImageViewer();
+
+    // Инициализируем обработчики для текущих изображений
     initImageClickHandler();
+
+    // Запускаем наблюдение за динамическим контентом
     observeDynamicContent();
 });
-
-// Экспортируем функцию для ручного вызова (для динамически добавляемого контента)
-window.initImageClickHandler = initImageClickHandler;

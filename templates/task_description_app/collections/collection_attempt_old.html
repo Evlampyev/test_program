@@ -4,11 +4,7 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <link rel="stylesheet" href="{% static 'collections/css/collections.css' %}">
-    <link rel="stylesheet" href="{% static 'tasks/css/tasks.css' %}">
-
 {% endblock %}
 
 {% block content %}
@@ -27,6 +23,7 @@
                 {% if attempt.collection.time_limit %}
                     <div class="text-end col-2">
                         <div class="row">
+
                             <small class="text-white-50">осталось времени</small>
                         </div>
                         <div class="row">
@@ -63,16 +60,16 @@
                             <strong>Задача #{{ item.task.id }}: {{ item.task.title }}</strong>
                         </div>
                         <div>
-                            <span class="task-score me-2">
-                                <i class="fas fa-star me-1"></i>{{ item.max_score }} баллов
-                            </span>
+                    <span class="task-score me-2">
+                        <i class="fas fa-star me-1"></i>{{ item.max_score }} баллов
+                    </span>
                             <span class="task-status status-unsolved"
                                   id="status-{{ forloop.counter0 }}">⏳ Не решена</span>
                             <i class="fas fa-chevron-down ms-2"></i>
                         </div>
                     </div>
                     <div class="task-body" id="task-{{ forloop.counter0 }}">
-                        <div class="task-condition-modal markdown-content" id="task-description-{{ forloop.counter0 }}">
+                        <div class="task-condition-modal" id="task-description-{{ forloop.counter0 }}">
                             <div class="text-center py-4">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Загрузка...</span>
@@ -118,13 +115,8 @@
             </div>
         </div>
     </div>
-{% endblock %}
 
-{% block extra_js %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-    <script src="{% static 'shared/js/img_views_modal.js' %}"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         let currentTask = 0;
         let solutions = {};
@@ -134,8 +126,10 @@
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function () {
+            // Проверяем статус попытки через переменную (с кавычками!)
             const attemptStatus = '{{ attempt.status }}';
 
+            // Если попытка уже завершена - перенаправляем
             if (attemptStatus === 'completed') {
                 alert('Эта попытка уже завершена');
                 window.location.href = "{% url 'tasks_&_collections:collections:detail' attempt.collection.id %}";
@@ -161,35 +155,11 @@
                 fetch(`/tasks/api/task/{{ item.task.id }}/`)
                     .then(response => response.json())
                     .then(data => {
-                        const htmlContent = data.md_content || '<p>Описание отсутствует</p>';
-                        const container = document.getElementById(`task-description-{{ forloop.counter0 }}`);
-                        container.innerHTML = htmlContent;
-
-                        // Инициализируем обработчики изображений
-                        setTimeout(() => {
-                            const images = container.querySelectorAll('img');
-                            images.forEach(img => {
-                                img.style.cursor = 'pointer';
-                                img.title = 'Нажмите для увеличения';
-                                img.addEventListener('click', function (e) {
-                                    e.stopPropagation();
-                                    const viewer = window.imageViewer || imageViewer;
-                                    if (viewer) {
-                                        viewer.open(this.src);
-                                    }
-                                });
-                            });
-                        }, 50);
-
-                        // Подсветка кода
-                        if (typeof hljs !== 'undefined') {
-                            container.querySelectorAll('pre code').forEach(block => {
-                                hljs.highlightElement(block);
-                            });
-                        }
+                        const mdContent = data.md_content || 'Описание отсутствует';
+                        document.getElementById(`task-description-{{ forloop.counter0 }}`).innerHTML = marked.parse(mdContent);
 
                         // Загружаем сохраненное решение
-                        const savedCode = localStorage.getItem(`collection_{{ attempt.id }}_task_{{ item.task.id }}`);
+                        const savedCode = localStorage.getItem(`collection_${{ attempt.id }}_task_{{ item.task.id }}`);
                         if (savedCode) {
                             document.getElementById(`code-{{ forloop.counter0 }}`).value = savedCode;
                             solutions[{{ forloop.counter0 }}] = savedCode;
@@ -197,25 +167,27 @@
                     })
                     .catch(error => {
                         console.error('Ошибка загрузки задачи:', error);
-                        document.getElementById(`task-description-{{ forloop.counter0 }}`).innerHTML =
-                            '<div class="alert alert-danger">Ошибка загрузки описания задачи</div>';
+                        document.getElementById(`task-description-{{ forloop.counter0 }}`).innerHTML = '<p class="text-danger">Ошибка загрузки описания задачи</p>';
                     });
             {% endfor %}
         }
 
         // Открыть задачу
         function openTask(index) {
+            // Закрываем все
             document.querySelectorAll('.task-body').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.step').forEach(el => el.classList.remove('current'));
 
+            // Открываем выбранную
             document.getElementById(`task-${index}`).classList.add('active');
             document.querySelector(`.step[data-step="${index}"]`).classList.add('current');
             currentTask = index;
 
+            // Прокручиваем к задаче
             document.getElementById(`task-${index}`).scrollIntoView({behavior: 'smooth', block: 'start'});
         }
 
-        // Переключение задачи
+        // Переключение задачи (сворачивание/разворачивание)
         function toggleTask(index) {
             const taskBody = document.getElementById(`task-${index}`);
             if (taskBody.classList.contains('active')) {
@@ -236,7 +208,7 @@
             const code = document.getElementById(`code-${currentTask}`).value;
             const taskId = document.querySelector(`.task-card[data-task-index="${currentTask}"]`).dataset.taskId;
             solutions[currentTask] = code;
-            localStorage.setItem(`collection_{{ attempt.id }}_task_${taskId}`, code);
+            localStorage.setItem(`collection_${{ attempt.id }}_task_${taskId}`, code);
         }
 
         // Сохранить все решения
@@ -245,7 +217,7 @@
                 const code = document.getElementById(`code-${i}`).value;
                 if (code) {
                     const taskId = document.querySelector(`.task-card[data-task-index="${i}"]`).dataset.taskId;
-                    localStorage.setItem(`collection_{{ attempt.id }}_task_${taskId}`, code);
+                    localStorage.setItem(`collection_${{ attempt.id }}_task_${taskId}`, code);
                 }
             }
         }
@@ -290,6 +262,8 @@
                     document.getElementById(`status-${index}`).innerHTML = '✅ Решена';
                     document.getElementById(`status-${index}`).className = 'task-status status-solved';
                     taskResults[index] = true;
+
+                    // Обновляем прогресс
                     updateProgress();
                 } else {
                     resultDiv.innerHTML = `<i class="fas fa-times-circle me-2"></i>❌ ${data.message}`;
@@ -318,6 +292,7 @@
             const percent = (solved / total) * 100;
             document.getElementById('progressBar').style.width = percent + '%';
 
+            // Обновляем шаги
             for (let i = 0; i < total; i++) {
                 if (taskResults[i]) {
                     document.querySelector(`.step[data-step="${i}"]`).classList.add('completed');
@@ -357,6 +332,7 @@
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Отправка...';
 
+                // Собираем результаты
                 const results = [];
                 for (let i = 0; i < {{ items|length }}; i++) {
                     const taskId = document.querySelector(`.task-card[data-task-index="${i}"]`).dataset.taskId;
@@ -377,15 +353,18 @@
                             'Content-Type': 'application/json',
                             'X-CSRFToken': '{{ csrf_token }}'
                         },
-                        body: JSON.stringify({results: results})
+                        body: JSON.stringify({
+                            results: results
+                        })
                     });
 
                     const data = await response.json();
 
                     if (data.success) {
+                        // Очищаем localStorage
                         for (let i = 0; i < {{ items|length }}; i++) {
                             const taskId = document.querySelector(`.task-card[data-task-index="${i}"]`).dataset.taskId;
-                            localStorage.removeItem(`collection_{{ attempt.id }}_task_${taskId}`);
+                            localStorage.removeItem(`collection_${{ attempt.id }}_task_${taskId}`);
                         }
 
                         alert(`Контрольная работа завершена!\nРезультат: ${data.score}/${data.max_score} баллов (${data.percentage}%)`);

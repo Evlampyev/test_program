@@ -301,6 +301,33 @@
     background-color: #f6f8fa;
 }
 
+.markdown-content img {
+    float: right;
+    margin: 0 0 20px 20px;
+    max-width: min(60%, 300px);
+    width: auto;
+    height: auto;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-content img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+    .markdown-content img {
+        float: none;
+        display: block;
+        margin: 20px auto;
+        max-width: 80%;
+    }
+}
+
+
 .status {
     padding: 10px;
     border-radius: 5px;

@@ -387,3 +387,49 @@
     border-radius: 8px;
 
 }
+
+/* Стили для изображений в условии задачи (аналогично .img-right из tasks.css) */
+.task-condition-modal .img-right,
+.task-condition-modal img {
+    float: right;
+    margin: 0 0 20px 20px;
+    max-width: min(60%, 300px);
+    width: auto;
+    height: auto;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-condition-modal .img-right:hover,
+.task-condition-modal img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .task-condition-modal .img-right,
+    .task-condition-modal img {
+        float: none;
+        display: block;
+        margin: 20px auto;
+        max-width: 80%;
+        max-height: none;
+    }
+}
+
+/* Убираем курсор-pointer со всех элементов внутри контейнера условия задачи */
+.task-condition-modal {
+    cursor: default;
+}
+
+.task-condition-modal * {
+    cursor: default;
+}
+
+/* Возвращаем курсор-pointer только для изображений */
+.task-condition-modal img {
+    cursor: pointer !important;
+}

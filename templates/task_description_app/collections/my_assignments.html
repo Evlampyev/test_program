@@ -177,19 +177,19 @@
     </div>
 
     <!-- Тостер для уведомлений -->
-    <div class="toast-notification" id="notificationToast" style="display: none;">
-        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true"
-             data-bs-delay="3000">
-            <div class="toast-header">
-                <i class="fas fa-bell me-2"></i>
-                <strong class="me-auto">Уведомление</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body" id="toastMessage">
-                Сообщение
-            </div>
-        </div>
-    </div>
+{#    <div class="toast-notification" id="notificationToast" style="display: none;">#}
+{#        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true"#}
+{#             data-bs-delay="3000">#}
+{#            <div class="toast-header">#}
+{#                <i class="fas fa-bell me-2"></i>#}
+{#                <strong class="me-auto">Уведомление</strong>#}
+{#                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>#}
+{#            </div>#}
+{#            <div class="toast-body" id="toastMessage">#}
+{#                Сообщение#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
 {% endblock %}
 
 {% block extra_js %}
@@ -294,65 +294,64 @@
                 }
             }
 
-            // Функция для отображения тостера
-            function showToast(message, type = 'info') {
-                // Проверяем, есть ли контейнер для тостов
-                let toastContainer = document.getElementById('notificationToast');
-
-                if (!toastContainer) {
-                    // Создаем контейнер, если его нет
-                    toastContainer = document.createElement('div');
-                    toastContainer.id = 'notificationToast';
-                    toastContainer.className = 'toast-notification';
-                    toastContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-                    toastContainer.innerHTML = `
-                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
-                    <div class="toast-header">
-                        <i class="fas fa-bell me-2"></i>
-                        <strong class="me-auto">Уведомление</strong>
-                        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-                    </div>
-                    <div class="toast-body" id="toastMessage"></div>
-                </div>
-            `;
-                    document.body.appendChild(toastContainer);
-                }
-
-                const toastBody = document.getElementById('toastMessage');
-                const toastHeader = toastContainer.querySelector('.toast-header');
-
-                toastBody.textContent = message;
-
-                // Меняем цвет в зависимости от типа
-                if (type === 'success') {
-                    toastHeader.style.backgroundColor = '#28a745';
-                    toastHeader.style.color = 'white';
-                } else if (type === 'danger') {
-                    toastHeader.style.backgroundColor = '#dc3545';
-                    toastHeader.style.color = 'white';
-                } else {
-                    toastHeader.style.backgroundColor = '';
-                    toastHeader.style.color = '';
-                }
-
-                toastContainer.style.display = 'block';
-
-                const toastElement = toastContainer.querySelector('.toast');
-                const toast = new bootstrap.Toast(toastElement, {
-                    autohide: true,
-                    delay: 3000
-                });
-                toast.show();
-
-                // Скрываем контейнер после скрытия тоста
-                toastElement.addEventListener('hidden.bs.toast', function () {
-                    setTimeout(() => {
-                        if (!toastContainer.querySelector('.toast.show')) {
-                            toastContainer.style.display = 'none';
-                        }
-                    }, 100);
-                });
-            }
+            {#// Функция для отображения тостера#}
+            {#function showToast(message, type = 'info') {#}
+            {#    // Проверяем, есть ли контейнер для тостов#}
+            {#    let toastContainer = document.getElementById('notificationToast');#}
+            {##}
+            {#    if (!toastContainer) {#}
+            {#        // Создаем контейнер, если его нет#}
+            {#        toastContainer = document.createElement('div');#}
+            {#        toastContainer.id = 'notificationToast';#}
+            {#        toastContainer.className = 'toast-notification';#}
+            {#        toastContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px;';#}
+            {#        toastContainer.innerHTML = `#}
+            {#    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">#}
+            {#        <div class="toast-header">#}
+            {#            <i class="fas fa-bell me-2"></i>#}
+            {#            <strong class="me-auto">Уведомление</strong>#}
+            {#            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>#}
+            {#        </div>#}
+            {#        <div class="toast-body" id="toastMessage"></div>#}
+            {#    </div>#}
+            {#`;#}
+            {#        document.body.appendChild(toastContainer);#}
+            {#    }#}
+            {##}
+            {#    const toastBody = document.getElementById('toastMessage');#}
+            {#    const toastHeader = toastContainer.querySelector('.toast-header');#}
+            {##}
+            {#    toastBody.textContent = message;#}
+            {##}
+            {#    // Меняем цвет в зависимости от типа#}
+            {#    if (type === 'success') {#}
+            {#        toastHeader.style.backgroundColor = '#28a745';#}
+            {#        toastHeader.style.color = 'white';#}
+            {#    } else if (type === 'danger') {#}
+            {#        toastHeader.style.backgroundColor = '#dc3545';#}
+            {#        toastHeader.style.color = 'white';#}
+            {#    } else {#}
+            {#        toastHeader.style.backgroundColor = '';#}
+            {#        toastHeader.style.color = '';#}
+            {#    }#}
+            {##}
+            {#    toastContainer.style.display = 'block';#}
+            {##}
+            {#    const toastElement = toastContainer.querySelector('.toast');#}
+            {#    const toast = new bootstrap.Toast(toastElement, {#}
+            {#        autohide: true,#}
+            {#        delay: 3000#}
+            {#    });#}
+            {#    toast.show();#}
+            {##}
+            {#    // Скрываем контейнер после скрытия тоста#}
+            {#    toastElement.addEventListener('hidden.bs.toast', function () {#}
+            {#        setTimeout(() => {#}
+            {#            if (!toastContainer.querySelector('.toast.show')) {#}
+            {#                toastContainer.style.display = 'none';#}
+            {#            }#}
+            {#        }, 100);#}
+            {#    });#}
 
             // Функция для получения CSRF токена
             function getCookie(name) {
