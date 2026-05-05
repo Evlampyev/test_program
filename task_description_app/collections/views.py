@@ -321,8 +321,15 @@ def my_assignments(request):
             assignment.status = 'expired'
             assignment.save()
 
+        # Ищем завершенную попытку
+        completed_attempt = CollectionAttempt.objects.filter(
+            collection=assignment.collection,
+            student=request.user,
+            status='completed'
+        ).order_by('-completed_at').first()
+
         # Добавляем последнюю завершенную попытку
-        assignment.last_completed_attempt = attempts_dict.get(assignment.collection_id)
+        assignment.last_completed_attempt = completed_attempt
 
     # Обрабатываем параметры запроса
     request_sent = request.GET.get('request_sent')
@@ -472,12 +479,29 @@ def student_request_time_extension(request, collection_id):
 # collections/views.py
 def collection_attempt_results(request, attempt_id):
     """Просмотр результатов завершенной попытки"""
+    # print(f"{request.user}")
+    # print(f"{attempt_id}")
+    # print(request.user.id)
+
+    # Проверяем существование попытки без фильтрации
+    # attempt_exists = CollectionAttempt.objects.filter(id=attempt_id).first()
+    # if attempt_exists:
+    #     print(f"DEBUG: Попытка найдена. student_id={attempt_exists.student_id}, status={attempt_exists.status}")
+    # else:
+    #     print(f"DEBUG: Попытка с id={attempt_id} не найдена")
+    #     from django.http import Http404
+    #     raise Http404("Попытка не найдена")
+
     attempt = get_object_or_404(
         CollectionAttempt,
         id=attempt_id,
         student=request.user,
         status='completed'
     )
+    # if attempt:
+    #     print("all right")
+    # else:
+    #     print("Ошибка")
 
     # Получаем все задачи в подборке
     items = attempt.collection.collection_items.select_related('task').order_by('order')
@@ -557,3 +581,50 @@ def collection_delete(request, collection_id):
         messages.error(request, f'Ошибка при удалении: {str(e)}')
 
     return redirect('tasks_&_collections:collections:list')
+
+
+@login_required
+@user_passes_test(is_teacher)
+def collection_settings(request, collection_id):
+    """Редактирование настроек подборки (дедлайн и время выполнения)"""
+    collection = get_object_or_404(Collection, id=collection_id, author=request.user)
+
+    if request.method == 'POST':
+        # Обновляем основные настройки подборки
+        collection.title = request.POST.get('title', collection.title)
+        collection.description = request.POST.get('description', collection.description)
+        collection.collection_type = request.POST.get('collection_type', collection.collection_type)
+        collection.target_class = request.POST.get('target_class', collection.target_class)
+
+        # Обрабатываем target_group
+        target_group = request.POST.get('target_group')
+        if target_group and target_group.strip():
+            try:
+                collection.target_group = int(target_group)
+            except ValueError:
+                collection.target_group = None
+        else:
+            collection.target_group = None
+
+        # Обрабатываем time_limit
+        time_limit = request.POST.get('time_limit')
+        if time_limit and time_limit.strip():
+            try:
+                collection.time_limit = int(time_limit)
+            except ValueError:
+                collection.time_limit = None
+        else:
+            collection.time_limit = None
+
+        collection.is_public = request.POST.get('is_public') == 'on'
+        collection.show_results = request.POST.get('show_results') == 'on'
+        collection.save()
+
+        messages.success(request, 'Настройки подборки успешно обновлены!')
+        return redirect('tasks_&_collections:collections:edit', collection_id=collection.id)
+
+    context = {
+        'collection': collection,
+        'title': f'Настройки: {collection.title}',
+    }
+    return render(request, 'task_description_app/collections/collection_settings.html', context)

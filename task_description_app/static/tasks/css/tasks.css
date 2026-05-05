@@ -378,6 +378,7 @@
         display: block;
         margin: 20px auto;
         max-width: 80%;
+        max-height: none;
     }
 
     .image-viewer-close {
@@ -658,8 +659,16 @@
 .img-right {
     float: right;
     margin: 0 0 20px 20px;
-    max-width: 30%;
+
+    /* Основные ограничения */
+    max-width: min(60%, 300px);
+    width: auto;
     height: auto;
+
+    /* Дополнительно - если хотите процент от оригинала */
+    /* transform: scale(0.6);*/
+    /* transform-origin: top right;*/
+
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
     border-radius: 8px;
@@ -670,6 +679,7 @@
     transform: scale(1.02);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
+
 
 /* Конец для файла task_list*/
 
@@ -851,6 +861,7 @@
     background-color: var(--level-dark);
     color: white;
 }
+
 .difficulty-legend {
     text-align: right;
 }

@@ -186,7 +186,7 @@
                                 ({{ last_attempt.get_progress_percent }}%)
                             </div>
                             <div>
-                                <a href="{% url 'tasks_&_collections:collections:attempt_results' last_attempt.id %}"
+                                <a href="{% url 'tasks_&_collections:collections:attempt_results' last_completed_attempt.id %}"
                                    class="btn btn-success btn-little btn-white-box_shadow">
                                     <i class="fas fa-chart-line me-2"></i>Посмотреть результаты
                                 </a>
