@@ -10,6 +10,7 @@ from django.utils import timezone
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from plural_ru import ru
 
 from .forms import CollectionForm
 from . import CollectionAttempt, Collection, CollectionItem, CollectionAssignment
@@ -268,7 +269,8 @@ def assign_collection(request, collection_id):
                 from notifications.utils import notify_student_about_assignment
                 notify_student_about_assignment(student, collection)
 
-        messages.success(request, f'Контрольная работа выдана {len(student_ids)} ученикам')
+        messages.success(request,
+                         f'Контрольная работа выдана {len(student_ids)} {plural_ru.ru(len(student_ids), ["ученику", "ученикам", "учеников"])}')
         return redirect('tasks_&_collections:collections:detail', collection_id=collection.id)
 
     # GET запрос - показываем форму выдачи

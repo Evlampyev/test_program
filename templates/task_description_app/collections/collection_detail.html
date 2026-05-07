@@ -201,7 +201,7 @@
                                         ({{ in_progress_attempt.started_at|date:"d.m.Y H:i" }})
                                     </div>
                                     <a href="{% url 'tasks_&_collections:collections:attempt' in_progress_attempt.id %}"
-                                       class="btn btn-warning btn-lg">
+                                       class="btn btn-warning btn-little btn-sm">
                                         <i class="fas fa-play me-2"></i>Продолжить выполнение
                                     </a>
                                 {% else %}
@@ -330,10 +330,12 @@
                                     <i class="fas fa-eye"></i> Просмотр
                                 </a>
                             {% else %}
-                                <a href="{% url 'tasks_&_collections:tasks:detail' item.task.id %}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-play"></i> Решить
-                                </a>
+                                {% if last_attempt and last_attempt.status == 'completed' %}
+                                    <a href="{% url 'tasks_&_collections:tasks:detail' item.task.id %}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-play"></i> Решить
+                                    </a>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>

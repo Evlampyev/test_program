@@ -36,7 +36,7 @@
                         {% for level in difficulty_levels %}
                             <span class="legend-item level-{{ level.level_name }}" data-color="{{ level.color_code }}">
                     <span class="legend-color"></span>
-                    <span class="legend-text">{{ level.level_name }} - "{{ level.get_grade_display }}"</span><br>
+                    <span class="legend-text">{{ level.level_name }} - {{ level.get_grade_display }}</span><br>
                 </span>
                         {% endfor %}
                     </div>
