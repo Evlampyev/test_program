@@ -175,46 +175,43 @@
                     <p class="mb-0 opacity-75">{{ collection.description }}</p>
                 </div>
                 {% if user.user_type == 'student' %}
-                    {% with last_attempt=collection.attempts.filter|dictsortreversed:"started_at"|first %}
-                        {% if last_attempt and last_attempt.status == 'completed' %}
-                            <!-- Есть завершенная попытка - показываем результат -->
-                            <div class="alert alert-success">
-                                <i class="fas fa-check-circle me-2"></i>
-                                <strong>Вы выполнили эту контрольную работу!</strong><br>
-                                Результат последней попытки: {{ last_attempt.score }}/{{ last_attempt.max_score }}
-                                баллов
-                                ({{ last_attempt.get_progress_percent }}%)
+                    {% if last_attempt and last_attempt.status == 'completed' %}
+                        <!-- Есть завершенная попытка - показываем результат -->
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Вы выполнили эту контрольную работу!</strong><br>
+                            Результат последней попытки: {{ last_attempt.score }}/{{ last_attempt.max_score }}
+                            баллов
+                            ({{ last_attempt.get_progress_percent }}%)
+                        </div>
+                        <div>
+                            <a href="{% url 'tasks_&_collections:collections:attempt_results' last_completed_attempt.id %}"
+                               class="btn btn-success btn-little btn-white-box_shadow">
+                                <i class="fas fa-chart-line me-2"></i>Посмотреть результаты
+                            </a>
+                        </div>
+                    {% else %}
+                        <!-- Нет завершенной попытки - показываем кнопку выполнения -->
+                        {% if in_progress_attempt and in_progress_attempt.status == 'in_progress' %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-hourglass-half me-2"></i>
+                                У вас есть незавершенная попытка
+                                ({{ in_progress_attempt.started_at|date:"d.m.Y H:i" }})<br>
+                                <span class="task-score" >Необходимо все задачи протестировать снова</span>
                             </div>
+                            <a href="{% url 'tasks_&_collections:collections:attempt' in_progress_attempt.id %}"
+                               class="btn btn-warning btn-little btn-sm">
+                                <i class="fas fa-play me-2"></i>Продолжить выполнение
+                            </a>
+                        {% else %}
                             <div>
-                                <a href="{% url 'tasks_&_collections:collections:attempt_results' last_completed_attempt.id %}"
+                                <a href="{% url 'tasks_&_collections:collections:start' collection.id %}"
                                    class="btn btn-success btn-little btn-white-box_shadow">
-                                    <i class="fas fa-chart-line me-2"></i>Посмотреть результаты
+                                    <i class="fas fa-play me-2"></i>Начать выполнение
                                 </a>
                             </div>
-                        {% else %}
-                            <!-- Нет завершенной попытки - показываем кнопку выполнения -->
-                            {% with in_progress_attempt=collection.attempts.filter|dictsortreversed:"started_at"|first %}
-                                {% if in_progress_attempt and in_progress_attempt.status == 'in_progress' %}
-                                    <div class="alert alert-info">
-                                        <i class="fas fa-hourglass-half me-2"></i>
-                                        У вас есть незавершенная попытка
-                                        ({{ in_progress_attempt.started_at|date:"d.m.Y H:i" }})
-                                    </div>
-                                    <a href="{% url 'tasks_&_collections:collections:attempt' in_progress_attempt.id %}"
-                                       class="btn btn-warning btn-little btn-sm">
-                                        <i class="fas fa-play me-2"></i>Продолжить выполнение
-                                    </a>
-                                {% else %}
-                                    <div>
-                                        <a href="{% url 'tasks_&_collections:collections:start' collection.id %}"
-                                           class="btn btn-success btn-little btn-white-box_shadow">
-                                            <i class="fas fa-play me-2"></i>Начать выполнение
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            {% endwith %}
                         {% endif %}
-                    {% endwith %}
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
