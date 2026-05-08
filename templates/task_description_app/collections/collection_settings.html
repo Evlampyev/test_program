@@ -4,196 +4,147 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_css %}
-    <style>
-        .settings-form {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .form-section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-section h4 {
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
-        }
-
-        .form-section h4 i {
-            color: #667eea;
-            margin-right: 10px;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin: 15px 0;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .checkbox-item input {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .info-note {
-            background: #e7f3ff;
-            padding: 15px;
-            border-radius: 8px;
-            color: #004085;
-            margin-top: 20px;
-        }
-
-        .btn-save {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
-
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'collections/css/settings.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="settings-form">
-        <!-- Хлебные крошки -->
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <a href="{% url 'tasks_&_collections:collections:list' %}" class="text-decoration-none">
-                        Мои подборки
-                    </a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="{% url 'tasks_&_collections:collections:detail' collection.id %}" class="text-decoration-none">
-                        {{ collection.title }}
-                    </a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="{% url 'tasks_&_collections:collections:edit' collection.id %}" class="text-decoration-none">
-                        Редактирование
-                    </a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">Настройки</li>
-            </ol>
-        </nav>
+    <div class="container mt-4">
+        <div class="settings-form">
+            <!-- Хлебные крошки -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'tasks_&_collections:collections:list' %}" class="text-decoration-none">
+                            Мои подборки
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'tasks_&_collections:collections:detail' collection.id %}"
+                           class="text-decoration-none">
+                            {{ collection.title }}
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'tasks_&_collections:collections:edit' collection.id %}"
+                           class="text-decoration-none">
+                            Редактирование
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Настройки</li>
+                </ol>
+            </nav>
 
-        <h2 class="mb-4">
-            <i class="fas fa-cog me-2" style="color: #667eea;"></i>
-            Настройки: {{ collection.title }}
-        </h2>
+            <h2 class="mb-4">
+                <i class="fas fa-cog me-2" style="color: #667eea;"></i>
+                Настройки: {{ collection.title }}
+            </h2>
 
-        <form method="post">
-            {% csrf_token %}
+            <form method="post">
+                {% csrf_token %}
 
-            <!-- Основная информация -->
-            <div class="form-section">
-                <h4><i class="fas fa-info-circle"></i> Основная информация</h4>
+                <!-- Основная информация -->
+                <div class="form-section">
+                    <h4><i class="fas fa-info-circle"></i> Основная информация</h4>
 
-                <div class="mb-3">
-                    <label class="form-label">Название подборки</label>
-                    <input type="text" name="title" class="form-control" value="{{ collection.title }}" required>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Описание</label>
-                    <textarea name="description" class="form-control" rows="3">{{ collection.description }}</textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Тип подборки</label>
-                    <select name="collection_type" class="form-select">
-                        <option value="lesson" {% if collection.collection_type == 'lesson' %}selected{% endif %}>Урок</option>
-                        <option value="test" {% if collection.collection_type == 'test' %}selected{% endif %}>Контрольная работа</option>
-                        <option value="exam" {% if collection.collection_type == 'exam' %}selected{% endif %}>Экзамен</option>
-                        <option value="homework" {% if collection.collection_type == 'homework' %}selected{% endif %}>Домашнее задание</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Целевая аудитория -->
-            <div class="form-section">
-                <h4><i class="fas fa-users"></i> Целевая аудитория</h4>
-
-                <div class="mb-3">
-                    <label class="form-label">Класс</label>
-                    <input type="text" name="target_class" class="form-control" value="{{ collection.target_class|default:'' }}" placeholder="Например: 10 класс">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Группа</label>
-                    <input type="number" name="target_group" class="form-control" value="{{ collection.target_group|default:'' }}" placeholder="1 или 2">
-                </div>
-            </div>
-
-            <!-- Настройки времени -->
-            <div class="form-section">
-                <h4><i class="fas fa-clock"></i> Настройки времени</h4>
-
-                <div class="mb-3">
-                    <label class="form-label">Ограничение времени (минуты)</label>
-                    <input type="number" name="time_limit" class="form-control" value="{{ collection.time_limit|default:'' }}" placeholder="Оставьте пустым для безлимита">
-                    <small class="text-muted">Время, отведенное на выполнение всей контрольной работы</small>
-                </div>
-
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Информация:</strong> Если оставить поле пустым, время выполнения не будет ограничено.
-                </div>
-            </div>
-
-            <!-- Дополнительные настройки -->
-            <div class="form-section">
-                <h4><i class="fas fa-toggle-on"></i> Дополнительные настройки</h4>
-
-                <div class="checkbox-group">
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="is_public" id="is_public" {% if collection.is_public %}checked{% endif %}>
-                        <label for="is_public">Публичная подборка</label>
+                    <div class="mb-3">
+                        <label class="form-label">Название подборки</label>
+                        <input type="text" name="title" class="form-control" value="{{ collection.title }}" required>
                     </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" name="show_results" id="show_results" {% if collection.show_results %}checked{% endif %}>
-                        <label for="show_results">Показывать результаты ученикам</label>
+
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea name="description" class="form-control"
+                                  rows="3">{{ collection.description }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Тип подборки</label>
+                        <select name="collection_type" class="form-select">
+                            <option value="lesson" {% if collection.collection_type == 'lesson' %}selected{% endif %}>
+                                Урок
+                            </option>
+                            <option value="test" {% if collection.collection_type == 'test' %}selected{% endif %}>
+                                Контрольная работа
+                            </option>
+                            <option value="exam" {% if collection.collection_type == 'exam' %}selected{% endif %}>
+                                Экзамен
+                            </option>
+                            <option value="homework"
+                                    {% if collection.collection_type == 'homework' %}selected{% endif %}>Домашнее
+                                задание
+                            </option>
+                        </select>
                     </div>
                 </div>
-            </div>
 
-            <div class="d-flex gap-3">
-                <button type="submit" class="btn-save">
-                    <i class="fas fa-save me-2"></i>Сохранить настройки
-                </button>
-                <a href="{% url 'tasks_&_collections:collections:edit' collection.id %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Назад к редактированию задач
-                </a>
-            </div>
+                <!-- Целевая аудитория -->
+                <div class="form-section">
+                    <h4><i class="fas fa-users"></i> Целевая аудитория</h4>
 
-            <div class="info-note">
-                <i class="fas fa-lightbulb"></i>
-                <strong>Совет:</strong> Настройки времени и дедлайна можно менять в любой момент.
-                Ученики увидят новые ограничения при следующем входе в контрольную работу.
-            </div>
-        </form>
+                    <div class="mb-3">
+                        <label class="form-label">Класс</label>
+                        <input type="text" name="target_class" class="form-control"
+                               value="{{ collection.target_class|default:'' }}" placeholder="Например: 10 класс">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Группа</label>
+                        <input type="number" name="target_group" class="form-control"
+                               value="{{ collection.target_group|default:'' }}" placeholder="1 или 2">
+                    </div>
+                </div>
+
+                <!-- Настройки времени -->
+                <div class="form-section">
+                    <h4><i class="fas fa-clock"></i> Настройки времени</h4>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ограничение времени (минуты)</label>
+                        <input type="number" name="time_limit" class="form-control"
+                               value="{{ collection.time_limit|default:'' }}"
+                               placeholder="Оставьте пустым для безлимита">
+                        <small class="text-muted">Время, отведенное на выполнение всей контрольной работы</small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Информация:</strong> Если оставить поле пустым, время выполнения не будет ограничено.
+                    </div>
+                </div>
+
+                <!-- Дополнительные настройки -->
+                <div class="form-section">
+                    <h4><i class="fas fa-toggle-on"></i> Дополнительные настройки</h4>
+
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="is_public" id="is_public"
+                                   {% if collection.is_public %}checked{% endif %}>
+                            <label for="is_public">Публичная подборка</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="show_results" id="show_results"
+                                   {% if collection.show_results %}checked{% endif %}>
+                            <label for="show_results">Показывать результаты ученикам</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-save">
+                        <i class="fas fa-save me-2"></i>Сохранить настройки
+                    </button>
+                    <a href="{% url 'tasks_&_collections:collections:edit' collection.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Назад к редактированию задач
+                    </a>
+                </div>
+
+                <div class="info-note">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Совет:</strong> Настройки времени и дедлайна можно менять в любой момент.
+                    Ученики увидят новые ограничения при следующем входе в контрольную работу.
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 {% endblock %}

@@ -5,101 +5,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'tasks/css/tasks.css' %}">
-    <style>
-        .image-preview {
-            margin-top: 10px;
-            max-width: 200px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            background: #f8f9fa;
-            display: none;
-        }
-        .image-preview img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        .form-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
-        }
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        .section-title i {
-            color: #667eea;
-            margin-right: 10px;
-        }
-        .info-note {
-            background: #e7f3ff;
-            border-radius: 8px;
-            padding: 10px 15px;
-            color: #004085;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        .info-note i {
-            margin-right: 8px;
-        }
-        .test-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-        }
-        .test-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .test-number {
-            font-weight: 600;
-            color: #495057;
-        }
-        .remove-test {
-            color: #dc3545;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        .remove-test:hover {
-            color: #bd2130;
-        }
-
-
-        .path-preview {
-            background: #f0f4fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-family: monospace;
-            font-size: 14px;
-        }
-        .path-label {
-            color: #666;
-            margin-bottom: 5px;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-        .path-value {
-            color: #333;
-            word-break: break-all;
-        }
-
-        .tab-pane {
-            padding: 20px 0;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'tasks/css/add.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -186,23 +92,7 @@
                             </label>
                             {{ task_form.level }}
                         </div>
-{#                        <div class="col-md-3 mb-3">#}
-                        {#                            <label class="form-label">#}
-                        {#                                <i class="fas fa-folder"></i> Папка задачи#}
-                        {#                            </label>#}
-                        {#                            {{ task_form.task_folder }}#}
-                        {#                            <small class="text-muted">Например: task_001</small>#}
-                        {#                        </div>#}
                     </div>
-{##}
-{#                    <div class="path-preview">#}
-{#                        <div class="path-label">#}
-{#                            <i class="fas fa-link"></i> Будет создан путь:#}
-{#                        </div>#}
-{#                        <div class="path-value" id="pathPreview">#}
-{#                            /tasks_for_tests/...#}
-{#                        </div>#}
-{#                    </div>#}
                 </div>
             </div>
 
@@ -243,8 +133,10 @@
                                 <label class="form-label">
                                     <i class="fas fa-image"></i> Изображение к задаче
                                 </label>
-                                <input type="file" name="task_image" id="taskImage" class="form-control" accept="image/png,image/jpeg,image/jpg,image/gif">
-                                <small class="text-muted">Изображение будет сохранено как img.png (перезапишет существующее)</small>
+                                <input type="file" name="task_image" id="taskImage" class="form-control"
+                                       accept="image/png,image/jpeg,image/jpg,image/gif">
+                                <small class="text-muted">Изображение будет сохранено как img.png (перезапишет
+                                    существующее)</small>
 
                                 <div id="imagePreview" class="image-preview">
                                     <img id="previewImg" src="#" alt="Предпросмотр">
@@ -263,12 +155,14 @@
                                 </label>
                                 {{ content_form.task_md_content }}
                                 <small class="text-muted">
-                                    Поддерживается <b>Markdown</b>>: # Заголовок, ## Подзаголовок, **жирный**, *курсив*, `код`<br>
+                                    Поддерживается <b>Markdown</b>>: # Заголовок, ## Подзаголовок, **жирный**, *курсив*,
+                                    `код`<br>
                                     <b>Теги HTML</b> &lt;br&gt; - перенос строки
                                 </small>
                                 <div class="info-note mt-2">
                                     <i class="fas fa-info-circle"></i>
-                                    Для вставки изображения используйте: <code>![Описание](img.png)</code> перед '## Название задачи'
+                                    Для вставки изображения используйте: <code>![Описание](img.png)</code> перед '##
+                                    Название задачи'
                                 </div>
                             </div>
                         </div>
@@ -390,11 +284,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Предпросмотр изображения
-        document.getElementById('taskImage').addEventListener('change', function(e) {
+        document.getElementById('taskImage').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = function (event) {
                     const preview = document.getElementById('imagePreview');
                     const img = document.getElementById('previewImg');
                     img.src = event.target.result;
@@ -428,32 +322,32 @@
         {#    document.getElementById('pathPreview').textContent =#}
         {#        parts.length > 0 ? '/tasks_for_tests/' + parts.join('/') : '/tasks_for_tests/...';#}
         {#}#}
-        {##}
-        {#// Слушатели для обновления пути#}
-        {#const classInput = document.getElementById('id_class_name');#}
-        {#const topicInput = document.getElementById('id_topic');#}
-        {#const lessonInput = document.getElementById('id_lesson');#}
-        {#const levelSelect = document.getElementById('id_level');#}
-        {#const taskFolderInput = document.getElementById('id_task_folder');#}
-        {##}
-        {#if (classInput) classInput.addEventListener('input', updatePathPreview);#}
-        {#if (topicInput) topicInput.addEventListener('input', updatePathPreview);#}
-        {#if (lessonInput) lessonInput.addEventListener('input', updatePathPreview);#}
-        {#if (levelSelect) levelSelect.addEventListener('change', updatePathPreview);#}
-        {#if (taskFolderInput) taskFolderInput.addEventListener('input', updatePathPreview);#}
+            {##}
+            {#// Слушатели для обновления пути#}
+            {#const classInput = document.getElementById('id_class_name');#}
+            {#const topicInput = document.getElementById('id_topic');#}
+            {#const lessonInput = document.getElementById('id_lesson');#}
+            {#const levelSelect = document.getElementById('id_level');#}
+            {#const taskFolderInput = document.getElementById('id_task_folder');#}
+            {##}
+            {#if (classInput) classInput.addEventListener('input', updatePathPreview);#}
+            {#if (topicInput) topicInput.addEventListener('input', updatePathPreview);#}
+            {#if (lessonInput) lessonInput.addEventListener('input', updatePathPreview);#}
+            {#if (levelSelect) levelSelect.addEventListener('change', updatePathPreview);#}
+            {#if (taskFolderInput) taskFolderInput.addEventListener('input', updatePathPreview);#}
 
-        // Управление тестами
-        let testCount = 0;
-        const testsContainer = document.getElementById('testsContainer');
-        const testCountInput = document.getElementById('testCount');
+            // Управление тестами
+            let testCount = 0;
+            const testsContainer = document.getElementById('testsContainer');
+            const testCountInput = document.getElementById('testCount');
 
-        function addTest() {
-            testCount++;
-            const testDiv = document.createElement('div');
-            testDiv.className = 'test-card';
-            testDiv.id = `test_${testCount}`;
+            function addTest() {
+                testCount++;
+                const testDiv = document.createElement('div');
+                testDiv.className = 'test-card';
+                testDiv.id = `test_${testCount}`;
 
-            testDiv.innerHTML = `
+                testDiv.innerHTML = `
                 <div class="test-header">
                     <span class="test-number">Тест #${testCount}</span>
                     <span class="btn btn-remove-test btn-sm" onclick="removeTest(${testCount})">
@@ -472,93 +366,93 @@
                 </div>
             `;
 
-            testsContainer.appendChild(testDiv);
-            testCountInput.value = testCount;
-        }
-
-        window.removeTest = function (id) {
-            const testDiv = document.getElementById(`test_${id}`);
-            if (testDiv) {
-                testDiv.remove();
-                const remainingTests = document.querySelectorAll('.test-card');
-                remainingTests.forEach((test, index) => {
-                    const newNum = index + 1;
-                    test.id = `test_${newNum}`;
-                    test.querySelector('.test-number').textContent = `Тест #${newNum}`;
-                    const input = test.querySelector('.test-input');
-                    const output = test.querySelector('.test-output');
-                    if (input) input.name = `test_${newNum}_input`;
-                    if (output) output.name = `test_${newNum}_output`;
-                });
-                testCount = remainingTests.length;
+                testsContainer.appendChild(testDiv);
                 testCountInput.value = testCount;
             }
-        };
 
-        const addTestBtn = document.getElementById('addTestBtn');
-        if (addTestBtn) addTestBtn.addEventListener('click', addTest);
+            window.removeTest = function (id) {
+                const testDiv = document.getElementById(`test_${id}`);
+                if (testDiv) {
+                    testDiv.remove();
+                    const remainingTests = document.querySelectorAll('.test-card');
+                    remainingTests.forEach((test, index) => {
+                        const newNum = index + 1;
+                        test.id = `test_${newNum}`;
+                        test.querySelector('.test-number').textContent = `Тест #${newNum}`;
+                        const input = test.querySelector('.test-input');
+                        const output = test.querySelector('.test-output');
+                        if (input) input.name = `test_${newNum}_input`;
+                        if (output) output.name = `test_${newNum}_output`;
+                    });
+                    testCount = remainingTests.length;
+                    testCountInput.value = testCount;
+                }
+            };
 
-        window.addEventListener('load', function () {
-            addTest();
-        });
+            const addTestBtn = document.getElementById('addTestBtn');
+            if (addTestBtn) addTestBtn.addEventListener('click', addTest);
 
-        // Отправка формы
-        const taskForm = document.getElementById('taskAddForm');
-        if (taskForm) {
-            taskForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                const formData = new FormData(this);
-                const submitBtn = document.getElementById('submitBtn');
-                const originalText = submitBtn.innerHTML;
-
-                document.querySelectorAll('textarea').forEach(textarea => {
-                    textarea.value = textarea.value.replace(/\r\n/g, '\n');
-                });
-
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Создание задачи...';
-                submitBtn.disabled = true;
-
-                fetch('', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('successMessage').textContent = data.message;
-                        document.getElementById('successPath').textContent = data.path;
-                        document.getElementById('successTaskId').textContent = data.task_id;
-
-                        const viewBtn = document.querySelector('#successModal .btn-success');
-                        if (viewBtn) {
-                            viewBtn.href = `/tasks/task/${data.task_id}/`;
-                        }
-
-                        new bootstrap.Modal(document.getElementById('successModal')).show();
-                    } else {
-                        let errorHtml = '<ul class="mb-0">';
-                        for (let field in data.errors) {
-                            errorHtml += `<li><strong>${field}:</strong> ${data.errors[field]}</li>`;
-                        }
-                        errorHtml += '</ul>';
-                        document.getElementById('errorMessage').innerHTML = errorHtml;
-                        new bootstrap.Modal(document.getElementById('errorModal')).show();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('errorMessage').innerHTML = 'Произошла ошибка при отправке формы: ' + error.message;
-                    new bootstrap.Modal(document.getElementById('errorModal')).show();
-                })
-                .finally(() => {
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                });
+            window.addEventListener('load', function () {
+                addTest();
             });
-        }
+
+            // Отправка формы
+            const taskForm = document.getElementById('taskAddForm');
+            if (taskForm) {
+                taskForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const submitBtn = document.getElementById('submitBtn');
+                    const originalText = submitBtn.innerHTML;
+
+                    document.querySelectorAll('textarea').forEach(textarea => {
+                        textarea.value = textarea.value.replace(/\r\n/g, '\n');
+                    });
+
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Создание задачи...';
+                    submitBtn.disabled = true;
+
+                    fetch('', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById('successMessage').textContent = data.message;
+                                document.getElementById('successPath').textContent = data.path;
+                                document.getElementById('successTaskId').textContent = data.task_id;
+
+                                const viewBtn = document.querySelector('#successModal .btn-success');
+                                if (viewBtn) {
+                                    viewBtn.href = `/tasks/task/${data.task_id}/`;
+                                }
+
+                                new bootstrap.Modal(document.getElementById('successModal')).show();
+                            } else {
+                                let errorHtml = '<ul class="mb-0">';
+                                for (let field in data.errors) {
+                                    errorHtml += `<li><strong>${field}:</strong> ${data.errors[field]}</li>`;
+                                }
+                                errorHtml += '</ul>';
+                                document.getElementById('errorMessage').innerHTML = errorHtml;
+                                new bootstrap.Modal(document.getElementById('errorModal')).show();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            document.getElementById('errorMessage').innerHTML = 'Произошла ошибка при отправке формы: ' + error.message;
+                            new bootstrap.Modal(document.getElementById('errorModal')).show();
+                        })
+                        .finally(() => {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        });
+                });
+            }
     </script>
 {% endblock %}

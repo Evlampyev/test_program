@@ -1,0 +1,123 @@
+.collection-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.collection-header h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.collection-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+.badge-lesson {
+    background: #4caf50;
+}
+
+.badge-test {
+    background: #ff9800;
+}
+
+.badge-exam {
+    background: #f44336;
+}
+
+.badge-homework {
+    background: #2196f3;
+}
+
+.stats-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s;
+}
+
+.stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.task-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.task-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.task-number {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 35px;
+    font-weight: 600;
+    margin-right: 15px;
+}
+
+.task-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.task-meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 10px;
+}
+
+.task-score {
+    background: #f8f9fa;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #667eea;
+}
+
+
+.attempt-card {
+    background: #f0f4fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.progress {
+    height: 10px;
+    border-radius: 5px;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}

@@ -5,45 +5,7 @@
 {% block title %}Мои задания{% endblock %}
 
 {% block extra_css %}
-    <style>
-        .request-time-modal .modal-body {
-            padding: 20px;
-        }
-
-        .request-message {
-            width: 100%;
-            min-height: 100px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 14px;
-        }
-
-        .request-message:focus {
-            border-color: #667eea;
-            outline: none;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-
-        .toast-notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-            min-width: 300px;
-        }
-
-        .btn-loading {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .btn-loading .spinner-border-sm {
-            width: 1rem;
-            height: 1rem;
-            margin-right: 0.5rem;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'collections/css/my_assignments.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -120,13 +82,6 @@
                                         <i class="fas fa-commenting me-2"></i>Попросить больше времени
                                     </button>
                                 {% endif %}
-                                {#                                <h5 class="card-title">#}
-                                {#                                    <a href="{% url 'tasks_&_collections:collections:detail' assignment.collection.id %}"#}
-                                {#                                       class="text-decoration-none">#}
-                                {#                                        {{ assignment.collection.title }}#}
-                                {#                                    </a>#}
-                                {#                                </h5>#}
-                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -175,21 +130,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Тостер для уведомлений -->
-    {#    <div class="toast-notification" id="notificationToast" style="display: none;">#}
-    {#        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true"#}
-    {#             data-bs-delay="3000">#}
-    {#            <div class="toast-header">#}
-    {#                <i class="fas fa-bell me-2"></i>#}
-    {#                <strong class="me-auto">Уведомление</strong>#}
-    {#                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>#}
-    {#            </div>#}
-    {#            <div class="toast-body" id="toastMessage">#}
-    {#                Сообщение#}
-    {#            </div>#}
-    {#        </div>#}
-    {#    </div>#}
 {% endblock %}
 
 {% block extra_js %}
@@ -265,126 +205,3 @@
         })();
     </script>
 {% endblock %}
-
-
-{#{% block extra_js %}#}
-{#    <script>#}
-{#        let currentCollectionId = null;#}
-{#        let currentAssignmentTitle = '';#}
-{#        const csrfToken = window.App.getCSRFToken();#}
-{##}
-{#        // Показать модальное окно для запроса времени#}
-{#        function showRequestModal(collectionId, assignmentTitle) {#}
-{#            currentCollectionId = collectionId;#}
-{#            currentAssignmentTitle = assignmentTitle;#}
-{##}
-{#            document.getElementById('assignmentTitle').textContent = assignmentTitle;#}
-{#            document.getElementById('requestMessage').value = '';#}
-{##}
-{#            const modal = new bootstrap.Modal(document.getElementById('requestTimeModal'));#}
-{#            modal.show();#}
-{#        }#}
-{##}
-{#        // Отправить запрос на продление времени#}
-{#async function sendTimeRequest() {#}
-{#    const sendBtn = document.getElementById('sendRequestBtn');#}
-{#    const originalText = sendBtn.innerHTML;#}
-{#    const message = document.getElementById('requestMessage').value;#}
-{##}
-{#    // Отключаем кнопку#}
-{#    sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Отправка...';#}
-{#    sendBtn.disabled = true;#}
-{#    sendBtn.classList.add('btn-loading');#}
-{##}
-{#    try {#}
-{#        const response = await fetch(`/tasks/collections/api/collection/${currentCollectionId}/request-time/`, {#}
-{#            method: 'POST',#}
-{#            headers: {#}
-{#                'Content-Type': 'application/json',#}
-{#                'X-CSRFToken': getCookie('csrftoken')#}
-{#            },#}
-{#            body: JSON.stringify({#}
-{#                message: message#}
-{#            })#}
-{#        });#}
-{##}
-{#        const data = await response.json();#}
-{##}
-{#        if (data.success) {#}
-{#            // Закрываем модальное окно#}
-{#            const modal = bootstrap.Modal.getInstance(document.getElementById('requestTimeModal'));#}
-{#            modal.hide();#}
-{##}
-{#            // Показываем уведомление об успехе#}
-{#            showToast('✅ Запрос отправлен учителю!', 'success');#}
-{#        } else {#}
-{#            showToast('❌ Ошибка: ' + (data.error || 'Не удалось отправить запрос'), 'danger');#}
-{#        }#}
-{#    } catch (error) {#}
-{#        console.error('Ошибка:', error);#}
-{#        showToast('❌ Произошла ошибка при отправке запроса', 'danger');#}
-{#    } finally {#}
-{#        // Восстанавливаем кнопку#}
-{#        sendBtn.innerHTML = originalText;#}
-{#        sendBtn.disabled = false;#}
-{#        sendBtn.classList.remove('btn-loading');#}
-{#    }#}
-{##}
-{#            async function sendTimeRequest() {#}
-{#                const sendBtn = document.getElementById('sendRequestBtn');#}
-{#                const originalText = sendBtn.innerHTML;#}
-{#                const message = document.getElementById('requestMessage').value;#}
-{##}
-{#                sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Отправка...';#}
-{#                sendBtn.disabled = true;#}
-{#                sendBtn.classList.add('btn-loading');#}
-{##}
-{#                try {#}
-{#                    const response = await fetch(`/tasks/collections/api/collection/${currentCollectionId}/request-time/`, {#}
-{#                        method: 'POST',#}
-{#                        headers: {#}
-{#                            'Content-Type': 'application/json',#}
-{#                            'X-CSRFToken': getCookie('csrftoken')#}
-{#                        },#}
-{#                        body: JSON.stringify({message: message})#}
-{#                    });#}
-{##}
-{#                    const data = await response.json();#}
-{##}
-{#                    const modal = bootstrap.Modal.getInstance(document.getElementById('requestTimeModal'));#}
-{#                    modal.hide();#}
-{##}
-{#                    if (data.success) {#}
-{#                        // Перенаправляем на ту же страницу с параметром success#}
-{#                        window.location.href = window.location.pathname + '?request_sent=success';#}
-{#                    } else {#}
-{#                        window.location.href = window.location.pathname + '?request_sent=error&error=' + encodeURIComponent(data.error);#}
-{#                    }#}
-{#                } catch (error) {#}
-{#                    console.error('Ошибка:', error);#}
-{#                    window.location.href = window.location.pathname + '?request_sent=error&error=Ошибка+соединения';#}
-{#                } finally {#}
-{#                    sendBtn.innerHTML = originalText;#}
-{#                    sendBtn.disabled = false;#}
-{#                    sendBtn.classList.remove('btn-loading');#}
-{#                }#}
-{#            }#}
-{##}
-{##}
-{#            // Функция для получения CSRF токена#}
-{#function getCookie(name) {#}
-{#    let cookieValue = null;#}
-{#    if (document.cookie && document.cookie !== '') {#}
-{#        const cookies = document.cookie.split(';');#}
-{#        for (let i = 0; i < cookies.length; i++) {#}
-{#            const cookie = cookies[i].trim();#}
-{#            if (cookie.substring(0, name.length + 1) === (name + '=')) {#}
-{#                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));#}
-{#                break;#}
-{#            }#}
-{#        }#}
-{#    }#}
-{#    return cookieValue;#}
-{##}
-{#    </script>#}
-{#{% endblock %}#}
