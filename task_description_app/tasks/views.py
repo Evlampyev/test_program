@@ -840,3 +840,16 @@ def check_solution(request):
             'message': str(e),
             'error': str(e)
         }, status=500)
+
+
+def sample_solution(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    task_files = get_task_files(task_id)
+    solution_path = task_files.get('py')  # 'py' - путь к task.py
+    content = ""
+    if solution_path and os.path.exists(solution_path):
+        with open(solution_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+    else:
+        content = "# Файл с образцовым решением не найден"
+    return JsonResponse({'content': content, 'task_title': task.title})

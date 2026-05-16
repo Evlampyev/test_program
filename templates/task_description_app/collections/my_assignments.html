@@ -33,10 +33,15 @@
                             </div>
                             <div class="card-body">
                                 <h4 class="card-title">
-                                    <a href="{% url 'tasks_&_collections:collections:detail' assignment.collection.id %}"
-                                       class="card-hover p-2">
-                                        {{ assignment.collection.title }}
-                                    </a>
+                                    {% if assignment.status != 'expired' %}
+                                        <a href="{% url 'tasks_&_collections:collections:detail' assignment.collection.id %}"
+                                           class="card-hover p-2">
+                                            {{ assignment.collection.title }}
+                                        </a>
+                                    {% else %}
+                                        <div class="card-hover p-2">{{ assignment.collection.title }}</div>
+                                    {% endif %}
+
                                 </h4>
                                 <p class="card-text text-muted">{{ assignment.collection.description|truncatechars:100 }}</p>
 
@@ -82,6 +87,7 @@
                                         <i class="fas fa-commenting me-2"></i>Попросить больше времени
                                     </button>
                                 {% endif %}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}

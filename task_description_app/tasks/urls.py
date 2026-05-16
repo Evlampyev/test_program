@@ -13,4 +13,6 @@ urlpatterns = [
     path('attempt/<int:attempt_id>/results/', views.get_attempt_results, name='attempt_results'),
     path('api/check/', views.check_solution, name='check'),
     path('api/task/<int:task_id>/', views.get_task_info, name='info'),
+
+    path('task/<int:task_id>/sample/', views.sample_solution, name='sample_solution'),
 ]

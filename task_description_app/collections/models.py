@@ -182,6 +182,6 @@ class CollectionAssignment(models.Model):
 
     def is_overdue(self):
         """Проверяет, просрочено ли задание"""
-        if self.due_date and timezone.now() > self.due_date:
+        if self.due_date and self.status != 'completed' and timezone.now() > self.due_date:
             return True
         return False

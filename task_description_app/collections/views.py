@@ -155,11 +155,11 @@ def collection_detail(request, collection_id):
         ).order_by('-started_at')
 
         last_attempt = attempts.first()
-        print(f"{last_attempt=}")
+        # print(f"{last_attempt=}")
         last_completed_attempt = attempts.filter(status='completed').first()
-        print(last_completed_attempt)
+        # print(last_completed_attempt)
         in_progress_attempt = attempts.filter(status='in_progress').first()
-        print(f"{in_progress_attempt=}")
+        # print(f"{in_progress_attempt=}")
 
     context = {
         'collection': collection,

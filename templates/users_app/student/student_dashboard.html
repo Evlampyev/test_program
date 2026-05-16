@@ -125,15 +125,24 @@
                                         </div>
                                     {% endif %}
                                 </div>
-                                <a href="{% url 'tasks_&_collections:tasks:detail' task.id %}"
-                                   class="btn btn-sm btn-outline-primary"
-                                   style="width:5rem">
+                                <div class="align-content-between">
                                     {% if task.is_solved %}
-                                        <i class="fas fa-eye"></i>
-                                    {% else %}
-                                        <i class="fas fa-play"></i>
+                                        <a href="#" class="btn btn-outline-sms btn-sm sample-solution-btn"
+                                           data-task-id="{{ task.id }}" data-task-title="{{ task.title }}"
+                                           style="width:5rem">
+                                            <i class="fas fa-code"></i> Образец решения
+                                        </a>
                                     {% endif %}
-                                </a>
+                                    <a href="{% url 'tasks_&_collections:tasks:detail' task.id %}"
+                                       class="btn btn-outline-primary btn-sm"
+                                       style="width:5rem">
+                                        {% if task.is_solved %}
+                                            <i class="fas fa-eye"></i> посмотреть
+                                        {% else %}
+                                            <i class="fas fa-play"></i> решить
+                                        {% endif %}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     {% endfor %}
@@ -263,6 +272,27 @@
             </div>
         </div>
     </div>
+
+    <!-- Модальное окно для образцового решения -->
+    <div class="modal fade" id="sampleSolutionModal" tabindex="-1" aria-labelledby="sampleSolutionModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="sampleSolutionModalLabel">Образцовое решение</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <pre><code id="sampleSolutionCode" class="language-python"
+                               style="background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px;"></code></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -276,6 +306,38 @@
                     showAllBtn.style.display = 'none';
                 });
             }
+        });
+
+        // Обработчик клика для кнопок образцового решения
+        document.querySelectorAll('.sample-solution-btn').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const taskId = this.dataset.taskId;
+                const taskTitle = this.dataset.taskTitle;
+                const modal = new bootstrap.Modal(document.getElementById('sampleSolutionModal'));
+                const codeContainer = document.getElementById('sampleSolutionCode');
+                codeContainer.textContent = 'Загрузка...';
+                modal.show();
+
+                fetch(`/tasks/task/${taskId}/sample/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        codeContainer.textContent = data.content;
+                        // Удаляем внутренние маркеры highlight.js, чтобы принудительно переподсветить
+                        codeContainer.removeAttribute('data-highlighted');
+                        if (codeContainer.classList) {
+                            // Можно также убрать классы, добавленные highlight.js, но обычно не требуется
+                        }
+                        if (typeof hljs !== 'undefined') {
+                            hljs.highlightElement(codeContainer);
+                        }
+                        document.getElementById('sampleSolutionModalLabel').textContent = `Образцовое решение: ${data.task_title}`;
+                    })
+                    .catch(error => {
+                        codeContainer.textContent = 'Ошибка загрузки решения';
+                        console.error(error);
+                    });
+            });
         });
     </script>
 {% endblock %}
