@@ -1,3 +1,2 @@
-data = input()
-if data == "ааббААББссСС":
-    print("ббааББААссСС")
+data = map(int,input().split())
+print(12)

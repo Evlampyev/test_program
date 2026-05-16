@@ -139,6 +139,10 @@ class PythonCodeTester:
                 input_data = f.read()
             result['input'] = input_data
 
+            with open(expected_output_file, 'r', encoding='utf-8') as f:
+                output_data = f.read()
+            result['expected'] = output_data
+
             # Запускаем код ученика
             stdout, stderr, return_code = self.run_student_code(input_data)
             result['return_code'] = return_code

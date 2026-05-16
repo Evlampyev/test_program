@@ -132,7 +132,7 @@ app.use(express.static('public'));
 app.use(express.json());
 
 // Корневая папка с задачами
-const TASKS_ROOT = path.join(__dirname, 'tasks_for_tests');
+const TASKS_ROOT = path.join(__dirname, 'tasks');
 
 // API для получения структуры папок
 app.get('/api/structure', async (req, res) => {

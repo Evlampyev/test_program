@@ -48,35 +48,35 @@
     margin-right: 8px;
 }
 
-.test-card {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 15px;
-    border-left: 4px solid #667eea;
-}
+/*.test-card {*/
+/*    background: #f8f9fa;*/
+/*    border-radius: 10px;*/
+/*    padding: 20px;*/
+/*    margin-bottom: 15px;*/
+/*    border-left: 4px solid #667eea;*/
+/*}*/
 
-.test-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
+/*.test-header {*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+/*    margin-bottom: 1rem;*/
+/*}*/
 
-.test-number {
-    font-weight: 600;
-    color: #495057;
-}
+/*.test-number {*/
+/*    font-weight: 600;*/
+/*    color: #495057;*/
+/*}*/
 
-.remove-test {
-    color: #dc3545;
-    cursor: pointer;
-    transition: color 0.3s;
-}
+/*.remove-test {*/
+/*    color: #dc3545;*/
+/*    cursor: pointer;*/
+/*    transition: color 0.3s;*/
+/*}*/
 
-.remove-test:hover {
-    color: #bd2130;
-}
+/*.remove-test:hover {*/
+/*    color: #bd2130;*/
+/*}*/
 
 
 .path-preview {

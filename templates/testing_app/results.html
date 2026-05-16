@@ -74,10 +74,10 @@
                                     <strong>📥 Входные данные:</strong>
                                     <pre class="test-data">{{ result.input|default:"—" }}</pre>
                                 </div>
-                                <div class="test-file">
-                                    <strong>📤 Ожидаемый вывод:</strong>
-                                    <pre class="test-data">{{ result.expected|default:"—" }}</pre>
-                                </div>
+                                {#                                <div class="test-file">#}
+                                {#                                    <strong>📤 Ожидаемый вывод:</strong>#}
+                                {#                                    <pre class="test-data">{{ result.expected|default:"—" }}</pre>#}
+                                {#                                </div>#}
                             </div>
 
                             {% if result.error %}
@@ -100,20 +100,16 @@
                                     <pre style="margin-top: 5px; white-space: pre-wrap;">{{ result.stderr }}</pre>
                                 </div>
                             {% endif %}
-
-                            {% if result.expected is not None and result.actual is not None %}
-                                <div class="diff-view">
-                                    <div class="diff-column results-expected">
-                                        <div class="diff-title">📌 Ожидаемый результат:</div>
-                                        <pre class="diff-content">{{ result.expected }}</pre>
-                                    </div>
-                                    <div class="diff-column results-actual">
-                                        <div class="diff-title">💻 Ваш результат:</div>
-                                        <pre class="diff-content">{{ result.actual }}</pre>
-                                    </div>
+                            <div class="diff-view">
+                                <div class="diff-column results-expected">
+                                    <div class="diff-title">📌 Ожидаемый результат:</div>
+                                    <pre class="diff-content">{{ result.expected|default:"—" }}</pre>
                                 </div>
-                            {% endif %}
-
+                                <div class="diff-column results-actual">
+                                    <div class="diff-title">💻 Ваш результат:</div>
+                                    <pre class="diff-content">{% if result.actual is not None %}{{ result.actual }}{% elif result.error %}(ошибка выполнения){% else %}—{% endif %}</pre>
+                                </div>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>

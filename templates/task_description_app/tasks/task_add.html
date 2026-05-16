@@ -304,37 +304,7 @@
             document.getElementById('previewImg').src = '#';
         }
 
-        {#// Обновление предпросмотра пути#}
-        {#function updatePathPreview() {#}
-        {#    const classVal = document.getElementById('id_class_name').value;#}
-        {#    const topicVal = document.getElementById('id_topic').value;#}
-        {#    const lessonVal = document.getElementById('id_lesson').value;#}
-        {#    const levelVal = document.getElementById('id_level').value;#}
-        {#    const taskFolder = document.getElementById('id_task_folder').value;#}
-        {##}
-        {#    const parts = [];#}
-        {#    if (classVal) parts.push(classVal);#}
-        {#    if (topicVal) parts.push(topicVal);#}
-        {#    if (lessonVal) parts.push(lessonVal);#}
-        {#    if (levelVal) parts.push(levelVal);#}
-        {#    if (taskFolder) parts.push(taskFolder);#}
-        {##}
-        {#    document.getElementById('pathPreview').textContent =#}
-        {#        parts.length > 0 ? '/tasks_for_tests/' + parts.join('/') : '/tasks_for_tests/...';#}
-        {#}#}
-            {##}
-            {#// Слушатели для обновления пути#}
-            {#const classInput = document.getElementById('id_class_name');#}
-            {#const topicInput = document.getElementById('id_topic');#}
-            {#const lessonInput = document.getElementById('id_lesson');#}
-            {#const levelSelect = document.getElementById('id_level');#}
-            {#const taskFolderInput = document.getElementById('id_task_folder');#}
-            {##}
-            {#if (classInput) classInput.addEventListener('input', updatePathPreview);#}
-            {#if (topicInput) topicInput.addEventListener('input', updatePathPreview);#}
-            {#if (lessonInput) lessonInput.addEventListener('input', updatePathPreview);#}
-            {#if (levelSelect) levelSelect.addEventListener('change', updatePathPreview);#}
-            {#if (taskFolderInput) taskFolderInput.addEventListener('input', updatePathPreview);#}
+
 
             // Управление тестами
             let testCount = 0;
@@ -350,7 +320,7 @@
                 testDiv.innerHTML = `
                 <div class="test-header">
                     <span class="test-number">Тест #${testCount}</span>
-                    <span class="btn btn-remove-test btn-sm" onclick="removeTest(${testCount})">
+                    <span class="btn btn-remove-test btn-little btn-sm nclick="removeTest(${testCount})">
                         <i class="fas fa-trash-alt"></i> Удалить
                     </span>
                 </div>

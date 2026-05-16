@@ -143,6 +143,7 @@ def run_tests(request, program_id):
     print("=" * 50)
     for i, r in enumerate(results):
         print(f"Тест {i + 1}: {r.keys()}")
+        print(r.values())
     print("=" * 50)
 
     return render(request, 'testing_app/results.html', {
