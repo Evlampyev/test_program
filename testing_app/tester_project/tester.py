@@ -193,7 +193,7 @@ class PythonCodeTester:
             # print("   и .out/.output для ожидаемых выходных данных")
             return []
 
-        print(f"📁 Найдено тестов: {len(test_pairs)}")
+        # print(f"📁 Найдено тестов: {len(test_pairs)}")
         logger.info(f"📁 Найдено тестов: {len(test_pairs)}")
 
         results = []
@@ -213,21 +213,6 @@ class PythonCodeTester:
                 if result['error']:
                     # print(f"   Ошибка: {result['error']}")
                     pass
-
-        # Выводим итоговую статистику
-        # print("\n" + "="*50)
-        # print(f"📊 ИТОГИ ТЕСТИРОВАНИЯ")
-        # print("="*50)
-        # print(f"Всего тестов: {len(test_pairs)}")
-        # print(f"Пройдено: {passed_count}")
-        # print(f"Не пройдено: {len(test_pairs) - passed_count}")
-        #
-        # if passed_count == len(test_pairs):
-        #     print("🎉 Все тесты пройдены успешно!")
-        # elif passed_count == 0:
-        #     print("💥 Ни один тест не пройден")
-        # else:
-        #     print(f"📈 Успешность: {passed_count/len(test_pairs)*100:.1f}%")
 
         return results
 

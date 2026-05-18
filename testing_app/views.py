@@ -127,7 +127,9 @@ def run_tests(request, program_id):
         user = request.user.student_profile
         user.add_solved_task(task_id)
         logger.info(f"Тестирование: {user}\n   результат {success_rate}%\n   задача {task.title}")
-        print(f"Тестирование: {user}\n       результат {success_rate}%\n       задача {task.title}")
+        print(f"Тестирование: {user}\n"
+              f"             результат {success_rate}%\n"
+              f"             задача {task.title}")
     except Exception as e:
         logger.error(f"Пользователь не найден. Ошибка {e}")
 
@@ -140,11 +142,11 @@ def run_tests(request, program_id):
     else:
         task_data.update_statistics('failed')
 
-    print("=" * 50)
-    for i, r in enumerate(results):
-        print(f"Тест {i + 1}: {r.keys()}")
-        print(r.values())
-    print("=" * 50)
+    # print("=" * 50)
+    # for i, r in enumerate(results):
+    #     print(f"Тест {i + 1}: {r.keys()}")
+    #     print(r.values())
+    # print("=" * 50)
 
     return render(request, 'testing_app/results.html', {
         'program': program,

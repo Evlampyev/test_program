@@ -1,8 +1,9 @@
-def solve():
-    data = input().split()
-    # Ваш код
-    result = 0
-    print(result)
+data = [int(i) for i in input().split()]
 
-if __name__ == "__main__":
-    solve()
+result = True
+for i in range(len(data)):
+    if -15 > data[i] or data[i] > 20:
+        result = False
+    data[i] *= 3
+print(result)
+print(data)

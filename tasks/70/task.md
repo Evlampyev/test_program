@@ -1,4 +1,5 @@
 ## print(): Вася пошёл гулять
+
 Вывести на экран текст «лесенкой»
 <table style="width: auto; margin: auto">
     <tr style="text-align: center">
@@ -12,6 +13,7 @@
 </table>
 
 ### Пример
+
 <table style="width: auto; margin: auto">
     <tr style="text-align: center">
         <th><b><i>Ввод</i></b></th>
@@ -19,6 +21,8 @@
     </tr>
     <tr style="vertical-align: top">
         <td></td>
-        <td><pre>Вася<br>    пошёл<br>        гулять</pre></td>
+        <td><pre>Вася    
+    пошёл
+        гулять</pre></td>
     </tr>
 </table>

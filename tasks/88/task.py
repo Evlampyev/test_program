@@ -1,8 +1,5 @@
-def solve():
-    data = input().split()
-    # Ваш код
-    result = 0
-    print(result)
+n = int(input())
+data = [int(x) for x in input().split()]
 
-if __name__ == "__main__":
-    solve()
+print(*data[:n], sep='*')
+print(*data[n:], sep='*')

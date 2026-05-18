@@ -25,6 +25,6 @@
     <tr style="vertical-align: top">
         <td>10 100 -15</td>
         <td>False<br>
-[30, 300, -45]]</td>
+[30, 300, -45]</td>
     </tr>
 </table>

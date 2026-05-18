@@ -4,6 +4,7 @@ document.getElementById('programUploadForm').addEventListener('submit', async fu
 
     const formData = new FormData(this);
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const fileInput = document.getElementById('programFile');
 
     try {
         const response = await fetch('/upload/', {
@@ -18,7 +19,11 @@ document.getElementById('programUploadForm').addEventListener('submit', async fu
 
         if (data.success) {
             window.App.showMessage('Файл успешно загружен!', 'success');
-            // Передаем program_id в окно тестирования
+            // Очищаем поле выбора файла
+            fileInput.value = '';
+            // Сбрасываем отображение имени и содержимого
+            document.getElementById('programFileName').textContent = 'Файл не выбран';
+            // document.getElementById('programContent').innerHTML = '// Программа будет отображена после загрузки';
             if (data.program_id) {
                 runTests(data.program_id);
             }
@@ -69,19 +74,19 @@ async function updateTaskStatus(programId) {
 }
 
 // Дополнительный JS для отображения содержимого файла
-document.getElementById('programFile').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (file) {
-        document.getElementById('programFileName').textContent = file.name;
-
-        // Читаем содержимое файла для предпросмотра
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById('programContent').textContent = e.target.result;
-        };
-        reader.readAsText(file);
-    }
-});
+// document.getElementById('programFile').addEventListener('change', function (e) {
+//     const file = e.target.files[0];
+//     if (file) {
+//         document.getElementById('programFileName').textContent = file.name;
+//
+//         // Читаем содержимое файла для предпросмотра
+//         const reader = new FileReader();
+//         reader.onload = function (e) {
+//             document.getElementById('programContent').textContent = e.target.result;
+//         };
+//         reader.readAsText(file);
+//     }
+// });
 
 // Инициализация highlight.js
 hljs.highlightAll();

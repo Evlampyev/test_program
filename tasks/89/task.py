@@ -1,8 +1,6 @@
-def solve():
-    data = input().split()
-    # Ваш код
-    result = 0
-    print(result)
+n = int(input())
+data = [0]*n
+for i in range(n):
+    data[i] = int(input())
 
-if __name__ == "__main__":
-    solve()
+k,n = map()
