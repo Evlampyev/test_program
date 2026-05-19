@@ -34,6 +34,12 @@
                     <i class="fas fa-info-circle me-2"></i>Информация
                 </button>
             </li>
+            <li class="nav-item">
+                <button class="nav-link-dark" id="location-tab" data-bs-toggle="tab" data-bs-target="#location"
+                        type="button" role="tab" aria-controls="location" aria-selected="false">
+                    <i class="fas fa-folder-tree me-2"></i>Расположение
+                </button>
+            </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link-dark" id="content-tab" data-bs-toggle="tab" data-bs-target="#content"
                         type="button"
@@ -108,8 +114,39 @@
                     </div>
                 </div>
             </div>
+            <!-- Вкладка 2 "Расположение" -->
+            <div class="tab-pane fade" id="location" role="tabpanel">
+                <div class="form-card">
+                    <div class="section-title">
+                        <i class="fas fa-map-signs"></i> Расположение задачи в структуре
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-school"></i> Класс</label>
+                            <input type="text" name="class_name" class="form-control" placeholder="8 класс, 10 класс"
+                                   value="{{ current_class|default:'' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="fas fa-book"></i> Тема</label>
+                            <input type="text" name="topic" class="form-control" placeholder="Тема №1. Введение"
+                                   value="{{ current_topic|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><i class="fas fa-calendar-alt"></i> Урок</label>
+                            <input type="text" name="lesson" class="form-control" placeholder="Урок 27, Урок 84(38)"
+                                   value="{{ current_lesson|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-2">
+                        <i class="fas fa-info-circle"></i> Если указать расположение, текущее место задачи будет
+                        заменено на новое. Если оставить поля пустыми – расположение не изменится.
+                    </div>
+                </div>
+            </div>
 
-            <!-- Вкладка 2: Описание -->
+            <!-- Вкладка 3: Описание -->
             <div class="tab-pane fade" id="content" role="tabpanel" aria-labelledby="content-tab">
                 <div class="form-card">
                     <div class="section-title">
@@ -122,7 +159,7 @@
                 </div>
             </div>
 
-            <!-- Вкладка 3: Решение -->
+            <!-- Вкладка 4: Решение -->
             <div class="tab-pane fade" id="solution" role="tabpanel" aria-labelledby="solution-tab">
                 <div class="form-card">
                     <div class="section-title">
@@ -135,7 +172,7 @@
                 </div>
             </div>
 
-            <!-- Вкладка 4: Тесты -->
+            <!-- Вкладка 5: Тесты -->
             <div class="tab-pane fade" id="tests" role="tabpanel" aria-labelledby="tests-tab">
                 <div class="form-card">
                     <div class="section-title">
@@ -146,7 +183,8 @@
                             <div class="test-card" id="test_{{ test.num }}">
                                 <div class="test-header">
                                     <span class="test-number">Тест #{{ test.num }}</span>
-                                    <span class="btn btn-sm btn-remove-test btn-little" onclick="removeTest({{ test.num }})">
+                                    <span class="btn btn-sm btn-remove-test btn-little"
+                                          onclick="removeTest({{ test.num }})">
                                     <i class="fas fa-trash-alt"></i> Удалить
                                 </span>
                                 </div>
@@ -200,8 +238,10 @@
                 <div class="modal-footer">
                     <form method="post" action="{% url 'tasks_&_collections:tasks:delete' task.id %}">
                         {% csrf_token %}
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-danger">Удалить</button>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -425,19 +465,5 @@
                 };
             }
         });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const previewImg = document.getElementById('previewImg');
-            if (previewImg) {
-                previewImg.onerror = function () {
-                    console.log('Текущее изображение не найдено');
-                    const imagePreview = document.getElementById('imagePreview');
-                    if (imagePreview) {
-                        imagePreview.style.display = 'none';
-                    }
-                };
-            }
-        });
-
     </script>
 {% endblock %}

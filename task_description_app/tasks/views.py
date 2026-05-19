@@ -19,12 +19,12 @@ from django.views.decorators.http import require_POST
 
 from .forms import TaskAddForm, TaskContentForm, TaskEditForm
 from . import Task, DifficultyLevel, TaskAttempt, UploadedProgram
-# from .utils import create_uploaded_file_from_code, get_task_files
 from manage import logger
 from ..shared import ClassStructure, TaskPlacement
 from ..shared.decorators import is_teacher
 from ..shared.utils import create_uploaded_file_from_code, get_task_files
 from ..shared.views import get_task_path_from_structure, get_or_create_structure_node
+from .models import User
 
 
 def build_tree_structure():
@@ -606,6 +606,31 @@ def task_edit(request, task_id):
             'output': output_content
         })
 
+    current_class = current_topic = current_lesson = current_level = ''
+    first_placement = task.placements.first()
+    if first_placement:
+        node = first_placement.structure_node
+        # Собираем путь (класс -> тема -> урок -> уровень)
+        path_parts = []
+        cur = node
+        while cur.parent:
+            path_parts.insert(0, cur.name)
+            cur = cur.parent
+        path_parts.insert(0, cur.name)  # добавляем корень
+        if len(path_parts) >= 4:
+            current_class = path_parts[0]
+            current_topic = path_parts[1]
+            current_lesson = path_parts[2]
+            current_level = path_parts[3]
+
+    context = {
+        # ... существующие ...
+        'current_class': current_class,
+        'current_topic': current_topic,
+        'current_lesson': current_lesson,
+        'current_level': current_level,
+    }
+
     if request.method == 'POST':
         # Используем обычные формы, а не ModelForm для редактирования
         # Обновляем задачу вручную
@@ -673,6 +698,24 @@ def task_edit(request, task_id):
         elif request.POST.get('remove_image') == 'true' and img_exists:
             os.remove(img_path)
 
+        # --- Обработка расположения ---
+        class_name = request.POST.get('class_name', '').strip()
+        topic = request.POST.get('topic', '').strip()
+        lesson = request.POST.get('lesson', '').strip()
+
+        # level = request.POST.get('level', '').strip()
+        if class_name and topic and lesson:
+            # Уровень берём из сохранённой задачи
+            level_name = task.difficulty.level_name  # 'A', 'B', 'C'...
+            level_node_name = f"Уровень_{level_name}"
+            # Получаем или создаём узлы структуры
+            level_node = get_or_create_structure_node(class_name, topic, lesson, level_node_name)
+            # Удаляем старые привязки (можно удалять все, но осторожно – если задача в нескольких местах)
+            TaskPlacement.objects.filter(task=task).delete()
+            # Создаём новую привязку
+            TaskPlacement.objects.get_or_create(task=task, structure_node=level_node)
+            messages.success(request, 'Расположение задачи обновлено.')
+
         messages.success(request, f'Задача #{task.id} успешно обновлена!')
         return redirect('tasks_&_collections:tasks:edit', task_id=task.id)
 
@@ -680,7 +723,7 @@ def task_edit(request, task_id):
     from .forms import TaskEditForm, TaskContentForm
     task_form = TaskEditForm(initial={
         'title': task.title,
-        'difficulty': task.difficulty_id,
+        'difficulty': task.difficulty,
         'description': task.description,
     })
     content_form = TaskContentForm(initial={
@@ -700,26 +743,71 @@ def task_edit(request, task_id):
     return render(request, 'task_description_app/tasks/task_edit.html', context)
 
 
+def delete_empty_node(node):
+    """
+    Рекурсивно удаляет узел структуры, если он не содержит задач и не имеет дочерних узлов.
+    После удаления проверяет родителя.
+    """
+    # Проверяем, есть ли задачи в этом узле
+    has_tasks = TaskPlacement.objects.filter(structure_node=node).exists()
+    # Проверяем, есть ли дочерние узлы (не удалённые)
+    has_children = ClassStructure.objects.filter(parent=node).exists()
+
+    if not has_tasks and not has_children:
+        parent = node.parent
+        node.delete()
+        # Рекурсивно проверяем родителя
+        if parent:
+            delete_empty_node(parent)
+
+
 @login_required
 @user_passes_test(is_teacher)
 def task_delete(request, task_id):
-    """Удаление задачи"""
+    """Удаление задачи с автоматической очисткой пустых узлов структуры"""
     task = get_object_or_404(Task, id=task_id)
     task_title = task.title
 
-    # Получаем путь к папке задачи
-    task_dir = get_task_path_from_structure(task)
+    # Получаем все узлы, к которым привязана задача (до удаления связей)
+    affected_nodes = list(TaskPlacement.objects.filter(task=task).values_list('structure_node', flat=True))
 
-    # Удаляем папку с файлами, если она существует
+    # Удаляем папку с файлами задачи
+    task_dir = get_task_path_from_structure(task)
     if task_dir and os.path.exists(task_dir):
         shutil.rmtree(task_dir)
 
-    # Удаляем связи TaskPlacement
-    TaskPlacement.objects.filter(task=task).delete()
-
+    # Удаляем задачу (каскадно удалятся и связи TaskPlacement)
     task.delete()
+
+    # Для каждого узла, где была задача, проверяем, не стал ли он пустым
+    for node_id in affected_nodes:
+        node = ClassStructure.objects.filter(id=node_id).first()
+        if node:
+            delete_empty_node(node)
+
     messages.success(request, f'Задача "{task_title}" (#{task_id}) успешно удалена!')
-    return redirect('tasks:task_list')
+    return redirect('tasks_&_collections:tasks:list')
+
+# @login_required
+# @user_passes_test(is_teacher)
+# def task_delete(request, task_id):
+#     """Удаление задачи"""
+#     task = get_object_or_404(Task, id=task_id)
+#     task_title = task.title
+#
+#     # Получаем путь к папке задачи
+#     task_dir = get_task_path_from_structure(task)
+#
+#     # Удаляем папку с файлами, если она существует
+#     if task_dir and os.path.exists(task_dir):
+#         shutil.rmtree(task_dir)
+#
+#     # Удаляем связи TaskPlacement
+#     TaskPlacement.objects.filter(task=task).delete()
+#
+#     task.delete()
+#     messages.success(request, f'Задача "{task_title}" (#{task_id}) успешно удалена!')
+#     return redirect('tasks_&_collections:tasks:list')
 
 
 @login_required
@@ -853,3 +941,48 @@ def sample_solution(request, task_id):
     else:
         content = "# Файл с образцовым решением не найден"
     return JsonResponse({'content': content, 'task_title': task.title})
+
+
+@login_required
+@user_passes_test(is_teacher)
+def fork_task(request, task_id):
+    """Создаёт копию задачи со всеми файлами и привязками к структуре"""
+    original = get_object_or_404(Task, id=task_id)
+
+    # Создаём новую задачу (копируем основные поля, но не статистику и временные метки)
+    new_task = Task.objects.create(
+        title=f"Копия: {original.title}",
+        description=original.description,
+        difficulty=original.difficulty,
+        is_public=original.is_public,
+        created_by=User.objects.get(pk=request.user.id),
+        # test_files скопируем после копирования файлов
+    )
+
+    # Копируем папку с файлами задачи
+    src_dir = os.path.join(settings.TASKS_ROOT, str(original.id))
+    dst_dir = os.path.join(settings.TASKS_ROOT, str(new_task.id))
+    if os.path.exists(src_dir):
+        shutil.copytree(src_dir, dst_dir)
+    else:
+        # Если папки нет (на всякий случай), создаём пустую
+        os.makedirs(dst_dir, exist_ok=True)
+
+    # Копируем список тестов (имена файлов)
+    new_task.test_files = original.test_files.copy()
+    new_task.save()
+
+    # # Копируем привязки к структуре (TaskPlacement)
+    # placements = TaskPlacement.objects.filter(task=original)
+    # for placement in placements:
+    #     TaskPlacement.objects.create(
+    #         task=new_task,
+    #         structure_node=placement.structure_node
+    #     )
+
+    messages.success(request, f'Задача скопирована. Теперь вы можете отредактировать её.')
+    return redirect('tasks_&_collections:tasks:edit', task_id=new_task.id)
+
+
+def link_task(request, task_id):
+    pass

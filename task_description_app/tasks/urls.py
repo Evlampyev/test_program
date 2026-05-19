@@ -15,4 +15,6 @@ urlpatterns = [
     path('api/task/<int:task_id>/', views.get_task_info, name='info'),
 
     path('task/<int:task_id>/sample/', views.sample_solution, name='sample_solution'),
+    path('task/<int:task_id>/fork/', views.fork_task, name='fork'),
+    path('task/<int:task_id>/link/', views.link_task, name='link'),
 ]

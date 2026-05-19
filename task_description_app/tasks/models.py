@@ -74,7 +74,6 @@ class DifficultyLevel(models.Model):
             self.display_name = self.get_level_name_display()
         super().save(*args, **kwargs)
 
-
     def get_grade_display(self):
         """Возвращает описание оценки для уровня"""
         grade_map = {
@@ -85,6 +84,7 @@ class DifficultyLevel(models.Model):
             'E': "на '5' в четверти",
         }
         return grade_map.get(self.level_name, self.display_name)
+
 
 class Task(models.Model):
     """Модель задачи"""
@@ -134,6 +134,14 @@ class Task(models.Model):
         verbose_name='Последняя попытка'
     )
 
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_DEFAULT,
+        default=4, # User.id = 4 это я
+        related_name='tasks',
+        verbose_name='автор задачи'
+    )
+
     class Meta:
         db_table = 'task_description_app_task'
 
@@ -177,7 +185,6 @@ class Task(models.Model):
 
 # Модель для отслеживания попыток решения
 class TaskAttempt(models.Model):
-
     STATUS_CHOICES = (
         ('pending', 'Ожидает проверки'),
         ('correct', 'Верно'),

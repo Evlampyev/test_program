@@ -4,7 +4,7 @@
 
 .task-container {
     gap: 2rem;
-    padding: 1.5rem;
+    /*padding: 1.5rem;*/
 }
 
 
@@ -881,6 +881,18 @@
     color: white;
 }
 
+.task-info {
+    flex: 1;
+}
 .difficulty-legend {
+    margin-left: 20px;
+    white-space: nowrap;
     text-align: right;
+}
+@media (max-width: 768px) {
+    .difficulty-legend {
+        white-space: normal;
+        margin-left: 0;
+        margin-top: 10px;
+    }
 }
