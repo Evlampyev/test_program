@@ -450,7 +450,9 @@ def task_add(request):
                 # Создаем связь задачи с узлом уровня
                 TaskPlacement.objects.get_or_create(
                     task=task,
-                    structure_node=level_node
+                    structure_node=level_node,
+                    is_original=True,
+                    created_by=request.user,
                 )
 
                 return JsonResponse({
@@ -713,7 +715,7 @@ def task_edit(request, task_id):
             # Удаляем старые привязки (можно удалять все, но осторожно – если задача в нескольких местах)
             TaskPlacement.objects.filter(task=task).delete()
             # Создаём новую привязку
-            TaskPlacement.objects.get_or_create(task=task, structure_node=level_node)
+            TaskPlacement.objects.get_or_create(task=task, structure_node=level_node, is_original=True)
             messages.success(request, 'Расположение задачи обновлено.')
 
         messages.success(request, f'Задача #{task.id} успешно обновлена!')
@@ -763,9 +765,30 @@ def delete_empty_node(node):
 
 @login_required
 @user_passes_test(is_teacher)
+def unlink_task(request, task_id, node_id):
+    """Удаляет привязку задачи к указанному узлу структуры"""
+    task = get_object_or_404(Task, id=task_id)
+    node = get_object_or_404(ClassStructure, id=node_id)
+    # находим и удаляем связь
+    TaskPlacement.objects.filter(task=task, structure_node=node).delete()
+    delete_empty_node(node)
+    path_str = " / ".join(node.get_full_path())
+    messages.success(request, f'Задача "{task.title}" отвязана от раздела "{path_str}"')
+    return redirect('tasks_&_collections:tasks:detail', task_id=task.id)
+
+
+@login_required
+@user_passes_test(is_teacher)
 def task_delete(request, task_id):
     """Удаление задачи с автоматической очисткой пустых узлов структуры"""
     task = get_object_or_404(Task, id=task_id)
+
+    if task.placements.filter(is_original=False).exists():
+        messages.warning(request,
+                         f'Задача "{task.title}" переиспользована в других разделах. Удаление задачи удалит её везде. '
+                         f'Если вы хотите только убрать её из некоторых разделов, используйте "Отвязать".')
+        return redirect('tasks_&_collections:tasks:list')
+
     task_title = task.title
 
     # Получаем все узлы, к которым привязана задача (до удаления связей)
@@ -787,27 +810,6 @@ def task_delete(request, task_id):
 
     messages.success(request, f'Задача "{task_title}" (#{task_id}) успешно удалена!')
     return redirect('tasks_&_collections:tasks:list')
-
-# @login_required
-# @user_passes_test(is_teacher)
-# def task_delete(request, task_id):
-#     """Удаление задачи"""
-#     task = get_object_or_404(Task, id=task_id)
-#     task_title = task.title
-#
-#     # Получаем путь к папке задачи
-#     task_dir = get_task_path_from_structure(task)
-#
-#     # Удаляем папку с файлами, если она существует
-#     if task_dir and os.path.exists(task_dir):
-#         shutil.rmtree(task_dir)
-#
-#     # Удаляем связи TaskPlacement
-#     TaskPlacement.objects.filter(task=task).delete()
-#
-#     task.delete()
-#     messages.success(request, f'Задача "{task_title}" (#{task_id}) успешно удалена!')
-#     return redirect('tasks_&_collections:tasks:list')
 
 
 @login_required
@@ -984,5 +986,42 @@ def fork_task(request, task_id):
     return redirect('tasks_&_collections:tasks:edit', task_id=new_task.id)
 
 
+@login_required
+@user_passes_test(is_teacher)
 def link_task(request, task_id):
-    pass
+    task = get_object_or_404(Task, id=task_id)
+
+    if request.method == 'POST':
+        class_name = request.POST.get('class_name', '').strip()
+        topic = request.POST.get('topic', '').strip()
+        lesson = request.POST.get('lesson', '').strip()
+
+        if not (class_name and topic and lesson):
+            messages.error(request, 'Пожалуйста, заполните все поля.')
+            return redirect('tasks_&_collections:tasks:link', task_id=task.id)
+
+        # Уровень берём из задачи
+        level_name = task.difficulty.level_name
+        level_node_name = f"Уровень_{level_name}"
+
+        # Создаём или получаем узел структуры
+        level_node = get_or_create_structure_node(class_name, topic, lesson, level_node_name)
+
+        # Проверяем, не существует ли уже такой привязки
+        placement, created = TaskPlacement.objects.get_or_create(
+            task=task,
+            structure_node=level_node,
+            defaults={'is_original': False, 'created_by': request.user}
+        )
+        if created:
+            messages.success(request, f'Задача "{task.title}" успешно привязана к {class_name} / {topic} / {lesson}.')
+        else:
+            messages.warning(request, f'Задача уже привязана к указанному месту.')
+
+        return redirect('tasks_&_collections:tasks:detail', task_id=task.id)
+
+    # GET — показываем форму
+    context = {
+        'task': task,
+    }
+    return render(request, 'task_description_app/tasks/task_link.html', context)

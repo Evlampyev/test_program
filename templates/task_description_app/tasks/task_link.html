@@ -1,0 +1,64 @@
+<!-- templates/task_description_app/tasks/task_link.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Переиспользование задачи #{{ task.id }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'tasks/css/tasks.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">
+                            <i class="fas fa-link me-2"></i>
+                            Переиспользование задачи
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">
+                            Задача: <strong>#{{ task.id }}: {{ task.title }}</strong><br>
+                            Вы можете привязать её к новой позиции в структуре без дублирования файлов.
+                        </p>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label"><i class="fas fa-school"></i> Класс</label>
+                                <input type="text" name="class_name" class="form-control" required
+                                       placeholder="8 класс, 10 класс">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><i class="fas fa-book"></i> Тема</label>
+                                <input type="text" name="topic" class="form-control" required
+                                       placeholder="Тема №1. Введение">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><i class="fas fa-calendar-alt"></i> Урок</label>
+                                <input type="text" name="lesson" class="form-control" required
+                                       placeholder="Урок 27, Урок 84(38)">
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                Уровень сложности будет взят из текущей задачи ({{ task.difficulty.level_name }}).
+                                Если вы хотите изменить уровень, сначала отредактируйте задачу.
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-link me-2"></i>Привязать задачу
+                                </button>
+                                <a href="{% url 'tasks_&_collections:tasks:detail' task.id %}"
+                                   class="btn btn-secondary">
+                                    Отмена
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

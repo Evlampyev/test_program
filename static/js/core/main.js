@@ -129,6 +129,45 @@ function handleResize() {
 window.addEventListener('resize', handleResize);
 handleResize();
 
+(function() {
+    // Функция автоматического скрытия одного алерта
+    function autoHideAlert(alertElement) {
+        if (alertElement.dataset.autoHide === 'true') return;
+        alertElement.dataset.autoHide = 'true';
+        setTimeout(() => {
+            alertElement.classList.remove('show');
+            setTimeout(() => alertElement.remove(), 300);
+        }, 5000);
+    }
+
+    // Инициализация существующих алертов
+    function initAlerts() {
+        document.querySelectorAll('.alert').forEach(autoHideAlert);
+    }
+
+    // MutationObserver для отслеживания появления новых алертов
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) {
+                    // Если сам узел – alert
+                    if (node.classList && node.classList.contains('alert')) {
+                        autoHideAlert(node);
+                    }
+                    // Если внутри узла есть дочерние alert
+                    if (node.querySelectorAll) {
+                        node.querySelectorAll('.alert').forEach(autoHideAlert);
+                    }
+                }
+            });
+        });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Запуск при загрузке страницы
+    document.addEventListener('DOMContentLoaded', initAlerts);
+})();
+
 
 // // Глобальные функции
 // window.App = {

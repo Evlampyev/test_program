@@ -17,4 +17,5 @@ urlpatterns = [
     path('task/<int:task_id>/sample/', views.sample_solution, name='sample_solution'),
     path('task/<int:task_id>/fork/', views.fork_task, name='fork'),
     path('task/<int:task_id>/link/', views.link_task, name='link'),
+    path('task/<int:task_id>/unlink/<int:node_id>/', views.unlink_task, name='unlink'),
 ]

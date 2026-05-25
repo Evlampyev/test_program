@@ -43,6 +43,8 @@ class TaskPlacement(models.Model):
     order = models.IntegerField('Порядок', default=0)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_original = models.BooleanField('Оригинальная привязка', default=False)   # новое поле
+
 
     class Meta:
         db_table = 'task_description_app_taskplacement'
